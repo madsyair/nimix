@@ -1,0 +1,94 @@
+url: https://madsyair.github.io/nimix/
+
+template:
+  bootstrap: 5
+
+reference:
+- title: Package
+  contents:
+  - nimix-package
+
+- title: Fitting functions
+  desc: User-facing entry points for clustering and mixture-of-regression.
+  contents:
+  - nimixClust
+  - nimixReg
+
+- title: Engines
+  desc: Inference engines selected via the `method` argument.
+  contents:
+  - DPMEngine
+  - FixedKEngine
+  - DPMEngine-class
+  - FixedKEngine-class
+  - EngineConfig-class
+
+- title: Distribution registry
+  desc: Register and look up component distributions by name.
+  contents:
+  - registerDistribution
+  - getDistribution
+  - listDistributions
+
+- title: Clustering component specs
+  contents:
+  - NormalUvSpec
+  - NormalMvSpec
+  - StudentTUvSpec
+  - StudentTMvSpec
+  - NormalGammaUvSpec
+  - NormalGammaMvSpec
+  - PoissonSpec
+  - BinomialSpec
+
+- title: Regression component specs
+  contents:
+  - NormalRegSpec
+  - StudentTRegSpec
+  - NormalGammaRegSpec
+  - PoissonRegSpec
+  - BinomialRegSpec
+  - NormalMvRegSpec
+  - StudentTMvRegSpec
+  - NormalGammaMvRegSpec
+
+- title: Extension API (generics)
+  desc: >
+    The public S4 contract a component spec implements so a new family plugs
+    into every engine without engine edits.
+  contents:
+  - buildModelCode
+  - defaultPrior
+  - validateParams
+  - customizeSamplers
+  - relabel
+  - isRegressionSpec
+  - linkInv
+
+- title: S4 class definitions
+  desc: >
+    Virtual base classes, model/result containers, and the class behind each
+    component spec. Most users work through the constructor functions above;
+    these document the underlying S4 classes.
+  contents:
+  - DistributionSpec-class
+  - MixtureModel-class
+  - ClusterModel-class
+  - RegressionMixModel-class
+  - FitResult-class
+  - NormalUvSpec-class
+  - NormalMvSpec-class
+  - StudentTUvSpec-class
+  - StudentTMvSpec-class
+  - NormalGammaUvSpec-class
+  - NormalGammaMvSpec-class
+  - PoissonSpec-class
+  - BinomialSpec-class
+  - NormalRegSpec-class
+  - StudentTRegSpec-class
+  - NormalGammaRegSpec-class
+  - PoissonRegSpec-class
+  - BinomialRegSpec-class
+  - NormalMvRegSpec-class
+  - StudentTMvRegSpec-class
+  - NormalGammaMvRegSpec-class

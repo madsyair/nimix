@@ -1,0 +1,42 @@
+Package: nimix
+Type: Package
+Title: Bayesian Mixture Clustering and Regression with NIMBLE
+Version: 0.4.3
+Authors@R: c(
+    person("nimix", "Developers", email = "nimix@example.org", role = c("aut", "cre")))
+Description: Bayesian finite and nonparametric mixture modelling built on top of
+    the 'nimble' package. This 0.3.0 release provides the S4 architecture
+    foundation, univariate and multivariate Gaussian mixture clustering, and a
+    Dirichlet Process Mixture of linear regressions, all using a DPM engine via
+    the Chinese Restaurant Process (de Valpine et al. 2017
+    <doi:10.1080/10618600.2016.1172487>; Neal 2000
+    <doi:10.1080/10618600.2000.10474879>; Zhang et al. 2004
+    <doi:10.1023/B:STCO.0000039481.32735.0c>; Hurn et al. 2003
+    <doi:10.1198/1061860031329>). Post-hoc label switching correction wraps the
+    'label.switching' package (Papastamoulis 2016 <doi:10.18637/jss.v069.c01>).
+    A reversible jump MCMC engine is planned for a later release.
+License: GPL-3
+URL: https://github.com/madsyair/nimix,
+        https://madsyair.github.io/nimix/
+BugReports: https://github.com/madsyair/nimix/issues
+Encoding: UTF-8
+Depends: R (>= 4.1.0), nimble (>= 1.0.0)
+Imports: label.switching, coda, methods, stats, graphics
+Suggests: testthat (>= 3.0.0), knitr, rmarkdown
+VignetteBuilder: knitr
+Config/testthat/edition: 3
+Collate: 'utils-internal.R' 'class-DistributionSpec.R'
+        'class-EngineConfig.R' 'class-MixtureModel.R'
+        'class-FitResult.R' 'dist-normal-uv.R' 'dist-normal-mv.R'
+        'dist-normal-reg.R' 'dist-glm-reg.R' 'dist-heavytail-reg.R'
+        'dist-mv-reg.R' 'dist-student-t.R' 'dist-normal-gamma.R'
+        'dist-student-t-mv.R' 'dist-normal-gamma-mv.R'
+        'dist-poisson-binomial.R' 'engine-dpm.R' 'engine-fixedk.R'
+        'registerDistribution.R' 'utils-labelswitch.R'
+        'methods-summary-plot.R' 'nimixClust.R' 'nimixReg.R'
+        'nimix-package.R'
+Config/roxygen2/version: 8.0.0
+NeedsCompilation: no
+Packaged: 2026-06-22 06:24:25 UTC; root
+Author: nimix Developers [aut, cre]
+Maintainer: nimix Developers <nimix@example.org>
