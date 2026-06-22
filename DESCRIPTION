@@ -5,8 +5,7 @@ Version: 0.4.3
 Authors@R: c(
     person("Achmad Syahrul", "Choir", email = "madsyair@stis.ac.id", role = c("aut", "cre")))
 Description: Bayesian finite and nonparametric mixture modelling built on top of
-    the 'nimble' package. This 0.3.0 release provides the S4 architecture
-    foundation, univariate and multivariate Gaussian mixture clustering, and a
+    the 'nimble' package. Provides the univariate and multivariate Gaussian mixture clustering, and a
     Dirichlet Process Mixture of linear regressions, all using a DPM engine via
     the Chinese Restaurant Process (de Valpine et al. 2017
     <doi:10.1080/10618600.2016.1172487>; Neal 2000
