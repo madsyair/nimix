@@ -9,8 +9,7 @@ Description: Bayesian finite and nonparametric mixture modelling built on top of
     Dirichlet Process Mixture of linear regressions, all using a DPM engine via
     the Chinese Restaurant Process (de Valpine et al. 2017
     <doi:10.1080/10618600.2016.1172487>; Neal 2000
-    <doi:10.1080/10618600.2000.10474879>; Zhang et al. 2004
-    <doi:10.1023/B:STCO.0000039481.32735.0c>; Hurn et al. 2003
+    <doi:10.1080/10618600.2000.10474879>; Hurn et al. 2003
     <doi:10.1198/1061860031329>). Post-hoc label switching correction wraps the
     'label.switching' package (Papastamoulis 2016 <doi:10.18637/jss.v069.c01>).
     A reversible jump MCMC engine is planned for a later release.
