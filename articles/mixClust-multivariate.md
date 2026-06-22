@@ -1,0 +1,114 @@
+# Multivariate mixture clustering with the DPM engine
+
+This vignette demonstrates the v0.2.0 functionality of **nimix**:
+Bayesian **multivariate** Gaussian mixture clustering on the same
+Dirichlet Process Mixture (DPM) engine used for the univariate case. The
+only thing that changes from the user’s point of view is that `data` is
+now a numeric **matrix** (one row per observation, one column per
+dimension).
+
+> Chunks use `eval = FALSE` so the vignette builds quickly under CRAN
+> time limits . Run them interactively.
+
+## The model
+
+Each component is a multivariate normal. The conjugate cluster base
+measure is a **Normal-Inverse-Wishart**:
+``` math
+\Sigma_j \sim \text{InvWishart}(S_0, df_0), \qquad
+\mu_j \mid \Sigma_j \sim N_d(\mu_0, \Sigma_j / \kappa_0),
+```
+with the allocation vector following a Chinese Restaurant Process. nimix
+writes this with NIMBLE’s `dmnorm(cov = ...)` + `dinvwish`, which is the
+pairing NIMBLE recognises as conjugate for `dCRP` — so the efficient
+collapsed CRP samplers are used automatically . The defaults are
+*data-scaled* : `mu0 = colMeans(data)`, the prior mean of the cluster
+covariance equals `cov(data)`, and `df0 = d + 2` (validated to exceed
+`d + 1` so empty-component draws stay non-singular).
+
+## Fit
+
+``` r
+
+library(nimix)
+
+set.seed(1)
+# two well-separated 2-D clusters, K_true = 2
+Y <- rbind(
+ matrix(rnorm(150 * 2, mean = -3), ncol = 2),
+ matrix(rnorm(150 * 2, mean = 3), ncol = 2)
+)
+
+fit <- nimixClust(
+ Y, K_max = 10, distribution = "normal", method = "dpm",
+ mcmcControl = list(niter = 6000, nburnin = 2000)
+)
+fit
+```
+
+`nimixClust` detects that `Y` is a matrix and routes it to the
+multivariate component (`NormalMvSpec`). You can force the family with
+`distribution = "normal-mv"` (or `"normal-uv"` for a vector).
+
+## Label switching: relabel before summarising
+
+As in the univariate case, the mixture likelihood is invariant to
+permuting component labels, so `summary` relabels first
+(ECR-ITERATIVE-1), conditioning on the modal number of occupied
+clusters. For multivariate fits the component table reports the
+posterior mean of each mean coordinate (`mu_1`, `mu_2`, …) and the
+posterior mean of each marginal variance (`var_1`, `var_2`, …); the full
+relabelled mean covariance matrices are available in
+`fit@relabeled$Sigma_mean`.
+
+``` r
+
+summary(fit)
+```
+
+## Visualising the clusters
+
+``` r
+
+plot(fit, type = "K") # posterior of the number of occupied clusters
+plot(fit, type = "cluster") # data coloured by MAP cluster (first two dims)
+```
+
+The label-switching diagnostics also work in the multivariate case (they
+plot the first mean coordinate across clusters):
+
+``` r
+
+plot(fit, type = "trace_raw")
+plot(fit, type = "trace_relabeled")
+```
+
+## Posterior predictive density at points
+
+For multivariate data the predictive density is evaluated at supplied
+rows rather than over a 1-D grid:
+
+``` r
+
+newpts <- rbind(c(-3, -3), c(0, 0), c(3, 3))
+predict(fit, newdata = newpts)
+```
+
+## Notes on dimension and `K_max`
+
+- `K_max` remains a truncation level, not a fixed number of clusters.
+- The prior covariance scaling matters more in higher dimensions; the
+  data-scaled Normal-Inverse-Wishart default keeps the prior weakly
+  informative without becoming vague .
+- With small `n` relative to `d`, identifiability weakens ( ); prefer
+  `n` comfortably larger than `d` and inspect the posterior of K rather
+  than trusting a single modal value.
+
+## References
+
+- de Valpine et al. (2017), *JCGS* 26(2), 403–413.
+- Neal (2000), *JCGS* 9(2), 249–265.
+- Zhang, Chan, Wu & Chen (2004), *Statistics and Computing* 14, 343–355.
+- Dellaportas & Papageorgiou (2006), *Statistics and Computing* 16,
+  57–68.
+- Papastamoulis & Iliopoulos (2010), *JCGS* 19(2), 313–331.

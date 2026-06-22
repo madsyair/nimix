@@ -1,0 +1,247 @@
+# nimix
+
+**nimix** is a Bayesian mixture-modelling package built on top of
+[NIMBLE](https://r-nimble.org/). It provides mixture *clustering*
+(univariate and multivariate) and mixtures *of regressions* (univariate
+and multivariate response) through an extensible S4 `DistributionSpec`
+contract, so new component families plug into every inference engine
+without touching the engine code.
+
+## Features
+
+- **Clustering** — univariate and multivariate Gaussian, plus Student-t,
+  Normal-Gamma (heavy-tailed), Poisson and Binomial components.
+- **Mixture of regressions** (`nimixReg`) — Gaussian linear, Student-t
+  and Normal-Gamma residuals, Poisson/Binomial GLM components, and a
+  multivariate (matrix) response via `cbind(y1, y2) ~ x`.
+- **Two inference engines**, selected with `method`:
+  - `"dpm"` — a Dirichlet Process Mixture that *infers* the number of
+    components (NIMBLE’s Chinese Restaurant Process), using `K_max`.
+  - `"fixedk"` — a finite mixture with a fixed, known `K` (including the
+    single-component `K = 1` baseline for model comparison).
+- Post-hoc label-switching correction via the
+  [`label.switching`](https://CRAN.R-project.org/package=label.switching)
+  package, with [`summary()`](https://rdrr.io/r/base/summary.html),
+  [`plot()`](https://rdrr.io/r/graphics/plot.default.html) and
+  [`predict()`](https://rdrr.io/r/stats/predict.html) methods.
+
+A reversible-jump MCMC engine (`method = "rjmcmc"`) is **planned and
+experimental**; it is gated behind validation and is not yet available.
+
+## Installation
+
+`nimix` depends on `nimble`, which compiles model code, so you need a
+working C/C++ toolchain (Rtools on Windows, Xcode CLT on macOS,
+build-essential on Linux).
+
+``` r
+
+# install.packages("pak")
+pak::pak("madsyair/nimix")
+
+# or
+# install.packages("remotes")
+remotes::install_github("madsyair/nimix")
+```
+
+## Quick start
+
+``` r
+
+library(nimix)
+
+## Univariate clustering, number of components estimated (DPM)
+set.seed(1)
+y <- c(rnorm(100, -3), rnorm(100, 3))
+fit <- nimixClust(y, K_max = 8,
+                  mcmcControl = list(niter = 2000, nburnin = 1000),
+                  verbose = FALSE)
+summary(fit)
+plot(fit, type = "K")
+
+## Mixture of linear regressions, fixed number of regimes (finite mixture)
+x  <- runif(200, -3, 3)
+g  <- rep(1:2, each = 100)
+df <- data.frame(y = ifelse(g == 1, 2 * x, -2 * x) + rnorm(200, 0, 0.7), x = x)
+reg <- nimixReg(y ~ x, df, K = 2, method = "fixedk",
+                mcmcControl = list(niter = 2000, nburnin = 1000),
+                verbose = FALSE)
+summary(reg)
+```
+
+## Documentation
+
+Function reference and vignettes are published at
+<https://madsyair.github.io/nimix/>.
+
+## License
+
+GPL-3.
+
+# Package index
+
+## Package
+
+- [`nimix`](https://madsyair.github.io/nimix/reference/nimix-package.md)
+  [`nimix-package`](https://madsyair.github.io/nimix/reference/nimix-package.md)
+  : nimix: Bayesian Mixture Clustering and Regression with NIMBLE
+
+## Fitting functions
+
+User-facing entry points for clustering and mixture-of-regression.
+
+- [`nimixClust()`](https://madsyair.github.io/nimix/reference/nimixClust.md)
+  : Bayesian mixture clustering
+- [`nimixReg()`](https://madsyair.github.io/nimix/reference/nimixReg.md)
+  : Bayesian mixture of linear regressions
+
+## Engines
+
+Inference engines selected via the `method` argument.
+
+- [`DPMEngine()`](https://madsyair.github.io/nimix/reference/DPMEngine.md)
+  : Construct a DPM engine configuration
+- [`FixedKEngine()`](https://madsyair.github.io/nimix/reference/FixedKEngine.md)
+  : Construct a fixed-K finite-mixture engine configuration
+- [`DPMEngine-class`](https://madsyair.github.io/nimix/reference/DPMEngine-class.md)
+  : Dirichlet Process Mixture engine (native NIMBLE dCRP)
+- [`FixedKEngine-class`](https://madsyair.github.io/nimix/reference/FixedKEngine-class.md)
+  : Finite-mixture engine with fixed, known K
+- [`EngineConfig-class`](https://madsyair.github.io/nimix/reference/EngineConfig-class.md)
+  : Virtual base class for mixture sampling engines
+
+## Distribution registry
+
+Register and look up component distributions by name.
+
+- [`registerDistribution()`](https://madsyair.github.io/nimix/reference/registerDistribution.md)
+  : Register a component distribution
+- [`getDistribution()`](https://madsyair.github.io/nimix/reference/getDistribution.md)
+  : Retrieve a registered distribution by name
+- [`listDistributions()`](https://madsyair.github.io/nimix/reference/listDistributions.md)
+  : List registered distribution names
+
+## Clustering component specs
+
+- [`NormalUvSpec()`](https://madsyair.github.io/nimix/reference/NormalUvSpec.md)
+  : Construct a univariate Gaussian component spec
+- [`NormalMvSpec()`](https://madsyair.github.io/nimix/reference/NormalMvSpec.md)
+  : Construct a multivariate Gaussian component spec
+- [`StudentTUvSpec()`](https://madsyair.github.io/nimix/reference/StudentTUvSpec.md)
+  : Construct a univariate Student-t component spec
+- [`StudentTMvSpec()`](https://madsyair.github.io/nimix/reference/StudentTMvSpec.md)
+  : Construct a multivariate Student-t component spec
+- [`NormalGammaUvSpec()`](https://madsyair.github.io/nimix/reference/NormalGammaUvSpec.md)
+  : Construct a univariate Normal-Gamma component spec
+- [`NormalGammaMvSpec()`](https://madsyair.github.io/nimix/reference/NormalGammaMvSpec.md)
+  : Construct a multivariate Normal-Gamma component spec
+- [`PoissonSpec()`](https://madsyair.github.io/nimix/reference/PoissonSpec.md)
+  : Construct a Poisson component spec
+- [`BinomialSpec()`](https://madsyair.github.io/nimix/reference/BinomialSpec.md)
+  : Construct a Binomial component spec
+
+## Regression component specs
+
+- [`NormalRegSpec()`](https://madsyair.github.io/nimix/reference/NormalRegSpec.md)
+  : Construct a Normal-linear regression component spec
+- [`StudentTRegSpec()`](https://madsyair.github.io/nimix/reference/StudentTRegSpec.md)
+  : Construct a Student-t regression component spec
+- [`NormalGammaRegSpec()`](https://madsyair.github.io/nimix/reference/NormalGammaRegSpec.md)
+  : Construct a Normal-Gamma regression component spec
+- [`PoissonRegSpec()`](https://madsyair.github.io/nimix/reference/PoissonRegSpec.md)
+  : Construct a Poisson regression component spec
+- [`BinomialRegSpec()`](https://madsyair.github.io/nimix/reference/BinomialRegSpec.md)
+  : Construct a Binomial regression component spec
+- [`NormalMvRegSpec()`](https://madsyair.github.io/nimix/reference/NormalMvRegSpec.md)
+  : Construct a multivariate-response Normal regression spec
+- [`StudentTMvRegSpec()`](https://madsyair.github.io/nimix/reference/StudentTMvRegSpec.md)
+  : Construct a multivariate-response Student-t regression spec
+- [`NormalGammaMvRegSpec()`](https://madsyair.github.io/nimix/reference/NormalGammaMvRegSpec.md)
+  : Construct a multivariate-response Normal-Gamma regression spec
+
+## Extension API (generics)
+
+The public S4 contract a component spec implements so a new family plugs
+into every engine without engine edits.
+
+- [`buildModelCode()`](https://madsyair.github.io/nimix/reference/buildModelCode.md)
+  : Build the NIMBLE model code for a (distribution, engine) pair
+- [`defaultPrior()`](https://madsyair.github.io/nimix/reference/defaultPrior.md)
+  : Build a data-scaled default prior for a distribution
+- [`validateParams()`](https://madsyair.github.io/nimix/reference/validateParams.md)
+  : Validate component parameters or a prior specification
+- [`customizeSamplers()`](https://madsyair.github.io/nimix/reference/customizeSamplers.md)
+  : Customise MCMC samplers for a component spec
+- [`relabel()`](https://madsyair.github.io/nimix/reference/relabel.md) :
+  Correct label switching in a fitted mixture
+- [`isRegressionSpec()`](https://madsyair.github.io/nimix/reference/isRegressionSpec.md)
+  : Is this a regression component spec?
+- [`linkInv()`](https://madsyair.github.io/nimix/reference/linkInv.md) :
+  Inverse link for a regression component
+
+## S4 class definitions
+
+Virtual base classes, model/result containers, and the class behind each
+component spec. Most users work through the constructor functions above;
+these document the underlying S4 classes.
+
+- [`DistributionSpec-class`](https://madsyair.github.io/nimix/reference/DistributionSpec-class.md)
+  : Virtual base class for mixture component distributions
+- [`MixtureModel-class`](https://madsyair.github.io/nimix/reference/MixtureModel-class.md)
+  : Virtual base class for mixture models
+- [`ClusterModel-class`](https://madsyair.github.io/nimix/reference/ClusterModel-class.md)
+  : Mixture clustering model (for nimixClust)
+- [`RegressionMixModel-class`](https://madsyair.github.io/nimix/reference/RegressionMixModel-class.md)
+  : Mixture-of-regressions model (for nimixReg)
+- [`show(`*`<FitResult>`*`)`](https://madsyair.github.io/nimix/reference/FitResult-class.md)
+  [`summary(`*`<FitResult>`*`)`](https://madsyair.github.io/nimix/reference/FitResult-class.md)
+  [`plot(`*`<FitResult>`*`,`*`<missing>`*`)`](https://madsyair.github.io/nimix/reference/FitResult-class.md)
+  [`predict(`*`<FitResult>`*`)`](https://madsyair.github.io/nimix/reference/FitResult-class.md)
+  : Fitted nimix mixture result
+- [`NormalUvSpec-class`](https://madsyair.github.io/nimix/reference/NormalUvSpec-class.md)
+  : Univariate Gaussian component specification
+- [`NormalMvSpec-class`](https://madsyair.github.io/nimix/reference/NormalMvSpec-class.md)
+  : Multivariate Gaussian component specification
+- [`StudentTUvSpec-class`](https://madsyair.github.io/nimix/reference/StudentTUvSpec-class.md)
+  : Univariate Student-t component specification
+- [`StudentTMvSpec-class`](https://madsyair.github.io/nimix/reference/StudentTMvSpec-class.md)
+  : Multivariate Student-t component specification (direct density)
+- [`NormalGammaUvSpec-class`](https://madsyair.github.io/nimix/reference/NormalGammaUvSpec-class.md)
+  : Univariate Normal-Gamma (scale-mixture Student-t) component
+  specification
+- [`NormalGammaMvSpec-class`](https://madsyair.github.io/nimix/reference/NormalGammaMvSpec-class.md)
+  : Multivariate Normal-Gamma (scale-mixture multivariate-t) component
+- [`PoissonSpec-class`](https://madsyair.github.io/nimix/reference/PoissonSpec-class.md)
+  : Poisson count component specification
+- [`BinomialSpec-class`](https://madsyair.github.io/nimix/reference/BinomialSpec-class.md)
+  : Binomial count component specification
+- [`NormalRegSpec-class`](https://madsyair.github.io/nimix/reference/NormalRegSpec-class.md)
+  : Normal-linear regression component specification
+- [`StudentTRegSpec-class`](https://madsyair.github.io/nimix/reference/StudentTRegSpec-class.md)
+  : Student-t mixture regression component (direct t density)
+- [`NormalGammaRegSpec-class`](https://madsyair.github.io/nimix/reference/NormalGammaRegSpec-class.md)
+  : Normal-Gamma mixture regression component (conjugate scale-mixture)
+- [`PoissonRegSpec-class`](https://madsyair.github.io/nimix/reference/PoissonRegSpec-class.md)
+  : Poisson GLM regression component (log link)
+- [`BinomialRegSpec-class`](https://madsyair.github.io/nimix/reference/BinomialRegSpec-class.md)
+  : Binomial GLM regression component (logit link)
+- [`NormalMvRegSpec-class`](https://madsyair.github.io/nimix/reference/NormalMvRegSpec-class.md)
+  : Multivariate-response Normal mixture regression
+- [`StudentTMvRegSpec-class`](https://madsyair.github.io/nimix/reference/StudentTMvRegSpec-class.md)
+  : Multivariate-response Student-t mixture regression (direct density)
+- [`NormalGammaMvRegSpec-class`](https://madsyair.github.io/nimix/reference/NormalGammaMvRegSpec-class.md)
+  : Multivariate-response Normal-Gamma mixture regression (scale
+  mixture)
+
+# Articles
+
+### All vignettes
+
+- [Multivariate mixture clustering with the DPM
+  engine](https://madsyair.github.io/nimix/articles/mixClust-multivariate.md):
+- [Univariate mixture clustering with the DPM
+  engine](https://madsyair.github.io/nimix/articles/mixClust-univariate.md):
+- [Mixtures of linear
+  regressions](https://madsyair.github.io/nimix/articles/mixReg.md):
+- [Heavy-tailed components: Student-t vs
+  Normal-Gamma](https://madsyair.github.io/nimix/articles/normal-gamma-vs-studentt.md):
