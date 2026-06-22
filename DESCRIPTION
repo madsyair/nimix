@@ -3,7 +3,7 @@ Type: Package
 Title: Bayesian Mixture Clustering and Regression with NIMBLE
 Version: 0.4.3
 Authors@R: c(
-    person("nimix", "Developers", email = "nimix@example.org", role = c("aut", "cre")))
+    person("Achmad Syahrul", "Choir", email = "madsyair@stis.ac.id", role = c("aut", "cre")))
 Description: Bayesian finite and nonparametric mixture modelling built on top of
     the 'nimble' package. This 0.3.0 release provides the S4 architecture
     foundation, univariate and multivariate Gaussian mixture clustering, and a
