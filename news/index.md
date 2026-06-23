@@ -44,6 +44,53 @@ documentation site ahead of the v0.5.x reversible-jump work.
   `pkgdown` documentation site, a `_pkgdown.yml` reference layout, and
   the corresponding `.Rbuildignore` entries.
 
+### Changed
+
+- **DPM truncation handling.** `K_max` is the dCRP truncation level: the
+  sampler errors if the occupied-cluster count ever needs to exceed it.
+  Three improvements make this robust and transparent:
+
+  - The default `K_max` (when unspecified) now scales with `n` and
+    carries generous headroom above the expected cluster count, instead
+    of the old `min(10, floor(n / 5))` which could sit right at the
+    operating point.
+  - If the sampler still exceeds the truncation, NIMBLE’s raw *“not a
+    proper model”* error is translated into an actionable message naming
+    `K_max` and suggesting a concrete larger value.
+  - After a DPM fit, a warning is issued when the posterior is
+    *sustainedly* censored at the truncation (a meaningful share of
+    iterations occupy every slot), so a too-tight `K_max` is flagged
+    rather than silently distorting the posterior on the number of
+    clusters.
+
+- **`verbose` now defaults to `FALSE`** in
+  [`nimixClust()`](https://madsyair.github.io/nimix/reference/nimixClust.md)
+  and
+  [`nimixReg()`](https://madsyair.github.io/nimix/reference/nimixReg.md),
+  matching the documented design. Quiet mode is now **selective, not a
+  blanket warning suppressor**: only NIMBLE’s known-benign configuration
+  chatter (the *“number of clusters … is less than the number of
+  potential clusters”* reminder and the *“model is not fully
+  initialized”* note) is muffled. Any other warning – in particular
+  anything that could indicate the sampler produced invalid draws –
+  propagates to the user even when `verbose = FALSE`, as do nimix’s own
+  diagnostics (the censored-posterior warning) and any error. Pass
+  `verbose = TRUE` for NIMBLE’s full configuration output and a progress
+  bar.
+
+- **Headroom-aware cluster initialisation.** The k-means / hard-E-step
+  starts used to seed up to `count - 1` clusters (`count` = the
+  truncation level `K_max` for the DPM), which sat right against the
+  ceiling for a modest `K_max` and left no room for the early CRP
+  transient (which briefly occupies more clusters than the modal K
+  before merging). Initialisation now seeds at most `floor(0.8 * count)`
+  clusters, guaranteeing at least `0.2 * K_max` slots of headroom above
+  the dispersed start; the GLM-regression E-step keeps a floor of 2 so
+  small fixed-K starts still separate. For large `K_max` the
+  `ceil(sqrt(n))` cap still binds, so dispersed-start behaviour there is
+  unchanged. This lowers the chance a modest explicit `K_max` breaches
+  the truncation; the headroom default remains the primary safeguard.
+
 ## nimix 0.4.2
 
 Multivariate-response mixture regression.

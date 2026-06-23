@@ -21,7 +21,7 @@ nimixClust(
   mcmcControl = list(),
   initMethod = c("kmeans", "single"),
   seed = 1L,
-  verbose = TRUE
+  verbose = FALSE
 )
 ```
 
@@ -43,8 +43,11 @@ nimixClust(
 
   Integer truncation level for the Dirichlet Process Mixture
   (`method = "dpm"`); the number of components is estimated up to this
-  bound. A data-aware default of `min(10, floor(n / 5))` is used when
-  missing. Must not be given for `method = "fixedk"` (use `K`).
+  bound. Because the dCRP sampler errors if the occupied-cluster count
+  ever needs to exceed it, `K_max` should sit comfortably above the
+  expected number of clusters; a generous data-aware default (giving
+  headroom above that count) is used when missing. Must not be given for
+  `method = "fixedk"` (use `K`).
 
 - distribution:
 
@@ -83,8 +86,11 @@ nimixClust(
 
 - verbose:
 
-  Logical; print NIMBLE configuration and progress. When `FALSE`,
-  NIMBLE's compilation notes are silenced.
+  Logical; print NIMBLE's configuration and progress output. Defaults to
+  `FALSE` (quiet): NIMBLE's compilation notes and the benign dCRP
+  truncation note are silenced, while nimix's own diagnostics (e.g. a
+  censored-posterior warning) and any error still surface. Set `TRUE` to
+  see NIMBLE's configuration and a progress bar.
 
 ## Value
 
@@ -123,19 +129,19 @@ summary(fit)
 #> Relabelling MCMC output before summarising (label switching)...
 #> nimix mixture summary (engine: dpm, distribution: normal-uv)
 #> Observations: 200 (dimension d = 1)
-#> Relabelling: ECR-ITERATIVE-1 conditioned on modal K = 2 (701 draws)
+#> Relabelling: ECR-ITERATIVE-1 conditioned on modal K = 2 (718 draws)
 #> 
 #> Posterior of number of occupied clusters:
 #> 
-#>     2     3     4     5 
-#> 0.701 0.252 0.042 0.005 
+#>     2     3     4     5     6 
+#> 0.718 0.246 0.030 0.005 0.001 
 #> 
 #> Relabelled component estimates (posterior mean; CIs for univariate):
 #>  component weight mu_mean mu_lwr mu_upr s2_mean s2_lwr s2_upr
-#>          1  0.499   -2.89  -3.09  -2.69    1.16  0.886   1.50
-#>          2  0.501    2.95   2.73   3.17    1.27  0.939   1.74
+#>          1  0.501    2.94   2.73   3.17    1.28  0.986    1.7
+#>          2  0.499   -2.89  -3.10  -2.68    1.15  0.867    1.5
 #> 
-#> Mixing diagnostic (single chain): ESS(alpha) = 679, ESS(#clusters) = 303
+#> Mixing diagnostic (single chain): ESS(alpha) = 668, ESS(#clusters) = 432
 #> Note: cross-chain Rhat requires multiple chains (planned v0.9.0).
 plot(fit, type = "K")
 
@@ -174,20 +180,20 @@ summary(fitMv)
 #> Relabelling MCMC output before summarising (label switching)...
 #> nimix mixture summary (engine: dpm, distribution: normal-mv)
 #> Observations: 200 (dimension d = 2)
-#> Relabelling: ECR-ITERATIVE-1 conditioned on modal K = 3 (345 draws)
+#> Relabelling: ECR-ITERATIVE-1 conditioned on modal K = 3 (325 draws)
 #> 
 #> Posterior of number of occupied clusters:
 #> 
 #>     2     3     4     5     6     7     8 
-#> 0.086 0.345 0.283 0.180 0.068 0.034 0.004 
+#> 0.215 0.325 0.243 0.125 0.063 0.023 0.006 
 #> 
 #> Relabelled component estimates (posterior mean; CIs for univariate):
-#>  component weight   mu_1    mu_2 var_1 var_2
-#>          1  0.430  2.051  2.0914  1.05 0.882
-#>          2  0.466 -2.272 -2.1278  1.01 1.068
-#>          3  0.104  0.603  0.0246  1.79 1.380
+#>  component weight   mu_1   mu_2 var_1 var_2
+#>          1 0.0544  0.476 -0.169  2.15 1.557
+#>          2 0.4783 -2.267 -2.113  1.02 1.087
+#>          3 0.4673  2.109  2.005  1.07 0.942
 #> 
-#> Mixing diagnostic (single chain): ESS(alpha) = 250, ESS(#clusters) = 81
+#> Mixing diagnostic (single chain): ESS(alpha) = 199, ESS(#clusters) = 64
 #> Note: cross-chain Rhat requires multiple chains (planned v0.9.0).
 plot(fitMv, type = "cluster")
 

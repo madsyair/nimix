@@ -72,7 +72,7 @@ mixing weights do not depend on the covariates.</p>
 <span>  mcmcControl <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  initMethod <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"kmeans"</span>, <span class="st">"single"</span><span class="op">)</span>,</span>
 <span>  seed <span class="op">=</span> <span class="fl">1L</span>,</span>
-<span>  verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -94,8 +94,10 @@ mixing weights do not depend on the covariates.</p>
 
 
 <dt id="arg-k-max">K_max<a class="anchor" aria-label="anchor" href="#arg-k-max"></a></dt>
-<dd><p>Integer truncation level for the DPM (<code>method = "dpm"</code>); a
-data-aware default of <code>min(10, floor(n / 5))</code> is used when missing.</p></dd>
+<dd><p>Integer truncation level for the DPM (<code>method = "dpm"</code>);
+it must sit comfortably above the expected number of clusters, since the
+dCRP sampler errors if the occupied-cluster count ever needs to exceed it.
+A generous data-aware default (with headroom) is used when missing.</p></dd>
 
 
 <dt id="arg-distribution">distribution<a class="anchor" aria-label="anchor" href="#arg-distribution"></a></dt>
@@ -137,8 +139,11 @@ opt-in and currently errors.</p></dd>
 
 
 <dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
-<dd><p>Logical; print NIMBLE configuration and progress. When
-<code>FALSE</code>, NIMBLE's compilation notes are silenced.</p></dd>
+<dd><p>Logical; print NIMBLE's configuration and progress output.
+Defaults to <code>FALSE</code> (quiet): NIMBLE's compilation notes and the benign
+dCRP truncation note are silenced, while nimix's own diagnostics (e.g. a
+censored-posterior warning) and any error still surface. Set <code>TRUE</code> to
+see NIMBLE's configuration and a progress bar.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -173,25 +178,25 @@ regressions. <em>JCGS</em>, 12(1), 55–79. <a href="https://doi.org/10.1198/106
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Relabelling MCMC output before summarising (label switching)...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> nimix mixture summary (engine: dpm, distribution: normal-reg)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Observations: 200 (dimension d = 1)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Relabelling: ECR-ITERATIVE-1 conditioned on modal K = 2 (846 draws)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Relabelling: ECR-ITERATIVE-1 conditioned on modal K = 2 (831 draws)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Posterior of number of occupied clusters:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     2     3     4     5 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 0.846 0.137 0.015 0.002 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 0.831 0.144 0.024 0.001 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Relabelled component estimates (posterior mean; CIs for univariate):</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  component weight (Intercept)     x s2_mean s2_lwr s2_upr</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>          1  0.499    -0.07315  1.97    1.01  0.773   1.31</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>          2  0.501     0.00391 -1.97    1.08  0.825   1.39</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          1  0.501    -0.00271 -1.96    1.09  0.793   1.42</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          2  0.499    -0.07628  1.97    1.01  0.753   1.36</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Mixing diagnostic (single chain): ESS(alpha) = 736, ESS(#clusters) = 398</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Mixing diagnostic (single chain): ESS(alpha) = 806, ESS(#clusters) = 450</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Note: cross-chain Rhat requires multiple chains (planned v0.9.0).</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">fit</span>, newdata <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">2</span>, <span class="fl">0</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    x     .fitted</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 -2 -0.01956009</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2  0 -0.03470138</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3  2 -0.04984267</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 -2 -0.05039836</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2  0 -0.03864911</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3  2 -0.02689987</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">## fixed number of regimes (finite mixture)</span></span></span>
 <span class="r-in"><span><span class="va">fit2</span> <span class="op">&lt;-</span> <span class="fu">nimixReg</span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x</span>, <span class="va">df</span>, K <span class="op">=</span> <span class="fl">2</span>, method <span class="op">=</span> <span class="st">"fixedk"</span>,</span></span>
@@ -224,7 +229,7 @@ regressions. <em>JCGS</em>, 12(1), 55–79. <a href="https://doi.org/10.1198/106
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by Achmad Syahrul Choir.</p>
+  <p>Developed by nimix Developers.</p>
 </div>
 
 <div class="pkgdown-footer-right">

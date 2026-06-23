@@ -52,6 +52,17 @@
 <h3 id="infrastructure-0-4-3">Infrastructure<a class="anchor" aria-label="anchor" href="#infrastructure-0-4-3"></a></h3>
 <ul><li>Added GitHub Actions workflows for <code>R CMD check</code> (multi-OS) and a <code>pkgdown</code> documentation site, a <code>_pkgdown.yml</code> reference layout, and the corresponding <code>.Rbuildignore</code> entries.</li>
 </ul></div>
+<div class="section level3">
+<h3 id="changed-0-4-3">Changed<a class="anchor" aria-label="anchor" href="#changed-0-4-3"></a></h3>
+<ul><li>
+<p><strong>DPM truncation handling.</strong> <code>K_max</code> is the dCRP truncation level: the sampler errors if the occupied-cluster count ever needs to exceed it. Three improvements make this robust and transparent:</p>
+<ul><li>The default <code>K_max</code> (when unspecified) now scales with <code>n</code> and carries generous headroom above the expected cluster count, instead of the old <code>min(10, floor(n / 5))</code> which could sit right at the operating point.</li>
+<li>If the sampler still exceeds the truncation, NIMBLE’s raw <em>“not a proper model”</em> error is translated into an actionable message naming <code>K_max</code> and suggesting a concrete larger value.</li>
+<li>After a DPM fit, a warning is issued when the posterior is <em>sustainedly</em> censored at the truncation (a meaningful share of iterations occupy every slot), so a too-tight <code>K_max</code> is flagged rather than silently distorting the posterior on the number of clusters.</li>
+</ul></li>
+<li><p><strong><code>verbose</code> now defaults to <code>FALSE</code></strong> in <code><a href="../reference/nimixClust.html">nimixClust()</a></code> and <code><a href="../reference/nimixReg.html">nimixReg()</a></code>, matching the documented design. Quiet mode is now <strong>selective, not a blanket warning suppressor</strong>: only NIMBLE’s known-benign configuration chatter (the <em>“number of clusters … is less than the number of potential clusters”</em> reminder and the <em>“model is not fully initialized”</em> note) is muffled. Any other warning – in particular anything that could indicate the sampler produced invalid draws – propagates to the user even when <code>verbose = FALSE</code>, as do nimix’s own diagnostics (the censored-posterior warning) and any error. Pass <code>verbose = TRUE</code> for NIMBLE’s full configuration output and a progress bar.</p></li>
+<li><p><strong>Headroom-aware cluster initialisation.</strong> The k-means / hard-E-step starts used to seed up to <code>count - 1</code> clusters (<code>count</code> = the truncation level <code>K_max</code> for the DPM), which sat right against the ceiling for a modest <code>K_max</code> and left no room for the early CRP transient (which briefly occupies more clusters than the modal K before merging). Initialisation now seeds at most <code>floor(0.8 * count)</code> clusters, guaranteeing at least <code>0.2 * K_max</code> slots of headroom above the dispersed start; the GLM-regression E-step keeps a floor of 2 so small fixed-K starts still separate. For large <code>K_max</code> the <code>ceil(sqrt(n))</code> cap still binds, so dispersed-start behaviour there is unchanged. This lowers the chance a modest explicit <code>K_max</code> breaches the truncation; the headroom default remains the primary safeguard.</p></li>
+</ul></div>
 </div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.4.2" id="nimix-042">nimix 0.4.2<a class="anchor" aria-label="anchor" href="#nimix-042"></a></h2>
@@ -264,7 +275,7 @@
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by Achmad Syahrul Choir.</p>
+  <p>Developed by nimix Developers.</p>
 </div>
 
 <div class="pkgdown-footer-right">
