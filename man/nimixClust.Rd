@@ -14,7 +14,7 @@ nimixClust(
   mcmcControl = list(),
   initMethod = c("kmeans", "single"),
   seed = 1L,
-  verbose = TRUE
+  verbose = FALSE
 )
 }
 \arguments{
@@ -28,8 +28,11 @@ matrix is treated as univariate.}
 
 \item{K_max}{Integer truncation level for the Dirichlet Process Mixture
 (\code{method = "dpm"}); the number of components is estimated up to this
-bound. A data-aware default of \code{min(10, floor(n / 5))} is used when
-missing. Must not be given for \code{method = "fixedk"} (use \code{K}).}
+bound. Because the dCRP sampler errors if the occupied-cluster count ever
+needs to exceed it, \code{K_max} should sit comfortably above the expected
+number of clusters; a generous data-aware default (giving headroom above
+that count) is used when missing. Must not be given for
+\code{method = "fixedk"} (use \code{K}).}
 
 \item{distribution}{Component distribution. \code{"normal"} (default) picks
 the univariate or multivariate Gaussian automatically from the data shape;
@@ -54,8 +57,11 @@ mixture, \code{dirichletConc} for the Dirichlet weight prior.}
 
 \item{seed}{Integer RNG seed for reproducibility.}
 
-\item{verbose}{Logical; print NIMBLE configuration and progress. When
-\code{FALSE}, NIMBLE's compilation notes are silenced.}
+\item{verbose}{Logical; print NIMBLE's configuration and progress output.
+Defaults to \code{FALSE} (quiet): NIMBLE's compilation notes and the benign
+dCRP truncation note are silenced, while nimix's own diagnostics (e.g. a
+censored-posterior warning) and any error still surface. Set \code{TRUE} to
+see NIMBLE's configuration and a progress bar.}
 }
 \value{
 A \code{\linkS4class{FitResult}}. Call \code{summary()} for

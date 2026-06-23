@@ -55,7 +55,11 @@
 
 .mvRegInits <- function(Y, prior, count) {
   Y <- as.matrix(Y); n <- nrow(Y); p <- prior$p; d <- prior$d
-  k0 <- max(1L, min(count - 1L, as.integer(ceiling(sqrt(n)))))
+  # Dispersed k-means start, but capped at 0.8 * count to leave headroom below
+  # the cap: for the DPM, count = L = K_max is a hard truncation, and early CRP
+  # sweeps can briefly occupy more clusters than the modal K before merging
+  # down. Seeding right at the ceiling left no room for that transient.
+  k0 <- max(1L, min(as.integer(floor(0.8 * count)), as.integer(ceiling(sqrt(n)))))
   xiInit <- rep(1L, n)
   if (k0 >= 2L) {
     km <- tryCatch(stats::kmeans(Y, centers = k0, nstart = 5L),

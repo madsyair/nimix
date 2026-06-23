@@ -96,6 +96,15 @@
 # direct Student-t mix well; when omega is kept explicit (the scale-mixture
 # route) a slice sampler mixes the partition markedly better than the default
 # random walk (van Dyk & Meng 2001 on the cost of augmentation).
+# DPM truncation default. K_max is the dCRP truncation level L: the sampler
+# errors if the occupied-cluster count ever needs to exceed it, so the default
+# must sit comfortably above the expected number of clusters (which grows with
+# n). This gives generous, bounded headroom; an explicit K_max overrides it.
+.defaultTruncation <- function(n) {
+  k <- min(40L, max(20L, as.integer(ceiling(n / 10))))
+  as.integer(min(k, n))
+}
+
 .omegaToSlice <- function(conf, model) {
   nodes <- model$expandNodeNames("omega")
   if (length(nodes) == 0L) return(invisible(conf))

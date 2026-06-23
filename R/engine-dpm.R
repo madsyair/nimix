@@ -9,9 +9,24 @@
 ## that does not update empty-component parameters.
 ## ---------------------------------------------------------------------------
 
-# Run an expression with NIMBLE's progress/diagnostic chatter silenced. Used
-# when verbose = FALSE so quiet runs (e.g. examples) do not print compilation
-# notes or the CRP truncation reminder.
+# Run an expression with NIMBLE's *cosmetic* progress/diagnostic chatter
+# silenced, used when verbose = FALSE. Importantly this is NOT a blanket warning
+# suppressor: only NIMBLE's known-benign configuration chatter is muffled. Any
+# other warning -- in particular anything that could signal the sampler produced
+# invalid draws -- is allowed to propagate to the user even when verbose = FALSE,
+# so quiet mode never hides a genuine validity problem. Errors are never caught
+# here.
+#
+# .benignNimbleChatter holds patterns for NIMBLE messages/warnings that are
+# purely informational (the dCRP truncation reminder is a heads-up that the
+# truncated representation is in use; the actual breach of the truncation is a
+# hard error, raised separately and translated by the caller, not a warning).
+.benignNimbleChatter <- paste(
+  "less than the number of potential clusters",
+  "not strictly valid if it ever proposes",
+  "model is not fully initialized",
+  sep = "|")
+
 .quietly <- function(expr) {
   oldVerbose <- nimble::getNimbleOption("verbose")
   oldBar     <- nimble::getNimbleOption("MCMCprogressBar")
@@ -19,10 +34,23 @@
   on.exit(nimble::nimbleOptions(verbose = oldVerbose,
                                 MCMCprogressBar = oldBar), add = TRUE)
   res <- NULL
-  utils::capture.output(
-    suppressWarnings(suppressMessages(res <- force(expr))),
-    file = nullfile()
-  )
+  # capture.output drops NIMBLE's cat-based console notes; the handlers below
+  # muffle ONLY the benign config messages/warnings by pattern and let every
+  # other condition through (a non-benign warning is re-signalled so the user
+  # still sees it).
+  withCallingHandlers(
+    utils::capture.output(
+      res <- force(expr),
+      file = nullfile()),
+    message = function(m) {
+      if (grepl(.benignNimbleChatter, conditionMessage(m)))
+        invokeRestart("muffleMessage")
+    },
+    warning = function(w) {
+      if (grepl(.benignNimbleChatter, conditionMessage(w)))
+        invokeRestart("muffleWarning")
+      # otherwise: do nothing, so the warning propagates to the user
+    })
   res
 }
 
@@ -51,7 +79,23 @@
                     thin = ctrl$thin, setSeed = seed, progressBar = verbose)
   }
 
-  samples <- if (verbose) go() else .quietly(go())
+  runOnce <- function() if (verbose) go() else .quietly(go())
+  samples <- tryCatch(
+    runOnce(),
+    error = function(e) {
+      msg <- conditionMessage(e)
+      # The dCRP sampler stops with this message when the chain needs more
+      # occupied clusters than the truncation level provides. Translate NIMBLE's
+      # raw text into actionable guidance naming K_max (= the truncation level).
+      if (grepl("proper model|more components than|cluster parameters", msg,
+                ignore.case = TRUE))
+        stop("The DPM sampler tried to use more components than the truncation ",
+             "level K_max = ", count, ". Increase K_max (e.g. K_max = ",
+             2L * count, ") and re-run; a larger truncation only adds headroom ",
+             "and does not change the posterior on the number of clusters.",
+             call. = FALSE)
+      stop(e)
+    })
   samples <- as.matrix(samples)
 
   # When the allocation node is monitored we parse it; for a single-component
@@ -63,6 +107,20 @@
     alloc <- matrix(as.integer(round(allocArr)), nrow = nrow(samples))
   }
   Kpost <- apply(alloc, 1L, function(r) length(unique(r)))
+
+  # For the DPM (allocation node "xi") a posterior that sits at the truncation
+  # level is censored: the data may support more clusters than K_max allows. Warn
+  # only on *sustained* censoring (a meaningful share of kept draws using every
+  # slot), not a one-off excursion to the ceiling. The FixedK path (node "z") has
+  # K fixed, so this never applies.
+  if (identical(mc$allocNode, "xi")) {
+    atCeiling <- mean(Kpost >= count)
+    if (atCeiling > 0.02)
+      warning("The DPM used all K_max = ", count, " truncation slots in ",
+              round(100 * atCeiling), "% of iterations: the posterior on the ",
+              "number of clusters is likely censored. Re-run with a larger ",
+              "K_max (e.g. ", 2L * count, ").", call. = FALSE)
+  }
   paramTrace <- extractParamTraces(spec, samples, count, d = paramDim,
                                    prior = prior)
 

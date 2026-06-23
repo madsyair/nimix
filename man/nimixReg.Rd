@@ -16,7 +16,7 @@ nimixReg(
   mcmcControl = list(),
   initMethod = c("kmeans", "single"),
   seed = 1L,
-  verbose = TRUE
+  verbose = FALSE
 )
 }
 \arguments{
@@ -27,8 +27,10 @@ nimixReg(
 \item{K}{Integer number of components for the finite mixture
 (\code{method = "fixedk"}). Required for that method.}
 
-\item{K_max}{Integer truncation level for the DPM (\code{method = "dpm"}); a
-data-aware default of \code{min(10, floor(n / 5))} is used when missing.}
+\item{K_max}{Integer truncation level for the DPM (\code{method = "dpm"});
+it must sit comfortably above the expected number of clusters, since the
+dCRP sampler errors if the occupied-cluster count ever needs to exceed it.
+A generous data-aware default (with headroom) is used when missing.}
 
 \item{distribution}{Component distribution. Currently \code{"normal"}
 (Gaussian linear component). Other GLM families are planned.}
@@ -54,8 +56,11 @@ opt-in and currently errors.}
 
 \item{seed}{Integer RNG seed.}
 
-\item{verbose}{Logical; print NIMBLE configuration and progress. When
-\code{FALSE}, NIMBLE's compilation notes are silenced.}
+\item{verbose}{Logical; print NIMBLE's configuration and progress output.
+Defaults to \code{FALSE} (quiet): NIMBLE's compilation notes and the benign
+dCRP truncation note are silenced, while nimix's own diagnostics (e.g. a
+censored-posterior warning) and any error still surface. Set \code{TRUE} to
+see NIMBLE's configuration and a progress bar.}
 }
 \value{
 A \code{\linkS4class{FitResult}}. \code{summary()} reports relabelled

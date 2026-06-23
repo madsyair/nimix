@@ -234,7 +234,15 @@ setMethod("componentInits", "NormalRegSpec",
     bOls <- as.numeric(solve(crossprod(X) + diag(1e-8, p), crossprod(X, y)))
     s2prior <- prior$s0 / (prior$nu0 - 1)
 
-    k0 <- max(1L, min(count - 1L, as.integer(ceiling(sqrt(n)))))
+    # Dispersed k-means start, but capped at 0.8 * count to leave headroom below
+
+    # the cap: for the DPM, count = L = K_max is a hard truncation, and early CRP
+
+    # sweeps can briefly occupy more clusters than the modal K before merging
+
+    # down. Seeding right at the ceiling left no room for that transient.
+
+    k0 <- max(1L, min(as.integer(floor(0.8 * count)), as.integer(ceiling(sqrt(n)))))
     xiInit <- rep(1L, n)
     betaList <- list(bOls)
     s2List   <- list(s2prior)

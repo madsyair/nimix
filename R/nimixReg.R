@@ -21,8 +21,10 @@
 #' @param data A data frame containing the formula variables.
 #' @param K Integer number of components for the finite mixture
 #'   (\code{method = "fixedk"}). Required for that method.
-#' @param K_max Integer truncation level for the DPM (\code{method = "dpm"}); a
-#'   data-aware default of \code{min(10, floor(n / 5))} is used when missing.
+#' @param K_max Integer truncation level for the DPM (\code{method = "dpm"});
+#'   it must sit comfortably above the expected number of clusters, since the
+#'   dCRP sampler errors if the occupied-cluster count ever needs to exceed it.
+#'   A generous data-aware default (with headroom) is used when missing.
 #' @param distribution Component distribution. Currently \code{"normal"}
 #'   (Gaussian linear component). Other GLM families are planned.
 #' @param method Engine: \code{"dpm"} (default; estimate the number of
@@ -40,8 +42,11 @@
 #' @param initMethod Initialisation: \code{"kmeans"} (default) or
 #'   \code{"single"}.
 #' @param seed Integer RNG seed.
-#' @param verbose Logical; print NIMBLE configuration and progress. When
-#'   \code{FALSE}, NIMBLE's compilation notes are silenced.
+#' @param verbose Logical; print NIMBLE's configuration and progress output.
+#'   Defaults to \code{FALSE} (quiet): NIMBLE's compilation notes and the benign
+#'   dCRP truncation note are silenced, while nimix's own diagnostics (e.g. a
+#'   censored-posterior warning) and any error still surface. Set \code{TRUE} to
+#'   see NIMBLE's configuration and a progress bar.
 #'
 #' @return A \code{\linkS4class{FitResult}}. \code{summary()} reports relabelled
 #'   per-component regression coefficients and residual variances;
@@ -87,7 +92,7 @@ nimixReg <- function(formula, data,
                      mcmcControl = list(),
                      initMethod = c("kmeans", "single"),
                      seed = 1L,
-                     verbose = TRUE) {
+                     verbose = FALSE) {
   cl <- match.call()
   method <- match.arg(method)
   gating <- match.arg(gating)
@@ -166,7 +171,7 @@ nimixReg <- function(formula, data,
     nComp <- as.integer(K)
     if (nComp < 1L) stop("K must be >= 1.", call. = FALSE)
   } else {
-    if (is.null(K_max)) K_max <- min(10L, max(2L, as.integer(floor(n / 5))))
+    if (is.null(K_max)) K_max <- .defaultTruncation(n)
     nComp <- as.integer(K_max)
     if (nComp < 2L) stop("K_max must be >= 2.", call. = FALSE)
   }

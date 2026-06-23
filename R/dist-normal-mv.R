@@ -253,7 +253,11 @@ setMethod("componentInits", "NormalMvSpec",
     Y <- as.matrix(data)
     n <- nrow(Y); d <- ncol(Y)
     nUnique <- nrow(unique(Y))
-    k0 <- max(1L, min(count - 1L, as.integer(ceiling(sqrt(n)))))
+    # Dispersed k-means start, but capped at 0.8 * count to leave headroom below
+    # the cap: for the DPM, count = L = K_max is a hard truncation, and early CRP
+    # sweeps can briefly occupy more clusters than the modal K before merging
+    # down. Seeding right at the ceiling left no room for that transient.
+    k0 <- max(1L, min(as.integer(floor(0.8 * count)), as.integer(ceiling(sqrt(n)))))
     k0 <- min(k0, max(1L, nUnique))
 
     priorMeanCov <- prior$S0 / (prior$df0 - d - 1)

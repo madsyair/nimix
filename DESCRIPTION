@@ -3,13 +3,15 @@ Type: Package
 Title: Bayesian Mixture Clustering and Regression with NIMBLE
 Version: 0.4.3
 Authors@R: c(
-    person("Achmad Syahrul", "Choir", email = "madsyair@stis.ac.id", role = c("aut", "cre")))
+    person("nimix", "Developers", email = "nimix@example.org", role = c("aut", "cre")))
 Description: Bayesian finite and nonparametric mixture modelling built on top of
-    the 'nimble' package. Provides the univariate and multivariate Gaussian mixture clustering, and a
+    the 'nimble' package. This 0.3.0 release provides the S4 architecture
+    foundation, univariate and multivariate Gaussian mixture clustering, and a
     Dirichlet Process Mixture of linear regressions, all using a DPM engine via
     the Chinese Restaurant Process (de Valpine et al. 2017
     <doi:10.1080/10618600.2016.1172487>; Neal 2000
-    <doi:10.1080/10618600.2000.10474879>; Hurn et al. 2003
+    <doi:10.1080/10618600.2000.10474879>; Zhang et al. 2004
+    <doi:10.1023/B:STCO.0000039481.32735.0c>; Hurn et al. 2003
     <doi:10.1198/1061860031329>). Post-hoc label switching correction wraps the
     'label.switching' package (Papastamoulis 2016 <doi:10.18637/jss.v069.c01>).
     A reversible jump MCMC engine is planned for a later release.
@@ -35,6 +37,6 @@ Collate: 'utils-internal.R' 'class-DistributionSpec.R'
         'nimix-package.R'
 Config/roxygen2/version: 8.0.0
 NeedsCompilation: no
-Packaged: 2026-06-22 06:24:25 UTC; root
+Packaged: 2026-06-22 20:06:02 UTC; root
 Author: nimix Developers [aut, cre]
 Maintainer: nimix Developers <nimix@example.org>

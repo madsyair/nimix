@@ -69,8 +69,11 @@
 #'   \code{method = "dpm"} (use \code{K_max} there).
 #' @param K_max Integer truncation level for the Dirichlet Process Mixture
 #'   (\code{method = "dpm"}); the number of components is estimated up to this
-#'   bound. A data-aware default of \code{min(10, floor(n / 5))} is used when
-#'   missing. Must not be given for \code{method = "fixedk"} (use \code{K}).
+#'   bound. Because the dCRP sampler errors if the occupied-cluster count ever
+#'   needs to exceed it, \code{K_max} should sit comfortably above the expected
+#'   number of clusters; a generous data-aware default (giving headroom above
+#'   that count) is used when missing. Must not be given for
+#'   \code{method = "fixedk"} (use \code{K}).
 #' @param distribution Component distribution. \code{"normal"} (default) picks
 #'   the univariate or multivariate Gaussian automatically from the data shape;
 #'   \code{"normal-uv"} / \code{"normal-mv"} force a specific one. Student-t /
@@ -88,8 +91,11 @@
 #' @param initMethod Initialisation for the cluster allocation: \code{"kmeans"}
 #'   (default, dispersed start) or \code{"single"}.
 #' @param seed Integer RNG seed for reproducibility.
-#' @param verbose Logical; print NIMBLE configuration and progress. When
-#'   \code{FALSE}, NIMBLE's compilation notes are silenced.
+#' @param verbose Logical; print NIMBLE's configuration and progress output.
+#'   Defaults to \code{FALSE} (quiet): NIMBLE's compilation notes and the benign
+#'   dCRP truncation note are silenced, while nimix's own diagnostics (e.g. a
+#'   censored-posterior warning) and any error still surface. Set \code{TRUE} to
+#'   see NIMBLE's configuration and a progress bar.
 #'
 #' @return A \code{\linkS4class{FitResult}}. Call \code{summary()} for
 #'   relabelled estimates, \code{plot()} for diagnostics, and \code{predict()}
@@ -143,7 +149,7 @@ nimixClust <- function(data,
                        mcmcControl = list(),
                        initMethod = c("kmeans", "single"),
                        seed = 1L,
-                       verbose = TRUE) {
+                       verbose = FALSE) {
   cl <- match.call()
   method <- match.arg(method)
   initMethod <- match.arg(initMethod)
@@ -205,7 +211,7 @@ nimixClust <- function(data,
     nComp <- as.integer(K)
     if (nComp < 1L) stop("K must be >= 1.", call. = FALSE)
   } else {
-    if (is.null(K_max)) K_max <- min(10L, max(2L, as.integer(floor(n / 5))))
+    if (is.null(K_max)) K_max <- .defaultTruncation(n)
     nComp <- as.integer(K_max)
     if (nComp < 2L) stop("K_max must be >= 2.", call. = FALSE)
   }

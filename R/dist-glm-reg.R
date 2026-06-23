@@ -58,16 +58,23 @@
   slopeIdx <- if (hasInt && p >= 2L) 2:p else seq_len(p)
   sScale   <- max(abs(bGlobal[slopeIdx]), 1)   # at least order 1 on link scale
 
+  # Seed up to kUse clusters only. For the DPM, count = L = K_max is a hard
+  # truncation, so capping at 0.8 * count keeps headroom for the early trans-
+  # cluster moves before the chain settles. The floor of 2 preserves the hard
+  # E-step's ability to separate components for a small fixed K (e.g. K = 2,
+  # where floor(0.8 * 2) = 1 would otherwise collapse the start).
+  kUse <- min(count, max(2L, as.integer(floor(0.8 * count))))
+
   betaMat  <- matrix(rep(bGlobal, each = count), nrow = count)   # count x p
-  spread   <- if (count >= 2L) seq(-1, 1, length.out = count) else 0
-  for (k in seq_len(count))
+  spread   <- if (kUse >= 2L) seq(-1, 1, length.out = kUse) else 0
+  for (k in seq_len(kUse))
     betaMat[k, slopeIdx] <- bGlobal[slopeIdx] + spread[k] * sScale
 
   xiInit <- rep(1L, n)
-  if (count >= 2L) {
-    eta <- X %*% t(betaMat)                       # n x count linear predictors
-    ll  <- matrix(0, n, count)
-    for (k in seq_len(count)) {
+  if (kUse >= 2L) {
+    eta <- X %*% t(betaMat[seq_len(kUse), , drop = FALSE])  # n x kUse
+    ll  <- matrix(0, n, kUse)
+    for (k in seq_len(kUse)) {
       ll[, k] <- if (is.null(size))
         stats::dpois(y, exp(eta[, k]), log = TRUE)
       else
