@@ -11,7 +11,7 @@ Description: Bayesian finite and nonparametric mixture models for clustering and
     <doi:10.1080/10618600.2016.1172487>). Provides univariate and multivariate
     mixture components with a Dirichlet process (Chinese restaurant process)
     engine and a fixed-number-of-components engine, plus post-hoc label
-    switching correction.
+    switching correction. 
 License: GPL-3
 URL: https://github.com/madsyair/nimix,
         https://madsyair.github.io/nimix/
