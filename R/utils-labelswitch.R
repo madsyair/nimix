@@ -66,14 +66,23 @@ setMethod("relabel", "FitResult",
     n <- ncol(alloc)
 
     # Recode each retained iteration's occupied labels to 1..modalK and record
-    # the (sorted) occupied labels so the spec can align its parameters.
-    z <- matrix(0L, nrow = m, ncol = n)
-    occList <- vector("list", m)
-    for (t in seq_len(m)) {
-      occ <- sort(unique(alloc[t, ]))
-      occList[[t]] <- occ
-      z[t, ] <- match(alloc[t, ], occ)
+    # the (sorted) occupied labels so the spec can align its parameters. The
+    # per-row sort(unique)/match is vectorised: a presence matrix (one tabulate
+    # over combined row-label ids), a row-wise cumulative sum giving each
+    # label's rank among the row's occupied labels, then one matrix-index
+    # lookup. Reproduces match(alloc[t, ], sort(unique(alloc[t, ]))) exactly.
+    Lmax <- max(alloc)
+    pres <- .rowPresence(alloc, Lmax)
+    rk  <- matrix(0L, nrow = m, ncol = Lmax)
+    acc <- integer(m)
+    for (l in seq_len(Lmax)) {                # Lmax (small) vectorised passes
+      acc <- acc + pres[, l]
+      rk[, l] <- acc
     }
+    z <- matrix(rk[cbind(rep(seq_len(m), times = n), as.vector(alloc))],
+                nrow = m, ncol = n)
+    storage.mode(z) <- "integer"
+    occList <- lapply(seq_len(m), function(t) which(pres[t, ]))
 
     # Derive label permutations (the wrapped label.switching ECR algorithm).
     if (modalK == 1L) {
@@ -87,14 +96,23 @@ setMethod("relabel", "FitResult",
       )
     }
 
-    # Mixing weights from relabelled occupancy (distribution-independent).
-    wMat <- t(apply(z, 1L, function(zr) tabulate(zr, nbins = modalK))) / n
-    wPerm <- matrix(NA_real_, nrow = m, ncol = modalK)
-    for (t in seq_len(m)) wPerm[t, ] <- wMat[t, perms[t, ]]
+    # Mixing weights from relabelled occupancy (distribution-independent),
+    # vectorised: one tabulate for all rows, one matrix-index permute.
+    wMat <- matrix(tabulate(seq_len(m) + m * (as.vector(z) - 1L),
+                            nbins = m * modalK), nrow = m) / n
+    wPerm <- matrix(wMat[cbind(rep(seq_len(m), times = modalK),
+                               as.vector(perms))],
+                    nrow = m, ncol = modalK)
 
     # Delegate parameter permutation + component summary to the spec.
     comp <- relabelComponents(fit@distSpec, fit@paramTrace, idx, occList,
                               perms, modalK, wPerm)
+
+    # Add a posterior median next to every scalar-per-component mean, so the
+    # summary reports mean, median, and a 95% credible interval. Works for any
+    # family whose relabelled draws are returned as m x modalK matrices;
+    # array-valued parameters are summarised by their own spec method.
+    comp <- .augmentSummaryMedian(comp, m, modalK)
 
     fit@relabeled <- c(
       list(method = method, modalK = modalK, nDraws = m, idx = idx,
@@ -104,3 +122,26 @@ setMethod("relabel", "FitResult",
     fit
   }
 )
+
+# Insert a posterior median column after each scalar-per-component mean.
+.augmentSummaryMedian <- function(comp, nDraws, modalK) {
+  summ <- comp$summary
+  if (is.null(summ) || !is.data.frame(summ)) return(comp)
+  for (nm in names(comp)) {
+    M <- comp[[nm]]
+    if (is.matrix(M) && nrow(M) == nDraws && ncol(M) == modalK &&
+        paste0(nm, "_mean") %in% names(summ) &&
+        !paste0(nm, "_med") %in% names(summ)) {
+      summ[[paste0(nm, "_med")]] <- apply(M, 2L, stats::median)
+    }
+  }
+  ord <- character(0)
+  for (cn in names(summ)) {
+    if (grepl("_med$", cn)) next
+    ord <- c(ord, cn)
+    medcn <- sub("_mean$", "_med", cn)
+    if (grepl("_mean$", cn) && medcn %in% names(summ)) ord <- c(ord, medcn)
+  }
+  comp$summary <- summ[, ord, drop = FALSE]
+  comp
+}

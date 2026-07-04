@@ -28,7 +28,13 @@
 #' @param distribution Component distribution. Currently \code{"normal"}
 #'   (Gaussian linear component). Other GLM families are planned.
 #' @param method Engine: \code{"dpm"} (default; estimate the number of
-#'   components), \code{"fixedk"} (fixed \code{K}), or \code{"rjmcmc"} (planned).
+#'   components), \code{"fixedk"} (fixed \code{K}), or \code{"mrf"}
+#'   (spatially constrained: fixed \code{K}, Potts smoothing of the labels on
+#'   a \code{spatialWeights} graph; Gaussian response, fixed
+#'   \code{prior$beta}, default 0.8).
+#' @param spatialWeights Optional \code{\linkS4class{SpatialWeightSpec}} (one
+#'   region per observation). Required by, and only used with,
+#'   \code{method = "mrf"}.
 #' @param gating Mixing-weight model: \code{"constant"} (default; weights do not
 #'   depend on covariates). \code{"covariate"} (concomitant gating) is a planned
 #'   opt-in and currently errors.
@@ -37,8 +43,12 @@
 #'   \code{nu0} for the InvGamma shape) plus, for the DPM, optional
 #'   \code{concPrior = c(shape, rate)}, or, for the finite mixture,
 #'   \code{dirichletConc}.
-#' @param mcmcControl A named list with \code{niter}, \code{nburnin},
-#'   \code{thin}.
+#' @param mcmcControl A named list of MCMC controls: \code{niter},
+#'   \code{nburnin}, \code{thin}, and the optional \code{initRatio} -- the
+#'   fraction of the truncation / component cap (\code{K_max} or \code{K})
+#'   seeded by the dispersed cluster initialisation (default 0.8; must lie in
+#'   (0, 1)). Lower it to leave more headroom below the truncation; raising it
+#'   to 0.95 or above is allowed but warns, as it leaves little headroom.
 #' @param initMethod Initialisation: \code{"kmeans"} (default) or
 #'   \code{"single"}.
 #' @param seed Integer RNG seed.
@@ -86,23 +96,30 @@ nimixReg <- function(formula, data,
                      K = NULL,
                      K_max = NULL,
                      distribution = "normal",
-                     method = c("dpm", "fixedk", "rjmcmc"),
+                     method = c("dpm", "fixedk", "mrf"),
                      gating = c("constant", "covariate"),
                      prior = list(),
                      mcmcControl = list(),
                      initMethod = c("kmeans", "single"),
                      seed = 1L,
-                     verbose = FALSE) {
+                     verbose = FALSE,
+                     spatialWeights = NULL) {
   cl <- match.call()
   method <- match.arg(method)
   gating <- match.arg(gating)
   initMethod <- match.arg(initMethod)
 
-  # --- roadmap / scope guards ----------------------------------------------
-  if (method == "rjmcmc")
-    stop("method = 'rjmcmc' is planned for v0.5.0 and is not yet implemented. ",
-         "Use method = 'dpm' (estimate K) or method = 'fixedk' (known K).",
+  if (!is.null(spatialWeights) && !methods::is(spatialWeights, "SpatialWeightSpec"))
+    stop("spatialWeights must be a SpatialWeightSpec (see ?spatialWeights).",
          call. = FALSE)
+  if (method == "mrf" && is.null(spatialWeights))
+    stop("method = 'mrf' needs a spatialWeights neighbourhood ",
+         "(see ?spatialWeights, ?gridAdjacency).", call. = FALSE)
+  if (method != "mrf" && !is.null(spatialWeights))
+    stop("spatialWeights is only used by method = 'mrf'; with method = '",
+         method, "' leave it NULL.", call. = FALSE)
+
+  # --- scope guards --------------------------------------------------------
   if (gating == "covariate")
     stop("gating = 'covariate' (concomitant / covariate-dependent gating) is a ",
          "planned opt-in and is not yet implemented. The default constant ",
@@ -112,11 +129,11 @@ nimixReg <- function(formula, data,
   distribution <- tolower(distribution)
 
   # K is for the finite mixture (fixed components); K_max is the DPM truncation.
-  if (method == "fixedk") {
+  if (method %in% c("fixedk", "mrf")) {
     if (is.null(K))
-      stop("method = 'fixedk' needs the number of components K.", call. = FALSE)
+      stop("method = '", method, "' needs the number of components K.", call. = FALSE)
     if (!is.null(K_max))
-      stop("Use K (not K_max) with method = 'fixedk'.", call. = FALSE)
+      stop("Use K (not K_max) with method = '", method, "'.", call. = FALSE)
   } else if (!is.null(K)) {
     stop("Use K_max (not K) with method = 'dpm'.", call. = FALSE)
   }
@@ -167,7 +184,7 @@ nimixReg <- function(formula, data,
 
   spec <- getDistribution(regName)
 
-  if (method == "fixedk") {
+  if (method %in% c("fixedk", "mrf")) {
     nComp <- as.integer(K)
     if (nComp < 1L) stop("K must be >= 1.", call. = FALSE)
   } else {
@@ -190,6 +207,15 @@ nimixReg <- function(formula, data,
   if (method == "fixedk") {
     dConc <- if (!is.null(prior$dirichletConc)) prior$dirichletConc else 1
     engine <- FixedKEngine(dirichletConc = dConc)
+  } else if (method == "mrf") {
+    if (nrow(getAdjacency(spatialWeights)) != n)
+      stop("spatialWeights has ", nrow(getAdjacency(spatialWeights)),
+           " regions but the data has ", n, " observations; they must match.",
+           call. = FALSE)
+    mrfBeta <- if (!is.null(prior$beta)) prior$beta else 0.8
+    engine <- MRFEngine(beta = mrfBeta, spatial = spatialWeights,
+                        estimateBeta = isTRUE(prior$estimateBeta),
+                        betaMax = if (!is.null(prior$betaMax)) prior$betaMax else 2)
   } else {
     concPrior <- if (!is.null(prior$concPrior)) prior$concPrior else c(2, 4)
     engine <- DPMEngine(concPrior = concPrior)
@@ -215,5 +241,6 @@ nimixReg <- function(formula, data,
       prior             = priorList,
       relabeled         = list(),
       mcmcControl       = raw$mcmcControl,
+      diagnostics       = raw$diagnostics,
       call              = cl)
 }

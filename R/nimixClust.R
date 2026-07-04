@@ -6,9 +6,9 @@
 ##   v0.2.0: ADDS multivariate Gaussian (NormalMvSpec), DPM. A numeric vector
 ##           routes to NormalUvSpec; a numeric matrix (one row per observation,
 ##           >= 2 columns) routes to NormalMvSpec.
-## Out-of-scope requests (rjmcmc; non-normal distributions) fail with an
-## informative pointer to the roadmap version that will deliver them (project
-## knowledge: never silently absorb a mismatch).
+## Out-of-scope requests (non-normal distributions) fail with an informative
+## pointer to the roadmap version that will deliver them (project knowledge:
+## never silently absorb a mismatch).
 ## ---------------------------------------------------------------------------
 
 # Resolve the component DistributionSpec from the requested distribution name
@@ -31,6 +31,11 @@
     return(getDistribution(if (isMv) "student-t-mv" else "student-t"))
   if (distribution %in% c("normalgamma", "normal-gamma"))
     return(getDistribution(if (isMv) "normal-gamma-mv" else "normal-gamma"))
+  if (distribution %in% c("msnburr", "msnburr2a", "msnburr-iia")) {
+    if (isMv)
+      stop("distribution = '", distribution, "' is univariate.", call. = FALSE)
+    return(getDistribution(if (distribution == "msnburr") "msnburr" else "msnburr2a"))
+  }
   if (distribution == "student-t-mv") return(getDistribution("student-t-mv"))
   if (distribution == "normal-gamma-mv")
     return(getDistribution("normal-gamma-mv"))
@@ -80,14 +85,31 @@
 #'   Poisson / Binomial are planned for v0.4.0.
 #' @param method Engine: \code{"dpm"} (default; estimate the number of
 #'   components), \code{"fixedk"} (finite mixture with known \code{K}), or
-#'   \code{"rjmcmc"} (planned for v0.5.0, currently errors).
+#'   \code{"mrf"} (spatially constrained finite mixture: known \code{K},
+#'   Potts smoothing of the labels on a \code{spatialWeights} graph;
+#'   univariate Gaussian components, fixed interaction \code{prior$beta},
+#'   default 0.8).
 #' @param prior A named list of prior overrides passed to
 #'   \code{\link{defaultPrior}} (univariate: \code{cLoc}, \code{nu0};
 #'   multivariate: \code{cLoc}, \code{df0}) plus, for the DPM, optional
 #'   \code{concPrior = c(shape, rate)} for the concentration, or, for the finite
 #'   mixture, \code{dirichletConc} for the Dirichlet weight prior.
-#' @param mcmcControl A named list with \code{niter}, \code{nburnin},
-#'   \code{thin}.
+#' @param mcmcControl A named list of MCMC controls: \code{niter},
+#'   \code{nburnin}, \code{thin}, the optional \code{initRatio} -- the
+#'   fraction of the truncation / component cap (\code{K_max} or \code{K})
+#'   seeded by the dispersed cluster initialisation (default 0.8; must lie in
+#'   (0, 1)). Lower it to leave more headroom below the truncation; raising it
+#'   to 0.95 or above is allowed but warns, as it leaves little headroom --
+#'   and \code{reuse} (default \code{TRUE}): reuse a compiled NIMBLE model when
+#'   a later fit has an identical structure (same generated code, constants,
+#'   monitors and component family), resetting only data and initial values.
+#'   This skips recompilation for repeated fits (multiple seeds, multiple
+#'   chains) and is bit-for-bit identical to a fresh compile. See
+#'   \code{\link{nimixClearCache}}. Also \code{nchains} (default 1): run this
+#'   many chains from dispersed, separately seeded starts (reusing the compiled
+#'   model, so only the first chain compiles) and report multi-chain split-Rhat
+#'   and effective sample size for label-invariant quantities in
+#'   \code{summary()}.
 #' @param initMethod Initialisation for the cluster allocation: \code{"kmeans"}
 #'   (default, dispersed start) or \code{"single"}.
 #' @param seed Integer RNG seed for reproducibility.
@@ -97,6 +119,9 @@
 #'   censored-posterior warning) and any error still surface. Set \code{TRUE} to
 #'   see NIMBLE's configuration and a progress bar.
 #'
+#' @param spatialWeights Optional \code{\linkS4class{SpatialWeightSpec}}
+#'   describing a neighbourhood graph on the observations (one region per
+#'   observation). Required by, and only used with, \code{method = "mrf"}.
 #' @return A \code{\linkS4class{FitResult}}. Call \code{summary()} for
 #'   relabelled estimates, \code{plot()} for diagnostics, and \code{predict()}
 #'   for the posterior predictive density.
@@ -144,32 +169,38 @@ nimixClust <- function(data,
                        K = NULL,
                        K_max = NULL,
                        distribution = "normal",
-                       method = c("dpm", "fixedk", "rjmcmc"),
+                       method = c("dpm", "fixedk", "mrf"),
                        prior = list(),
                        mcmcControl = list(),
                        initMethod = c("kmeans", "single"),
                        seed = 1L,
-                       verbose = FALSE) {
+                       verbose = FALSE,
+                       spatialWeights = NULL) {
   cl <- match.call()
   method <- match.arg(method)
   initMethod <- match.arg(initMethod)
 
-  # --- roadmap / scope guards ----------------------------------------------
-  if (method == "rjmcmc")
-    stop("method = 'rjmcmc' is planned for v0.5.0 and is not yet implemented. ",
-         "Use method = 'dpm' (estimate K) or method = 'fixedk' (known K).",
+  if (!is.null(spatialWeights) && !methods::is(spatialWeights, "SpatialWeightSpec"))
+    stop("spatialWeights must be a SpatialWeightSpec (see ?spatialWeights).",
+         call. = FALSE)
+  if (method == "mrf" && is.null(spatialWeights))
+    stop("method = 'mrf' needs a spatialWeights neighbourhood ",
+         "(see ?spatialWeights, ?gridAdjacency).", call. = FALSE)
+  if (method != "mrf" && !is.null(spatialWeights))
+    stop("spatialWeights is only used by method = 'mrf' (the spatially ",
+         "constrained mixture); with method = '", method, "' leave it NULL.",
          call. = FALSE)
 
   # K is for the finite mixture (fixed, known number of components); K_max is
   # the truncation level for the DPM (K is estimated). Guard against swapping
   # them so the error is informative rather than a downstream surprise.
-  if (method == "fixedk") {
+  if (method %in% c("fixedk", "mrf")) {
     if (is.null(K))
-      stop("method = 'fixedk' needs the number of components K (a known/assumed ",
+      stop("method = '", method, "' needs the number of components K (a known/assumed ",
            "value), e.g. nimixClust(data, K = 3, method = 'fixedk').",
            call. = FALSE)
     if (!is.null(K_max))
-      stop("Use K (not K_max) with method = 'fixedk'. K_max is for the DPM, ",
+      stop("Use K (not K_max) with method = '", method, "'. K_max is for the DPM, ",
            "which estimates the number of components.", call. = FALSE)
   } else {  # dpm
     if (!is.null(K))
@@ -207,7 +238,7 @@ nimixClust <- function(data,
   }
 
   # Resolve the component count: fixed K, or a data-aware default truncation.
-  if (method == "fixedk") {
+  if (method %in% c("fixedk", "mrf")) {
     nComp <- as.integer(K)
     if (nComp < 1L) stop("K must be >= 1.", call. = FALSE)
   } else {
@@ -225,6 +256,11 @@ nimixClust <- function(data,
   if (method == "fixedk") {
     dConc <- if (!is.null(prior$dirichletConc)) prior$dirichletConc else 1
     engine <- FixedKEngine(dirichletConc = dConc)
+  } else if (method == "mrf") {
+    mrfBeta <- if (!is.null(prior$beta)) prior$beta else 0.8
+    engine <- MRFEngine(beta = mrfBeta, spatial = spatialWeights,
+                        estimateBeta = isTRUE(prior$estimateBeta),
+                        betaMax = if (!is.null(prior$betaMax)) prior$betaMax else 2)
   } else {
     concPrior <- if (!is.null(prior$concPrior)) prior$concPrior else c(2, 4)
     engine <- DPMEngine(concPrior = concPrior)
@@ -249,5 +285,6 @@ nimixClust <- function(data,
       prior             = priorList,
       relabeled         = list(),
       mcmcControl       = raw$mcmcControl,
+      diagnostics       = raw$diagnostics,
       call              = cl)
 }

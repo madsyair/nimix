@@ -163,11 +163,12 @@ setMethod("componentInits", "StudentTUvSpec",
   function(spec, prior, data, count, initMethod = "kmeans", ...) {
     y <- as.numeric(data); n <- length(y)
     nUnique <- length(unique(y))
-    # Dispersed k-means start, but capped at 0.8 * count to leave headroom below
-    # the cap: for the DPM, count = L = K_max is a hard truncation, and early CRP
-    # sweeps can briefly occupy more clusters than the modal K before merging
-    # down. Seeding right at the ceiling left no room for that transient.
-    k0 <- max(1L, min(as.integer(floor(0.8 * count)), as.integer(ceiling(sqrt(n)))))
+    # Dispersed k-means start, capped at initRatio * count (default 0.8, tunable
+    # via mcmcControl$initRatio). For the DPM, count = L = K_max is a hard
+    # truncation, and early CRP sweeps can briefly occupy more clusters than the
+    # modal K before merging; seeding right at the ceiling leaves no headroom.
+    initRatio <- .initRatioArg(...)
+    k0 <- max(1L, min(as.integer(floor(initRatio * count)), as.integer(ceiling(sqrt(n)))))
     k0 <- min(k0, max(1L, nUnique))
 
     xiInit <- rep(1L, n)

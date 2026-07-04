@@ -97,7 +97,8 @@ setMethod("buildDataList", "PoissonSpec",
 setMethod("componentInits", "PoissonSpec",
   function(spec, prior, data, count, initMethod = "kmeans", ...)
     .countInits(as.numeric(data), count, initMethod, prior$a0 / prior$b0,
-                "lambda", transform = function(m) pmax(m, 1e-2))
+                "lambda", transform = function(m) pmax(m, 1e-2),
+                initRatio = .initRatioArg(...))
 )
 
 #' @describeIn extractParamTraces Parse lambda traces.
@@ -212,7 +213,8 @@ setMethod("componentInits", "BinomialSpec",
     .countInits(as.numeric(data), count, initMethod,
                 prior$a0 / (prior$a0 + prior$b0), "prob",
                 transform = function(m) min(max(m / prior$size, 1e-3),
-                                            1 - 1e-3))
+                                            1 - 1e-3),
+                initRatio = .initRatioArg(...))
 )
 
 #' @describeIn extractParamTraces Parse prob traces.
@@ -234,13 +236,13 @@ setMethod("relabelComponents", "BinomialSpec",
 
 # k-means start producing an allocation plus one scalar parameter per slot.
 .countInits <- function(y, count, initMethod, priorMean, nodeName,
-                        transform = identity) {
+                        transform = identity, initRatio = .DEFAULT_INIT_RATIO) {
   n <- length(y); nUnique <- length(unique(y))
-  # Dispersed k-means start, but capped at 0.8 * count to leave headroom below
+  # Dispersed k-means start, capped at initRatio * count (default 0.8) to leave
   # the cap: for the DPM, count = L = K_max is a hard truncation, and early CRP
   # sweeps can briefly occupy more clusters than the modal K before merging
   # down. Seeding right at the ceiling left no room for that transient.
-  k0 <- max(1L, min(as.integer(floor(0.8 * count)), as.integer(ceiling(sqrt(n)))))
+  k0 <- max(1L, min(as.integer(floor(initRatio * count)), as.integer(ceiling(sqrt(n)))))
   k0 <- min(k0, max(1L, nUnique))
   xiInit <- rep(1L, n); centers <- mean(y)
   if (identical(initMethod, "kmeans") && k0 >= 2L && nUnique >= k0) {

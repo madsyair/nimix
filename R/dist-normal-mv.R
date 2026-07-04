@@ -42,11 +42,6 @@
 #'   the data at fit time and carried in the prior list.
 #'
 #' @references
-#' Zhang, Z., Chan, K.L., Wu, Y., & Chen, C. (2004). Learning a multivariate
-#' Gaussian mixture model with the reversible jump MCMC algorithm.
-#' \emph{Statistics and Computing}, 14, 343--355.
-#' \doi{10.1023/B:STCO.0000039481.32735.0c}
-#'
 #' Dellaportas, P., & Papageorgiou, I. (2006). Multivariate mixtures of normals
 #' with unknown number of components. \emph{Statistics and Computing}, 16,
 #' 57--68. \doi{10.1007/s11222-006-5338-6}
@@ -253,11 +248,12 @@ setMethod("componentInits", "NormalMvSpec",
     Y <- as.matrix(data)
     n <- nrow(Y); d <- ncol(Y)
     nUnique <- nrow(unique(Y))
-    # Dispersed k-means start, but capped at 0.8 * count to leave headroom below
-    # the cap: for the DPM, count = L = K_max is a hard truncation, and early CRP
-    # sweeps can briefly occupy more clusters than the modal K before merging
-    # down. Seeding right at the ceiling left no room for that transient.
-    k0 <- max(1L, min(as.integer(floor(0.8 * count)), as.integer(ceiling(sqrt(n)))))
+    # Dispersed k-means start, capped at initRatio * count (default 0.8, tunable
+    # via mcmcControl$initRatio). For the DPM, count = L = K_max is a hard
+    # truncation, and early CRP sweeps can briefly occupy more clusters than the
+    # modal K before merging; seeding right at the ceiling leaves no headroom.
+    initRatio <- .initRatioArg(...)
+    k0 <- max(1L, min(as.integer(floor(initRatio * count)), as.integer(ceiling(sqrt(n)))))
     k0 <- min(k0, max(1L, nUnique))
 
     priorMeanCov <- prior$S0 / (prior$df0 - d - 1)
@@ -338,8 +334,24 @@ setMethod("relabelComponents", "NormalMvSpec",
 
     summ <- data.frame(component = seq_len(modalK),
                        weight = colMeans(weights))
-    for (j in seq_len(d)) summ[[paste0("mu_", j)]]  <- muMean[, j]
-    for (j in seq_len(d)) summ[[paste0("var_", j)]] <- varMean[, j]
+    ## Per-dimension mean, median, and 95% credible interval of the component
+    ## means; plus mean/median of the per-dimension variances (Sigma diagonal).
+    muMed <- apply(muRe, c(2L, 3L), stats::median)             # modalK x d
+    muLwr <- apply(muRe, c(2L, 3L), stats::quantile, 0.025, names = FALSE)
+    muUpr <- apply(muRe, c(2L, 3L), stats::quantile, 0.975, names = FALSE)
+    varRe <- vapply(seq_len(d), function(j) covRe[, , j, j],
+                    matrix(0, m, modalK))                      # m x modalK x d
+    varMed <- apply(varRe, c(2L, 3L), stats::median)
+    for (j in seq_len(d)) {
+      summ[[paste0("mu_", j, "_mean")]] <- muMean[, j]
+      summ[[paste0("mu_", j, "_med")]]  <- muMed[, j]
+      summ[[paste0("mu_", j, "_lwr")]]  <- muLwr[, j]
+      summ[[paste0("mu_", j, "_upr")]]  <- muUpr[, j]
+    }
+    for (j in seq_len(d)) {
+      summ[[paste0("var_", j, "_mean")]] <- varMean[, j]
+      summ[[paste0("var_", j, "_med")]]  <- varMed[, j]
+    }
 
     list(mu = muRe, Sigma = covRe, mu_mean = muMean,
          Sigma_mean = SigMean, summary = summ)

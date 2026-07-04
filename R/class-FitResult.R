@@ -25,6 +25,8 @@
 #' @slot prior The prior list used.
 #' @slot relabeled A list cache populated by \code{\link{relabel}} (or empty).
 #' @slot mcmcControl The MCMC control list actually used.
+#' @slot diagnostics Multi-chain convergence diagnostics (Rhat, ESS) when more
+#'   than one chain is run; otherwise a single-chain summary.
 #' @slot call The matched call.
 #' @export
 setClass(
@@ -41,9 +43,10 @@ setClass(
     prior             = "list",
     relabeled         = "list",
     mcmcControl       = "list",
+    diagnostics       = "list",
     call              = "ANY"
   ),
-  prototype = prototype(relabeled = list())
+  prototype = prototype(relabeled = list(), diagnostics = list())
 )
 
 #' @describeIn FitResult Compact display of a fitted result.

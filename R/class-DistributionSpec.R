@@ -8,8 +8,8 @@
 ## the NIMBLE code fragment for that component under a given engine.
 ##
 ## Distributions registered for the DPM engine in v0.1.0-v0.4.0 are reused
-## verbatim when the RJMCMC engine arrives (v0.5.0+): only the additional
-## split/merge slots are added, never a rewrite of DistributionSpec.
+## verbatim across engines (DPM and fixed-K share the same component contract),
+## never a rewrite of DistributionSpec.
 ## ---------------------------------------------------------------------------
 
 #' Virtual base class for mixture component distributions

@@ -234,7 +234,7 @@ setMethod("componentInits", "NormalRegSpec",
     bOls <- as.numeric(solve(crossprod(X) + diag(1e-8, p), crossprod(X, y)))
     s2prior <- prior$s0 / (prior$nu0 - 1)
 
-    # Dispersed k-means start, but capped at 0.8 * count to leave headroom below
+    # Dispersed k-means start, capped at initRatio * count (default 0.8, tunable via
 
     # the cap: for the DPM, count = L = K_max is a hard truncation, and early CRP
 
@@ -242,7 +242,8 @@ setMethod("componentInits", "NormalRegSpec",
 
     # down. Seeding right at the ceiling left no room for that transient.
 
-    k0 <- max(1L, min(as.integer(floor(0.8 * count)), as.integer(ceiling(sqrt(n)))))
+    initRatio <- .initRatioArg(...)
+    k0 <- max(1L, min(as.integer(floor(initRatio * count)), as.integer(ceiling(sqrt(n)))))
     xiInit <- rep(1L, n)
     betaList <- list(bOls)
     s2List   <- list(s2prior)

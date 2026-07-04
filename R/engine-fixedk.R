@@ -150,7 +150,13 @@ setMethod("runEngine", "FixedKEngine",
 
     mc <- buildModelCode(spec, engine, n = n, L = K, d = d)
     dataList <- buildDataList(spec, data)
-    ci <- componentInits(spec, prior, data, K, initMethod = initMethod)
+    initRatio <- .resolveInitRatio(mcmcControl)
+    initsFn <- function(s) {
+      ci <- .withSeed(s, function() componentInits(spec, prior, data, K,
+                      initMethod = initMethod, initRatio = initRatio))
+      if (K == 1L) ci$params
+      else c(list(z = ci$alloc, weights = rep(1 / K, K)), ci$params)
+    }
     baseConst <- buildConstants(spec, prior, n)
 
     if (K == 1L) {
@@ -160,15 +166,13 @@ setMethod("runEngine", "FixedKEngine",
       mc$code     <- .stripMixtureLayer(mc$code)
       mc$monitors <- setdiff(mc$monitors, c("z", "weights"))
       constants   <- c(baseConst, list(K = K, z = rep(1L, n)))
-      inits       <- ci$params
     } else {
       constants <- c(baseConst,
                      list(K = K, alphaVec = rep(engine@dirichletConc, K)))
-      inits     <- c(list(z = ci$alloc, weights = rep(1 / K, K)), ci$params)
     }
 
     paramDim <- if (!is.null(prior$p)) prior$p else d
-    .runNimbleMixture(spec, mc, constants, dataList, inits,
+    .runNimbleMixture(spec, mc, constants, dataList, initsFn,
                       n = n, count = K, paramDim = paramDim, prior = prior,
                       mcmcControl = mcmcControl, seed = seed, verbose = verbose)
   }

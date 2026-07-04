@@ -7,7 +7,7 @@
 ## been run it is run automatically (presenting raw per-component posterior
 ## summaries before relabelling is not meaningful). It also reports a simple
 ## ESS-based mixing diagnostic and warns on poor mixing. Cross-chain Rhat
-## requires multiple chains and is deferred to v0.9.0 (multi-chain support).
+## requires multiple chains and is deferred to v0.5.0 (multi-chain support).
 ##
 ## plot()/predict() are dimension-aware: they dispatch their per-component
 ## density through the spec's componentDensity() so univariate and multivariate
@@ -29,17 +29,28 @@ setMethod("summary", "FitResult", function(object, ...) {
 
   Ktab <- prop.table(table(object@Kposterior))
 
-  ess_alpha <- tryCatch(
-    coda::effectiveSize(coda::as.mcmc(object@mcmcSamples[, "alpha"])),
-    error = function(e) NA_real_)
-  ess_K <- tryCatch(
+  diag   <- object@diagnostics
+  nch    <- if (!is.null(diag$nchains)) diag$nchains else 1L
+  nDraws <- nrow(object@mcmcSamples)
+  # Fall back to a single-chain computation for results produced before the
+  # diagnostics slot was populated.
+  essK <- if (!is.null(diag$essK)) diag$essK else tryCatch(
     coda::effectiveSize(coda::as.mcmc(as.numeric(object@Kposterior))),
     error = function(e) NA_real_)
-  nDraws <- nrow(object@mcmcSamples)
-  if (is.finite(ess_K) && ess_K < 0.05 * nDraws)
+  essAlpha <- if (!is.null(diag$essAlpha)) diag$essAlpha else tryCatch(
+    coda::effectiveSize(coda::as.mcmc(object@mcmcSamples[, "alpha"])),
+    error = function(e) NA_real_)
+  RhatK <- diag$RhatK
+
+  if (nch > 1L && is.finite(RhatK) && RhatK > 1.1)
+    warning("Cross-chain split-Rhat for the cluster count is ", round(RhatK, 3),
+            " (> 1.1): the ", nch, " chains disagree on the number of clusters ",
+            "and have likely not converged. Run longer or add chains.",
+            call. = FALSE)
+  if (is.finite(essK) && essK < 0.05 * nDraws)
     warning("Low effective sample size for the cluster count (ESS = ",
-            round(ess_K), " of ", nDraws, " draws): the chain may be mixing ",
- "poorly across partitions. ",
+            round(essK), " of ", nDraws, " draws): the chain may be mixing ",
+            "poorly across partitions. ",
             "Consider a longer run or k-means initialisation.", call. = FALSE)
 
   cat("nimix mixture summary (engine: ", object@engineUsed,
@@ -53,12 +64,38 @@ setMethod("summary", "FitResult", function(object, ...) {
   cat("\nRelabelled component estimates (posterior mean; ",
       "CIs for univariate):\n", sep = "")
   print(format(rl$summary, digits = 3), row.names = FALSE)
-  cat("\nMixing diagnostic (single chain): ESS(alpha) = ",
-      round(ess_alpha), ", ESS(#clusters) = ", round(ess_K), "\n", sep = "")
-  cat("Note: cross-chain Rhat requires multiple chains (planned v0.9.0).\n")
+  if (nch > 1L) {
+    cat("\nConvergence (", nch, " chains, ", nDraws, " pooled draws):\n", sep = "")
+    cat("  split-Rhat(#clusters) = ", round(RhatK, 3),
+        "  ESS(#clusters) = ", round(essK), "\n", sep = "")
+    if (!is.null(diag$RhatAlpha) && is.finite(diag$RhatAlpha))
+      cat("  split-Rhat(alpha)     = ", round(diag$RhatAlpha, 3),
+          "  ESS(alpha) = ", round(essAlpha), "\n", sep = "")
+    if (!is.null(diag$RhatBeta) && is.finite(diag$RhatBeta))
+      cat("  split-Rhat(beta MRF)  = ", round(diag$RhatBeta, 3),
+          "  ESS(beta) = ", round(diag$essBeta),
+          "  E[beta|y] = ", round(diag$betaMean, 3), "\n", sep = "")
+    if (!is.null(diag$functionals)) {
+      cat("  Convergence over label-invariant functionals",
+          " (Vehtari et al. 2021; aim Rhat < 1.01):\n", sep = "")
+      ft <- diag$functionals
+      for (r in seq_len(nrow(ft)))
+        cat(sprintf("    %-8s Rhat %-6s folded %-6s bulkESS %-6s tailESS %s\n",
+            ft$functional[r], round(ft$Rhat[r], 3), round(ft$foldedRhat[r], 3),
+            round(ft$bulkESS[r]), round(ft$tailESS[r])))
+    }
+    cat("  (Rhat computed on label-invariant quantities; ",
+        "target Rhat < 1.1)\n", sep = "")
+  } else {
+    cat("\nMixing diagnostic (single chain): ESS(#clusters) = ",
+        round(essK), sep = "")
+    if (is.finite(essAlpha)) cat(", ESS(alpha) = ", round(essAlpha), sep = "")
+    cat("\n  Set mcmcControl$nchains > 1 for cross-chain split-Rhat.\n", sep = "")
+  }
 
   invisible(list(Kposterior = Ktab, components = rl$summary,
-                 ess = c(alpha = ess_alpha, K = ess_K), object = object))
+                 ess = c(alpha = essAlpha, K = essK),
+                 diagnostics = diag, object = object))
 })
 
 #' @describeIn FitResult Diagnostic and result plots.

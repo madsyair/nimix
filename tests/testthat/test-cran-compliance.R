@@ -2,19 +2,14 @@
 # compilation) and assert that out-of-roadmap requests fail with clear errors
 # rather than silently doing something (project knowledge 0.3.1 / 0.3.7).
 
-test_that("nimixReg scope guards: rjmcmc, covariate gating, count response", {
+test_that("nimixReg scope guards: covariate gating, count response", {
   df <- data.frame(y = rnorm(20), x = rnorm(20))
-  expect_error(nimixReg(y ~ x, df, method = "rjmcmc"), "v0.5.0")
   expect_error(nimixReg(y ~ x, df, gating = "covariate"), "9.8|gating")
   # Poisson regression is supported (v0.4.x) but a continuous response must be
   # rejected early with a clear message, not crash inside the sampler.
   expect_error(nimixReg(y ~ x, df, distribution = "poisson"), "count|integer")
   # a genuinely unknown family still points the user at the available ones
   expect_error(nimixReg(y ~ x, df, distribution = "gamma"), "not available")
-})
-
-test_that("rjmcmc method is deferred to v0.5.0", {
-  expect_error(nimixClust(rnorm(20), method = "rjmcmc"), "v0.5.0")
 })
 
 test_that("multivariate data routes to NormalMvSpec, univariate to NormalUvSpec", {

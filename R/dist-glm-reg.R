@@ -46,7 +46,7 @@
 # component whose current coefficients give it the highest likelihood. This
 # "dispersed starts + one classification step" is the standard robust
 # initialisation for mixtures of regressions (Grun & Leisch 2008, FlexMix).
-.glmRegInits <- function(y, X, count, family, size = NULL) {
+.glmRegInits <- function(y, X, count, family, size = NULL, initRatio = .DEFAULT_INIT_RATIO) {
   n <- length(y); p <- ncol(X)
   yfit <- if (is.null(size)) y else cbind(y, size - y)
   bGlobal <- tryCatch(stats::glm.fit(X, yfit, family = family)$coefficients,
@@ -59,11 +59,11 @@
   sScale   <- max(abs(bGlobal[slopeIdx]), 1)   # at least order 1 on link scale
 
   # Seed up to kUse clusters only. For the DPM, count = L = K_max is a hard
-  # truncation, so capping at 0.8 * count keeps headroom for the early trans-
+  # truncation, so capping at initRatio * count (default 0.8) keeps headroom for
   # cluster moves before the chain settles. The floor of 2 preserves the hard
   # E-step's ability to separate components for a small fixed K (e.g. K = 2,
-  # where floor(0.8 * 2) = 1 would otherwise collapse the start).
-  kUse <- min(count, max(2L, as.integer(floor(0.8 * count))))
+  # where floor(0.8 * 2) = 1 would otherwise collapse the start; kept regardless of initRatio).
+  kUse <- min(count, max(2L, as.integer(floor(initRatio * count))))
 
   betaMat  <- matrix(rep(bGlobal, each = count), nrow = count)   # count x p
   spread   <- if (kUse >= 2L) seq(-1, 1, length.out = kUse) else 0
@@ -203,7 +203,8 @@ setMethod("buildDataList", "PoissonRegSpec",
 #' @describeIn componentInits Global-GLM start with k-means allocation.
 setMethod("componentInits", "PoissonRegSpec",
   function(spec, prior, data, count, initMethod = "kmeans", ...)
-    .glmRegInits(as.numeric(data), prior$X, count, stats::poisson()))
+    .glmRegInits(as.numeric(data), prior$X, count, stats::poisson(),
+                 initRatio = .initRatioArg(...)))
 
 #' @describeIn extractParamTraces Parse coefficient traces.
 setMethod("extractParamTraces", "PoissonRegSpec",
@@ -327,7 +328,7 @@ setMethod("buildDataList", "BinomialRegSpec",
 setMethod("componentInits", "BinomialRegSpec",
   function(spec, prior, data, count, initMethod = "kmeans", ...)
     .glmRegInits(as.numeric(data), prior$X, count, stats::binomial(),
-                 size = prior$size))
+                 size = prior$size, initRatio = .initRatioArg(...)))
 
 #' @describeIn extractParamTraces Parse coefficient traces.
 setMethod("extractParamTraces", "BinomialRegSpec",

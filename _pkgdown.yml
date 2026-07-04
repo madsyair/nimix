@@ -92,4 +92,92 @@ reference:
   - NormalMvRegSpec-class
   - StudentTMvRegSpec-class
   - NormalGammaMvRegSpec-class
-  
+
+- title: Neo-normal component specs
+  desc: Skew-capable MSNBurr families (Iriawan 2000; Choir 2020).
+  contents:
+  - MSNBurrUvSpec
+  - MSNBurr2aUvSpec
+  - MSNBurrUvSpec-class
+  - MSNBurr2aUvSpec-class
+
+- title: Neo-normal distribution functions
+  desc: Numerically stable density, distribution, quantile, and RNG.
+  contents:
+  - msnburr-distribution
+  - msnburr2a-distribution
+
+- title: Spatial mixtures (MRF)
+  desc: >
+    Spatially constrained mixtures whose labels follow a Potts / Markov
+    random field over a neighbourhood graph.
+  contents:
+  - spatialWeights
+  - gridAdjacency
+  - nRegions
+  - getAdjacency
+  - neighborsOf
+  - MRFEngine
+  - SpatialWeightSpec
+  - SpatialWeightSpec-class
+  - MRFEngine-class
+
+- title: Model containers
+  contents:
+  - ClusterModel
+  - RegressionMixModel
+
+- title: Bayesian workflow
+  desc: Posterior predictive checks; convergence diagnostics print via summary().
+  contents:
+  - ppCheck
+
+- title: Extension API (engine-facing generics)
+  desc: >
+    The remaining S4 contract a component spec implements so a new family
+    plugs into every engine.
+  contents:
+  - runEngine
+  - componentDensity
+  - simulateParams
+  - componentInits
+  - buildConstants
+  - buildDataList
+  - extractParamTraces
+  - relabelComponents
+
+- title: Utilities
+  contents:
+  - nimixClearCache
+
+- title: Datasets
+  contents:
+  - usStates2023
+  - usStateAdj
+  - wdi2022
+
+- title: Cluster profiling
+  contents:
+  - clusterProfile
+
+- title: Model selection and ensembling
+  desc: Predictive comparison (WAIC / PSIS-LOO) and weighted ensembles.
+  contents:
+  - nimixWAIC
+  - nimixLOO
+  - modelSelect
+  - ensembleFit
+  - predict-nimixEnsemble
+
+articles:
+- title: Get started
+  navbar: ~
+  contents:
+  - mixClust-univariate
+- title: More worked examples
+  desc: Rendered on the website only (not shipped as package vignettes).
+  contents:
+  - articles/mixClust-multivariate
+  - articles/mixReg
+  - articles/normal-gamma-vs-studentt
+  - articles/spatial-mixture

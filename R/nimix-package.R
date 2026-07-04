@@ -1,22 +1,27 @@
 #' nimix: Bayesian Mixture Clustering and Regression with NIMBLE
 #'
-#' Bayesian mixture modelling built on the \pkg{nimble} platform. The
-#' release implements univariate and multivariate Gaussian mixture clustering
-#' through a Dirichlet Process Mixture (DPM) engine based on the Chinese
-#' Restaurant Process. The package is organised around an extensible S4
-#' \code{\linkS4class{DistributionSpec}} contract so that new component
-#' distributions and (later) a reversible-jump engine can be added without
+#' Bayesian mixture modelling built on the \pkg{nimble} platform. The package
+#' implements univariate and multivariate mixture clustering and
+#' mixture-of-regressions through two inference engines: a Dirichlet Process
+#' Mixture (DPM) engine based on the Chinese Restaurant Process (which estimates
+#' the number of occupied components) and a fixed-K finite-mixture engine. It is
+#' organised around an extensible S4 \code{\linkS4class{DistributionSpec}}
+#' contract so that new component distributions and engines can be added without
 #' rewriting existing code.
 #'
-#' @section Roadmap (this is v0.2.0):
+#' @section Inference engines:
 #' \itemize{
-#'   \item v0.1.0: S4 foundation, \code{\linkS4class{NormalUvSpec}},
-#'     univariate \code{\link{nimixClust}} on the DPM engine.
-#'   \item v0.2.0 (this release): multivariate clustering
-#'     (\code{\linkS4class{NormalMvSpec}}).
-#'   \item v0.3.0: mixture-of-regressions (\code{\link{nimixReg}}).
-#'   \item v0.5.0+: reversible jump MCMC engine.
+#'   \item \code{method = "dpm"}: Dirichlet process / Chinese restaurant process;
+#'     the number of occupied components is estimated from the data.
+#'   \item \code{method = "fixedk"}: finite mixture with a known number of
+#'     components \code{K}.
 #' }
+#'
+#' @section Component distributions:
+#' Gaussian (univariate and multivariate), Student-t and Normal-Gamma
+#' (heavy-tailed, univariate and multivariate), and Poisson / Binomial counts,
+#' for both clustering (\code{\link{nimixClust}}) and regression
+#' (\code{\link{nimixReg}}, including multivariate responses).
 #'
 #' @references
 #' de Valpine, P., Turek, D., Paciorek, C.J., Anderson-Bergman, C.,
@@ -44,6 +49,8 @@
 # not R objects; declare them so R CMD check does not flag "no visible binding"
 # (a standard accommodation for packages that build NIMBLE model code).
 utils::globalVariables(c(
+  "getNimbleOption", "nf_preProcessMemberDataObject", "nimNumeric",
+  "dMSNBurr_k", "rMSNBurr_k", "dMSNBurr2a_k", "rMSNBurr2a_k",
   "n", "L", "d", "y", "xi", "alpha", "aAlpha", "bAlpha",
   "mu0", "kappa0", "nu0", "s0", "df0", "S0",
   "muTilde", "s2Tilde", "covTilde", "muObs", "covObs", "covMu",

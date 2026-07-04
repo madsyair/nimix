@@ -9,24 +9,41 @@
 ## that does not update empty-component parameters.
 ## ---------------------------------------------------------------------------
 
-# Run an expression with NIMBLE's *cosmetic* progress/diagnostic chatter
-# silenced, used when verbose = FALSE. Importantly this is NOT a blanket warning
-# suppressor: only NIMBLE's known-benign configuration chatter is muffled. Any
-# other warning -- in particular anything that could signal the sampler produced
-# invalid draws -- is allowed to propagate to the user even when verbose = FALSE,
-# so quiet mode never hides a genuine validity problem. Errors are never caught
-# here.
-#
-# .benignNimbleChatter holds patterns for NIMBLE messages/warnings that are
-# purely informational (the dCRP truncation reminder is a heads-up that the
-# truncated representation is in use; the actual breach of the truncation is a
-# hard error, raised separately and translated by the caller, not a warning).
+# Muffle ONLY NIMBLE's known-benign configuration chatter, by pattern, and let
+# every other condition through. Used in BOTH verbose modes. The dCRP truncation
+# reminder and the not-fully-initialized note are emitted as R messages and are
+# purely cosmetic: the actual breach of the truncation is a separate hard error
+# (translated by the caller below), so dropping these notes -- even under
+# verbose = TRUE -- hides nothing actionable. Genuine warnings (anything that
+# could signal invalid draws) are never matched here and always propagate;
+# errors are never caught here.
 .benignNimbleChatter <- paste(
   "less than the number of potential clusters",
   "not strictly valid if it ever proposes",
   "model is not fully initialized",
+  "No samplers assigned",   # deliberate: fixed-beta MRF leaves beta unsampled
   sep = "|")
 
+.muffleBenignChatter <- function(expr) {
+  ## Robust to zero-length or multi-line condition messages (NIMBLE emits
+  ## both): any() collapses, isTRUE() guards NA/empty.
+  withCallingHandlers(
+    expr,
+    message = function(m) {
+      if (isTRUE(any(grepl(.benignNimbleChatter, conditionMessage(m)))))
+        invokeRestart("muffleMessage")
+    },
+    warning = function(w) {
+      if (isTRUE(any(grepl(.benignNimbleChatter, conditionMessage(w)))))
+        invokeRestart("muffleWarning")
+      # otherwise: do nothing, so the warning propagates to the user
+    })
+}
+
+# verbose = FALSE path: in addition to muffling the benign chatter above, also
+# drop NIMBLE's cat-based progress notes (capture.output) and turn off the
+# progress bar. This is still NOT a blanket warning suppressor -- non-benign
+# warnings continue to reach the user even in quiet mode.
 .quietly <- function(expr) {
   oldVerbose <- nimble::getNimbleOption("verbose")
   oldBar     <- nimble::getNimbleOption("MCMCprogressBar")
@@ -34,85 +51,195 @@
   on.exit(nimble::nimbleOptions(verbose = oldVerbose,
                                 MCMCprogressBar = oldBar), add = TRUE)
   res <- NULL
-  # capture.output drops NIMBLE's cat-based console notes; the handlers below
-  # muffle ONLY the benign config messages/warnings by pattern and let every
-  # other condition through (a non-benign warning is re-signalled so the user
-  # still sees it).
-  withCallingHandlers(
-    utils::capture.output(
-      res <- force(expr),
-      file = nullfile()),
-    message = function(m) {
-      if (grepl(.benignNimbleChatter, conditionMessage(m)))
-        invokeRestart("muffleMessage")
-    },
-    warning = function(w) {
-      if (grepl(.benignNimbleChatter, conditionMessage(w)))
-        invokeRestart("muffleWarning")
-      # otherwise: do nothing, so the warning propagates to the user
-    })
+  utils::capture.output(
+    res <- .muffleBenignChatter(force(expr)),
+    file = nullfile())
   res
 }
 
 # Build, compile, run, and extract a NIMBLE mixture model. Engine-specific code
-# only has to assemble the model code, constants, inits, monitors, and the name
+# --- compiled-model cache (compile-once-reuse, v0.5.0) ----------------------
+# Compiling a NIMBLE model and its MCMC is the dominant cost of a fit. When a
+# later fit requests an identical model STRUCTURE -- same generated code, same
+# constants/hyperparameters, same monitors, same component spec class -- the
+# compiled model and MCMC are reused: only the data and initial values are reset
+# and the chain re-run. This reproduces a fresh compile exactly while skipping
+# recompilation. Data and inits are values, not structure, so they are never
+# part of the cache key.
+.nimixModelCache <- new.env(parent = emptyenv())
+.nimixModelCache$entries <- list()
+.nimixModelCache$builds  <- 0L           # number of genuine (re)compilations
+.NIMIX_CACHE_MAX <- 6L
+
+#' Clear the compiled-model cache
+#'
+#' nimix reuses compiled NIMBLE models across fits that share an identical model
+#' structure (see the \code{reuse} entry of \code{mcmcControl} in
+#' \code{\link{nimixClust}}). Compiled models are large; this empties the cache
+#' and releases them.
+#'
+#' @return Invisibly, the number of cached compiled models that were removed.
+#' @examples
+#' nimixClearCache()
+#' @export
+nimixClearCache <- function() {
+  k <- length(.nimixModelCache$entries)
+  .nimixModelCache$entries <- list()
+  invisible(k)
+}
+
+# Structural key: data and inits are deliberately excluded.
+.cacheKey <- function(mc, constants, spec, extra = NULL) {
+  list(code      = deparse(mc$code),
+       constants = constants,
+       monitors  = sort(as.character(mc$monitors)),
+       specClass = as.character(class(spec)),
+       extra     = extra)
+}
+
+.cacheGet <- function(key) {
+  ents <- .nimixModelCache$entries
+  for (i in seq_along(ents)) {
+    if (identical(ents[[i]]$key, key)) {
+      hit <- ents[[i]]                                  # LRU: move to front
+      .nimixModelCache$entries <- c(list(hit), ents[-i])
+      return(hit$compiled)
+    }
+  }
+  NULL
+}
+
+.cachePut <- function(key, compiled) {
+  ents <- c(list(list(key = key, compiled = compiled)),
+            .nimixModelCache$entries)
+  if (length(ents) > .NIMIX_CACHE_MAX) ents <- ents[seq_len(.NIMIX_CACHE_MAX)]
+  .nimixModelCache$entries <- ents
+  invisible(NULL)
+}
+
+# --- shared NIMBLE runner ---------------------------------------------------
+# Every engine (DPM, fixed-K) funnels through this single runner: a spec only
+# has to assemble the model code, constants, inits, monitors, and the name
 # of the allocation node (xi for the CRP, z for the finite mixture); everything
 # downstream is shared.
-.runNimbleMixture <- function(spec, mc, constants, dataList, inits,
+.runNimbleMixture <- function(spec, mc, constants, dataList, initsFn,
                               n, count, paramDim, prior,
-                              mcmcControl, seed, verbose) {
+                              mcmcControl, seed, verbose,
+                              configureHook = NULL, cacheExtra = NULL) {
+  .nimixEnsureMSNBurr()
   ctrl <- utils::modifyList(
-    list(niter = 11000L, nburnin = 1000L, thin = 1L), mcmcControl)
+    list(niter = 11000L, nburnin = 1000L, thin = 1L, reuse = TRUE,
+         nchains = 1L), mcmcControl)
+  reuse   <- isTRUE(ctrl$reuse)
+  nchains <- max(1L, as.integer(ctrl$nchains))
+  buildInits <- initsFn(seed)          # inits used only to build the structure
 
-  go <- function() {
+  # Expensive, cacheable: build + compile the model and its MCMC.
+  buildCompiled <- function() {
+    .nimixModelCache$builds <- .nimixModelCache$builds + 1L
     rmodel <- nimble::nimbleModel(code = mc$code, constants = constants,
-                                  data = dataList, inits = inits,
+                                  data = dataList, inits = buildInits,
                                   calculate = FALSE)
+    # Stochastic variable names (index-stripped) let runWith reset any node not
+    # supplied by inits to NA, so the MCMC's initializeModel re-simulates it
+    # deterministically under setSeed -- exactly as a fresh compile does --
+    # rather than inheriting a previous run's end state.
+    stochNodes <- rmodel$getNodeNames(stochOnly = TRUE, includeData = FALSE)
+    stochVars  <- unique(sub("\\[.*$", "", stochNodes))
     cmodel <- nimble::compileNimble(rmodel, showCompilerOutput = FALSE)
     conf <- nimble::configureMCMC(rmodel, monitors = mc$monitors,
                                   print = verbose)
     customizeSamplers(spec, conf, rmodel)
-    mcmc <- nimble::buildMCMC(conf)
-    cmcmc <- nimble::compileNimble(mcmc, project = rmodel,
+    if (!is.null(configureHook)) configureHook(conf, rmodel)
+    cmcmc <- nimble::compileNimble(nimble::buildMCMC(conf), project = rmodel,
                                    showCompilerOutput = FALSE)
-    nimble::runMCMC(cmcmc, niter = ctrl$niter, nburnin = ctrl$nburnin,
-                    thin = ctrl$thin, setSeed = seed, progressBar = verbose)
+    list(cmodel = cmodel, cmcmc = cmcmc, stochVars = stochVars)
   }
 
-  runOnce <- function() if (verbose) go() else .quietly(go())
-  samples <- tryCatch(
-    runOnce(),
-    error = function(e) {
-      msg <- conditionMessage(e)
-      # The dCRP sampler stops with this message when the chain needs more
-      # occupied clusters than the truncation level provides. Translate NIMBLE's
-      # raw text into actionable guidance naming K_max (= the truncation level).
-      if (grepl("proper model|more components than|cluster parameters", msg,
-                ignore.case = TRUE))
-        stop("The DPM sampler tried to use more components than the truncation ",
-             "level K_max = ", count, ". Increase K_max (e.g. K_max = ",
-             2L * count, ") and re-run; a larger truncation only adds headroom ",
-             "and does not change the posterior on the number of clusters.",
-             call. = FALSE)
-      stop(e)
-    })
-  samples <- as.matrix(samples)
-
-  # When the allocation node is monitored we parse it; for a single-component
-  # fit (K = 1) the allocation is fixed to 1 and is not in the samples.
-  if (is.null(.nodeColInfo(samples, mc$allocNode))) {
-    alloc <- matrix(1L, nrow = nrow(samples), ncol = n)
-  } else {
-    allocArr <- .nodeToArray(samples, mc$allocNode, n)
-    alloc <- matrix(as.integer(round(allocArr)), nrow = nrow(samples))
+  # Cheap: reset data + inits on the (possibly reused) compiled model, then run.
+  runWith <- function(compiled, chainInits, chainSeed) {
+    cm <- compiled$cmodel
+    cm$setData(dataList)
+    for (nm in names(chainInits))
+      tryCatch(cm[[nm]] <- chainInits[[nm]], error = function(e) NULL)
+    for (nm in setdiff(compiled$stochVars, names(chainInits)))
+      tryCatch(cm[[nm]][] <- NA, error = function(e) NULL)
+    nimble::runMCMC(compiled$cmcmc, niter = ctrl$niter, nburnin = ctrl$nburnin,
+                    thin = ctrl$thin, setSeed = chainSeed, progressBar = verbose)
   }
-  Kpost <- apply(alloc, 1L, function(r) length(unique(r)))
 
-  # For the DPM (allocation node "xi") a posterior that sits at the truncation
-  # level is censored: the data may support more clusters than K_max allows. Warn
-  # only on *sustained* censoring (a meaningful share of kept draws using every
-  # slot), not a one-off excursion to the ceiling. The FixedK path (node "z") has
-  # K fixed, so this never applies.
+  getCompiled <- function() {
+    if (!reuse) return(buildCompiled())
+    key <- .cacheKey(mc, constants, spec, cacheExtra)
+    compiled <- .cacheGet(key)
+    if (is.null(compiled)) {
+      compiled <- buildCompiled()
+      .cachePut(key, compiled)
+    }
+    compiled
+  }
+
+  # Run a single chain, muffling benign chatter and translating the dCRP
+  # truncation error into actionable guidance naming K_max.
+  runChain <- function(chainInits, chainSeed) {
+    go <- function() runWith(getCompiled(), chainInits, chainSeed)
+    runOnce <- function() if (verbose) .muffleBenignChatter(go()) else .quietly(go())
+    as.matrix(tryCatch(
+      runOnce(),
+      error = function(e) {
+        msg <- conditionMessage(e)
+        if (grepl("proper model|more components than|cluster parameters", msg,
+                  ignore.case = TRUE))
+          stop("The DPM sampler tried to use more components than the ",
+               "truncation level K_max = ", count, ". Increase K_max (e.g. ",
+               "K_max = ", 2L * count, ") and re-run; a larger truncation only ",
+               "adds headroom and does not change the posterior on the number ",
+               "of clusters.", call. = FALSE)
+        stop(e)
+      }))
+  }
+
+  parseAlloc <- function(samples) {
+    if (is.null(.nodeColInfo(samples, mc$allocNode)))
+      matrix(1L, nrow = nrow(samples), ncol = n)
+    else
+      matrix(as.integer(round(.nodeToArray(samples, mc$allocNode, n))),
+             nrow = nrow(samples))
+  }
+
+  # --- run chains (chains 2..M reuse the compiled model via the cache) -------
+  chainSamples <- vector("list", nchains)
+  chainAlloc   <- vector("list", nchains)
+  chainK       <- vector("list", nchains)
+  chainAlpha   <- vector("list", nchains)
+  chainBeta    <- vector("list", nchains)
+  chainEntropy <- vector("list", nchains)
+  hasAlpha <- FALSE
+  hasBeta  <- FALSE
+  for (ch in seq_len(nchains)) {
+    chainSeed <- seed + (ch - 1L)              # distinct seed + dispersed inits
+    S <- runChain(initsFn(chainSeed), chainSeed)
+    a <- parseAlloc(S)
+    chainSamples[[ch]] <- S
+    chainAlloc[[ch]]   <- a
+    chainK[[ch]]       <- .rowDistinct(a, count)
+    chainEntropy[[ch]] <- .allocEntropy(a, count)
+    if ("alpha" %in% colnames(S)) {
+      hasAlpha <- TRUE
+      chainAlpha[[ch]] <- as.numeric(S[, "alpha"])
+    }
+    if ("beta" %in% colnames(S) && stats::var(as.numeric(S[, "beta"])) > 0) {
+      hasBeta <- TRUE
+      chainBeta[[ch]] <- as.numeric(S[, "beta"])
+    }
+  }
+  samples <- do.call(rbind, chainSamples)      # pooled draws (all chains)
+  alloc   <- do.call(rbind, chainAlloc)
+  Kpost   <- unlist(chainK, use.names = FALSE)
+
+  # For the DPM (allocation node "xi") a posterior sitting at the truncation
+  # level is censored. Warn only on sustained censoring across the pooled draws.
+  # The FixedK path (node "z") has K fixed, so this never applies.
   if (identical(mc$allocNode, "xi")) {
     atCeiling <- mean(Kpost >= count)
     if (atCeiling > 0.02)
@@ -121,11 +248,16 @@
               "number of clusters is likely censored. Re-run with a larger ",
               "K_max (e.g. ", 2L * count, ").", call. = FALSE)
   }
-  paramTrace <- extractParamTraces(spec, samples, count, d = paramDim,
-                                   prior = prior)
+
+  diagnostics <- .multiChainDiag(chainK, if (hasAlpha) chainAlpha else NULL,
+                                 if (hasBeta) chainBeta else NULL,
+                                 chainEntropy)
+  paramTrace  <- extractParamTraces(spec, samples, count, d = paramDim,
+                                    prior = prior)
 
   list(mcmcSamples = samples, Kposterior = as.integer(Kpost),
-       clusterAllocation = alloc, paramTrace = paramTrace, mcmcControl = ctrl)
+       clusterAllocation = alloc, paramTrace = paramTrace,
+       diagnostics = diagnostics, mcmcControl = ctrl)
 }
 
 #' @describeIn runEngine Dirichlet Process Mixture run (NIMBLE dCRP).
@@ -146,11 +278,15 @@ setMethod("runEngine", "DPMEngine",
                         bAlpha = engine@concPrior[2]))
     dataList <- buildDataList(spec, data)
 
-    ci <- componentInits(spec, prior, data, L, initMethod = initMethod)
-    inits <- c(list(xi = ci$alloc, alpha = 1), ci$params)
+    initRatio <- .resolveInitRatio(mcmcControl)
+    initsFn <- function(s) {
+      ci <- .withSeed(s, function() componentInits(spec, prior, data, L,
+                      initMethod = initMethod, initRatio = initRatio))
+      c(list(xi = ci$alloc, alpha = 1), ci$params)
+    }
 
     paramDim <- if (!is.null(prior$p)) prior$p else d
-    .runNimbleMixture(spec, mc, constants, dataList, inits,
+    .runNimbleMixture(spec, mc, constants, dataList, initsFn,
                       n = n, count = L, paramDim = paramDim, prior = prior,
                       mcmcControl = mcmcControl, seed = seed, verbose = verbose)
   }

@@ -7,9 +7,6 @@
 ##   DPMEngine    : Dirichlet Process Mixture; K is inferred via NIMBLE's native
 ##                  Chinese Restaurant Process. These CRP samplers are optimised
 ##                  by the NIMBLE core team and must not be reimplemented by hand.
-##
-## A reversible-jump engine (custom trans-dimensional sampler) is planned for a
-## later release and is intentionally absent here.
 ## ---------------------------------------------------------------------------
 
 #' Virtual base class for mixture sampling engines
@@ -62,6 +59,10 @@ setGeneric("runEngine",
 #' Ferguson, T.S. (1973). A Bayesian analysis of some nonparametric problems.
 #' \emph{The Annals of Statistics}, 1(2), 209--230.
 #' \doi{10.1214/aos/1176342360}
+#'
+#' Escobar, M.D., & West, M. (1995). Bayesian density estimation and inference
+#' using mixtures. \emph{JASA}, 90(430), 577--588.
+#' \doi{10.1080/01621459.1995.10476550}
 #'
 #' @export
 setClass(
@@ -132,4 +133,51 @@ FixedKEngine <- function(dirichletConc = 1) {
     stop("dirichletConc must be a positive scalar.", call. = FALSE)
   new("FixedKEngine", name = "fixedk",
       dirichletConc = as.numeric(dirichletConc))
+}
+
+#' Markov random field engine (spatially constrained finite mixture)
+#'
+#' Latent component labels follow a Potts model on the neighbourhood graph of a
+#' \code{\linkS4class{SpatialWeightSpec}} instead of being independent across
+#' observations: neighbouring regions favour the same component, with fixed
+#' interaction strength \code{beta} (Potts 1952; Besag 1974; spatially variant
+#' finite mixtures, Blekas et al. 2005). \code{beta = 0} removes the spatial
+#' smoothing. Bayesian estimation of \code{beta} (a hyperprior instead of a
+#' fixed value) is planned for a later 1.x release.
+#'
+#' @slot beta Non-negative spatial interaction strength: the fixed value when
+#'   \code{estimateBeta = FALSE}, otherwise the chain's starting value.
+#' @slot spatial The \code{\linkS4class{SpatialWeightSpec}} neighbourhood.
+#' @slot estimateBeta Logical; update \code{beta} by pseudo-likelihood
+#'   Metropolis (Besag 1975) instead of holding it fixed.
+#' @slot betaMax Upper bound of the uniform prior on \code{beta}.
+#' @references
+#' Besag, J. (1974). Spatial interaction and the statistical analysis of
+#' lattice systems. \emph{JRSS B}, 36(2), 192--236.
+#' @keywords internal
+#' @export
+setClass(
+  "MRFEngine",
+  contains = "EngineConfig",
+  representation(beta = "numeric", spatial = "SpatialWeightSpec",
+                 estimateBeta = "logical", betaMax = "numeric")
+)
+
+setValidity("MRFEngine", function(object) {
+  if (length(object@beta) != 1L || !is.finite(object@beta) || object@beta < 0)
+    "beta must be a single non-negative number."
+  else if (length(object@betaMax) == 1L && object@beta > object@betaMax)
+    "beta must not exceed betaMax."
+  else TRUE
+})
+
+#' @rdname MRFEngine-class
+#' @param beta Non-negative interaction strength (fixed value or start).
+#' @param spatial A \code{\linkS4class{SpatialWeightSpec}}.
+#' @param estimateBeta Logical; estimate beta by pseudo-likelihood Metropolis.
+#' @param betaMax Upper bound of the uniform prior on beta.
+#' @export
+MRFEngine <- function(beta = 0.8, spatial, estimateBeta = FALSE, betaMax = 2) {
+  methods::new("MRFEngine", beta = as.numeric(beta), spatial = spatial,
+               estimateBeta = isTRUE(estimateBeta), betaMax = as.numeric(betaMax))
 }

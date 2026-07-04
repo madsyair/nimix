@@ -53,13 +53,13 @@
        terms = control$terms, Bols = Bols)
 }
 
-.mvRegInits <- function(Y, prior, count) {
+.mvRegInits <- function(Y, prior, count, initRatio = .DEFAULT_INIT_RATIO) {
   Y <- as.matrix(Y); n <- nrow(Y); p <- prior$p; d <- prior$d
-  # Dispersed k-means start, but capped at 0.8 * count to leave headroom below
+  # Dispersed k-means start, capped at initRatio * count (default 0.8) to leave
   # the cap: for the DPM, count = L = K_max is a hard truncation, and early CRP
   # sweeps can briefly occupy more clusters than the modal K before merging
   # down. Seeding right at the ceiling left no room for that transient.
-  k0 <- max(1L, min(as.integer(floor(0.8 * count)), as.integer(ceiling(sqrt(n)))))
+  k0 <- max(1L, min(as.integer(floor(initRatio * count)), as.integer(ceiling(sqrt(n)))))
   xiInit <- rep(1L, n)
   if (k0 >= 2L) {
     km <- tryCatch(stats::kmeans(Y, centers = k0, nstart = 5L),
@@ -204,7 +204,7 @@ setMethod("buildDataList", "NormalMvRegSpec",
 #' @describeIn componentInits Global multivariate-OLS start, k-means allocation.
 setMethod("componentInits", "NormalMvRegSpec",
   function(spec, prior, data, count, initMethod = "kmeans", ...)
-    .mvRegInits(data, prior, count))
+    .mvRegInits(data, prior, count, initRatio = .initRatioArg(...)))
 
 #' @describeIn extractParamTraces Parse coefficient and covariance traces.
 setMethod("extractParamTraces", "NormalMvRegSpec",
