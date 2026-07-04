@@ -1,506 +1,430 @@
 # Changelog
 
+## nimix 1.0.0 (in development)
+
+### New neo-normal family: GMSNBurr
+
+- `distribution = "gmsnburr"`: the generalized MSNBurr (Iriawan 2000;
+  Choir
+  2020. with two shape parameters `alpha` and `theta`. `theta = 1`
+        recovers MSNBurr, `alpha = 1` recovers MSNBurr-IIa,
+        `alpha = theta` is symmetric, and `alpha = theta -> inf`
+        converges to the Normal. Available under all three engines
+        (finite-K, DPM, MRF), numerically stable (NIMBLE density matches
+        the R reference to 1e-8; density integrates to one; exact
+        reduction to MSNBurr / MSNBurr-IIa verified). `d/p/q/r`
+        functions and
+        [`ppCheck()`](https://madsyair.github.io/nimix/reference/ppCheck.md)
+        support included.
+
+### Parallel chains
+
+- `mcmcControl` gains `parallel = TRUE` (with `nchains > 1`) to run
+  chains in parallel via
+  [`parallel::mclapply`](https://rdrr.io/r/parallel/mclapply.html). Each
+  worker builds and compiles its own model in a separate directory – the
+  only fork-safe way to parallelise NIMBLE, avoiding the
+  shared-C++-object and temp-directory collisions that a naive
+  `mclapply` would hit. Forking only (Unix/macOS; Windows falls back to
+  sequential); `ncores` caps the worker count. Verified to recover the
+  same label-invariant summary as the sequential path.
+
+### Bug fix: robust source load order
+
+- Added `@include` directives across the S4 class and spec files so the
+  package’s `Collate` order is derived topologically from the actual
+  class dependencies. This fixes a load failure
+  (`undefined slot classes in definition of "MRFEngine"` /
+  `no definition found for superclass "NormalRegSpec"`) that could occur
+  whenever files were sourced in alphabetical rather than `Collate`
+  order.
+
+### Cluster profiling, richer summaries, model selection and ensembling
+
+- [`summary()`](https://rdrr.io/r/base/summary.html) of a relabelled
+  clustering fit now reports the posterior **median** alongside the mean
+  and 95% credible interval for every scalar component parameter (all
+  univariate families) and per dimension for multivariate clustering.
+- New
+  [`clusterProfile()`](https://madsyair.github.io/nimix/reference/clusterProfile.md):
+  assigns each observation to its MAP cluster and describes the observed
+  data within each cluster (size, proportion, and per-variable mean / sd
+  / median) – the data-side complement to
+  [`summary()`](https://rdrr.io/r/base/summary.html) (which reports
+  fitted parameters) and `plot(fit, "cluster")` (which shows the
+  partition).
+- New predictive model-selection layer built on the label-invariant
+  pointwise mixture log-likelihood:
+  [`nimixWAIC()`](https://madsyair.github.io/nimix/reference/nimixWAIC.md)
+  (native; Watanabe 2010),
+  [`nimixLOO()`](https://madsyair.github.io/nimix/reference/nimixLOO.md)
+  (PSIS-LOO via the **loo** package; Vehtari, Gelman & Gabry 2017), and
+  [`modelSelect()`](https://madsyair.github.io/nimix/reference/modelSelect.md)
+  to rank several fits (e.g. choosing K, or comparing Normal / Student-t
+  / MSNBurr components on the same data).
+- New
+  [`ensembleFit()`](https://madsyair.github.io/nimix/reference/ensembleFit.md):
+  combines several fits into one weighted predictive model via Bayesian
+  stacking or Pseudo-BMA+ (Yao et al. 2018, needs **loo**) or
+  Akaike-style WAIC weights (native).
+  [`predict()`](https://rdrr.io/r/stats/predict.html) returns the
+  ensemble-weighted density. `loo` added to Suggests.
+
+### Neo-normal components: MSNBurr and MSNBurr-IIa
+
+- Two new univariate component families, `distribution = "msnburr"` and
+  `"msnburr2a"` (Iriawan 2000; Choir 2020), with a location, scale, and
+  a skewness shape `alpha` (`alpha = 1` is exactly the logistic
+  distribution; MSNBurr accommodates left skew, MSNBurr-IIa its mirror).
+  Available under all three engines: finite-K, DPM, and the spatial MRF.
+- Numerically stable throughout, using the maintainer-contributed
+  reference implementation: an asymptotic log-omega branch for
+  `alpha -> 0`, a branch-free softplus in the compiled densities, and
+  two-branch quantile inversion. Log-densities stay finite for
+  standardized values in the hundreds; the density integrates to one
+  from `alpha = 0.05` to `alpha = 100`; the NIMBLE and R densities agree
+  to 1e-8; and
+  [`ppCheck()`](https://madsyair.github.io/nimix/reference/ppCheck.md)
+  supports both families.
+- Verified recovery on synthetic skew-component mixtures (finite-K
+  allocation accuracy 1.00 / 0.99, DPM recovers the true K, MRF accuracy
+  1.00).
+
+### Bayesian workflow: modern mixture-appropriate convergence + predictive checks
+
+### Bayesian workflow: modern mixture-appropriate convergence + predictive checks
+
+- Full Vehtari et al. (2021) convergence suite – rank-normalized
+  split-Rhat (already present), **folded split-Rhat, bulk-ESS and
+  tail-ESS** – computed over **label-invariant functionals only**
+  (occupied K, DPM alpha, MRF beta, and the new per-iteration allocation
+  entropy): per-component traces are not identified under label
+  switching, so chain diagnostics on them would be meaningless.
+  [`summary()`](https://rdrr.io/r/base/summary.html) prints the
+  functional table with the documented Rhat \< 1.01 aim; helpers are
+  unit-tested against theory (iid ESS ~ n, folded Rhat detects pure
+  scale disagreement that location Rhat misses, AR(0.9) ESS matches the
+  analytic value).
+- New
+  [`ppCheck()`](https://madsyair.github.io/nimix/reference/ppCheck.md):
+  posterior predictive checks (Gelman, Meng & Stern 1996; Gelman et
+  al. 2020, Bayesian workflow) with replicates drawn conditionally on
+  each draw’s fitted allocation – label-invariant by construction and
+  valid for every engine including the spatial MRF. Built-in statistics
+  (mean, sd, min, max, skew) or user functions; clustering families
+  (Gaussian uv/mv, Student-t, Normal-Gamma, Poisson, Binomial)
+  supported, regression checks planned. Verified to pass a
+  well-specified Gaussian mixture and to flag a Poisson mixture on
+  overdispersed counts (tail p = 0.013).
+
+## nimix 0.9.0
+
+### MRF engine across the distribution registry (batch 2) – matrix complete
+
+- `method = "mrf"` now covers **every registered family**: added
+  multivariate Student-t clustering, multivariate-response regression
+  (Gaussian, Student-t and Normal-Gamma responses), and the augmented
+  Normal-Gamma routes (univariate/multivariate clustering and univariate
+  regression), each with its own O(nK + edges) label sweep. Harness
+  groups `mrfdist2` and `mrfdist2reg` pass on the synthetic lattice (7
+  combinations x 3 seeds).
+- **Critical correctness fix.** The hand-written MRF kernels for the
+  Gaussian specs shadowed the generic `.pottsify()` route for their
+  heavy-tailed subclasses (S4 inheritance), so e.g. a Student-t
+  regression under `mrf` silently used the Gaussian kernel for its
+  parameter updates. The hand-written kernels were removed: every
+  family’s MRF kernel is now derived from its own fixed-K kernel, and a
+  regression test pins kernel/family correspondence.
+- An internal quiet-mode handler crashed on NIMBLE conditions with empty
+  messages (“argument is of length zero”); it is now robust, and the
+  benign “No samplers assigned” notice for the deliberately unsampled
+  fixed `beta` node is muffled.
+- **Mixing benchmark (documented commitment):** on identical
+  heavy-tailed lattice data, the augmented Normal-Gamma route mixes the
+  component means BETTER than the direct Student-t density under the MRF
+  (ESS of the minimum component mean 1357 vs 550 at equal wall time) –
+  the reverse of the exchangeable-DPM finding, because with K fixed and
+  labels pinned by the spatial field the omega-partition coupling
+  penalty largely disappears while the conjugate Gibbs updates win.
+  Guidance: prefer `normalgamma` for MRF parameter mixing; the direct-t
+  route remains available and equally valid.
+
+## nimix 0.8.0
+
+### MRF engine across the distribution registry (batch 1: closed-form emissions)
+
+- Per the maintainer-approved feasibility study, `method = "mrf"` now
+  covers six more family/task combinations: **Poisson** and **Binomial**
+  clustering, **Poisson-GLM** (log link) and **Binomial-GLM** (logit
+  link) regression, and **direct Student-t** clustering and regression.
+  Every DSL emission call was verified empirically against reference
+  densities before implementation.
+- New internal `.pottsify()` transformation derives any family’s MRF
+  kernel mechanically from its fixed-K kernel (drop the
+  Dirichlet-categorical label layer, insert the joint Potts node), so a
+  default `buildModelCode(<any spec>, MRFEngine)` now exists; the three
+  original hand-written MRF kernels are unchanged. Label sweeps remain
+  family-specific for O(nK + edges) performance.
+- `method = "mrf"` now requires `K >= 2` (a one-state Potts field is
+  degenerate). The augmented Normal-Gamma routes remain explicitly
+  blocked pending batch 2 (with a planned mixing benchmark against the
+  direct-t routes).
+- Recovery harness gains `mrfdist1` and `mrfdist1reg` groups: all six
+  new combinations pass on the synthetic two-block lattice across 3
+  seeds (parameter recovery + allocation accuracy 0.98-1.00 in
+  verification runs).
+
+### Spatial line hardening + official-statistics case study
+
+- Two new packaged official-statistics datasets: `usStates2023` (SAIPE
+  2023 median household income and poverty rates for the 48 contiguous
+  states +
+  600. and `usStateAdj` (the state contiguity matrix derived from the
+       Census Bureau’s 2023 county adjacency file); full provenance in
+       the help pages.
+- New vignette `spatial-mixture.Rmd`: on the 2023 SAIPE poverty rates
+  the MRF engine (with estimated interaction, posterior mean ~1.2) finds
+  two regimes whose high-poverty regime is the spatially contiguous
+  Southern belt (AL AR DC FL GA LA MS NC NM OK SC TN TX) – structure an
+  exchangeable mixture cannot represent; a plain `fixedk` fit agrees on
+  only 82% of states. The spatial regression example honestly collapses
+  to a single national income-poverty regime.
+- The recovery harness gains an `mrfbeta` group (pseudo-likelihood beta
+  estimation on the synthetic lattice, 3 seeds).
+
+## nimix 0.7.0
+
+### MRF engine: Bayesian estimation of the interaction beta
+
+- `prior$estimateBeta = TRUE` (with optional `prior$betaMax`, default 2)
+  puts a uniform prior on the Potts interaction and updates it by
+  random-walk Metropolis against the Besag (1975) **pseudo-likelihood**
+  – the classical approximate route for hidden Potts fields, since the
+  exact posterior of beta is doubly intractable. This is documented as
+  an approximation; an exchange-algorithm refinement (Murray, Ghahramani
+  & MacKay 2006) is a possible future upgrade. `beta` is now a model
+  node in both modes; with `estimateBeta = FALSE` (default) no sampler
+  touches it, reproducing the fixed-beta behaviour exactly.
+- Correctness guards: NIMBLE’s default sampler on `beta` (which would
+  target the unnormalised Potts density – wrong in beta) is removed
+  unconditionally, and the compiled-model cache now distinguishes
+  estimation from fixed mode (they compile different sampler sets).
+- MRF-specific diagnostics:
+  [`summary()`](https://rdrr.io/r/base/summary.html) reports split-Rhat
+  / ESS and the posterior mean of `beta` when it is estimated, and the
+  engine warns when the posterior piles up near `betaMax` (a
+  near-saturated field).
+- On the synthetic two-block lattice, the estimated interaction
+  concentrates well above zero (posterior mean ~1.6, P(beta \> 0.2) = 1)
+  with perfect block recovery, while the fixed-beta path is unchanged.
+
+### MRF engine: spatially clustered regressions
+
+- [`nimixReg()`](https://madsyair.github.io/nimix/reference/nimixReg.md)
+  gains `method = "mrf"` and a `spatialWeights` argument: a mixture of
+  Gaussian linear regressions whose latent regime labels follow the
+  Potts field on a neighbourhood graph – regression coefficients that
+  cluster spatially (e.g. growth patterns across adjacent regions). Same
+  fixed `prior$beta` interaction as the clustering engine.
+- On a synthetic two-block lattice with opposite slopes (+2 / -2) and
+  heavy noise, the spatial smoothing lifts the regime-allocation
+  accuracy from 0.867 (`fixedk`) to 1.000 while recovering both slopes.
+  The recovery harness gains an `mrfreg` group (3 seeds).
+- Heavy-tailed regression responses are explicitly blocked under `mrf`
+  with a clear message (they inherit from the Gaussian regression spec
+  and would otherwise use the wrong emission density).
+
+### MRF engine: multivariate Gaussian components
+
+- `method = "mrf"` now also accepts multivariate data: multivariate
+  Gaussian components under the Normal-Inverse-Wishart kernel, with the
+  label sweep evaluating `dmnorm_chol` per component (Cholesky factors
+  hoisted once per sweep). On a synthetic two-block lattice the spatial
+  smoothing lifts the multivariate allocation accuracy from 0.942
+  (`fixedk`) to 0.992.
+- Sampler selection is fully polymorphic (S4 dispatch on the component
+  spec); heavy-tailed families that inherit from the Gaussian specs are
+  explicitly blocked with a clear message instead of silently using the
+  wrong emission density.
+
+## nimix 0.6.0
+
+### Spatially constrained mixtures: the MRF engine
+
+- New `method = "mrf"` in
+  [`nimixClust()`](https://madsyair.github.io/nimix/reference/nimixClust.md):
+  a finite mixture whose latent labels follow a Potts Markov random
+  field on a `spatialWeights` neighbourhood (Potts 1952; Besag 1974;
+  spatially variant finite mixtures, Blekas et al. 2005), so
+  neighbouring observations favour the same component. Requires a known
+  `K` and a `SpatialWeightSpec`; the interaction strength is fixed at
+  `prior$beta` (default 0.8; `beta = 0` removes the smoothing).
+  Univariate Gaussian components in this release.
+- Implementation: an (intentionally unnormalised) user-defined NIMBLE
+  Potts distribution – exact for MCMC because `beta` is fixed, so the
+  intractable partition function is constant – plus a custom single-site
+  Gibbs sweep sampler over the labels; theta updates remain conjugate.
+  Bayesian estimation of `beta` is planned for a later 1.x release.
+- On a synthetic two-block lattice with overlapping components, spatial
+  smoothing lifts the allocation accuracy from 0.883 (`fixedk`, no
+  smoothing) to 0.967, and `beta = 0` reproduces the unsmoothed
+  behaviour. The recovery harness gains an `mrf` group (3 seeds, all
+  passing).
+
+Opens the post-1.0 spatial line: spatially constrained mixtures in which
+the latent component labels follow a Markov random field on a
+neighbourhood graph (Besag 1974; spatially variant finite mixtures,
+Blekas et al. 2005).
+
+- New S4 class `SpatialWeightSpec`: a validated neighbourhood structure
+  (symmetric, zero-diagonal, non-negative weight matrix) deliberately
+  orthogonal to `DistributionSpec`, so any registered component family
+  can be paired with any graph. Constructors
+  [`spatialWeights()`](https://madsyair.github.io/nimix/reference/spatialWeights.md)
+  (from a matrix) and
+  [`gridAdjacency()`](https://madsyair.github.io/nimix/reference/gridAdjacency.md)
+  (rook/queen contiguity on a regular lattice); accessors
+  [`nRegions()`](https://madsyair.github.io/nimix/reference/nRegions.md),
+  [`getAdjacency()`](https://madsyair.github.io/nimix/reference/getAdjacency.md),
+  [`neighborsOf()`](https://madsyair.github.io/nimix/reference/neighborsOf.md).
+- [`nimixClust()`](https://madsyair.github.io/nimix/reference/nimixClust.md)
+  gains a `spatialWeights` argument (default `NULL`, fully
+  backward-compatible). Supplying a structure validates it and points to
+  the MRF engine planned for 0.6.0; the exchangeable mixture remains the
+  default behaviour.
+
+First stable release. The public API –
+[`nimixClust()`](https://madsyair.github.io/nimix/reference/nimixClust.md),
+[`nimixReg()`](https://madsyair.github.io/nimix/reference/nimixReg.md),
+[`registerDistribution()`](https://madsyair.github.io/nimix/reference/registerDistribution.md),
+[`relabel()`](https://madsyair.github.io/nimix/reference/relabel.md),
+[`summary()`](https://rdrr.io/r/base/summary.html),
+[`plot()`](https://rdrr.io/r/graphics/plot.default.html),
+[`predict()`](https://rdrr.io/r/stats/predict.html),
+[`nimixClearCache()`](https://madsyair.github.io/nimix/reference/nimixClearCache.md)
+– is now considered stable; breaking changes will bump the major
+version.
+
+### Official-statistics data and vignettes
+
+- New packaged dataset `wdi2022`: four development indicators for 207
+  countries (World Bank World Development Indicators, 2022; CC BY 4.0;
+  full provenance in
+  [`?wdi2022`](https://madsyair.github.io/nimix/reference/wdi2022.md)).
+- All four vignettes now run on this official-statistics data instead of
+  simulations only: income-regime clustering (univariate), joint
+  income-longevity clustering (multivariate), the Preston curve as a
+  mixture of regressions (an instructive single-regime result: the DPM
+  does not invent components), and the Student-t vs Normal-Gamma
+  heavy-tail comparison. Reported numbers in the vignettes come from
+  actual runs.
+
+## nimix 0.5.0
+
+This line opens the performance and hardening phase, built on the 0.4.3
+feature set. The two production engines are `method = "dpm"` (Dirichlet
+process / Chinese restaurant process; the number of occupied components
+is estimated) and `method = "fixedk"` (finite mixture with a known `K`).
+
+### Implemented in 0.9.x
+
+- **Compile-once / reuse.** A fit reuses a compiled NIMBLE model (and
+  its MCMC) when a later fit has an identical structure – same generated
+  code, constants, monitors and component family – resetting only data
+  and initial values. This skips recompilation for repeated fits
+  (multiple seeds, multiple chains) and is bit-for-bit identical to a
+  fresh compile. Controlled by `mcmcControl$reuse` (default `TRUE`);
+  [`nimixClearCache()`](https://madsyair.github.io/nimix/reference/nimixClearCache.md)
+  releases the cached compiled models.
+- **Reproducibility.** The dispersed (k-means) initialisation is now
+  seeded by the fit’s `seed`, so repeated fits with the same data and
+  seed coincide exactly. The caller’s global random stream is left
+  untouched.
+- **Multi-chain + convergence diagnostics.** `mcmcControl$nchains`
+  (default 1) runs several chains from dispersed, separately seeded
+  starts, reusing the compiled model so only the first chain compiles.
+  [`summary()`](https://rdrr.io/r/base/summary.html) reports
+  rank-normalized split-Rhat and effective sample size for
+  label-invariant quantities (occupied-cluster count, and the DPM
+  concentration), and warns when Rhat exceeds 1.1. Per-component
+  parameters are deliberately excluded from Rhat to avoid
+  label-switching artefacts.
+- **Vectorised post-processing.** The per-draw occupied-cluster count,
+  the allocation-trace parsing, and the relabelling recode/weight steps
+  are now vectorised (single `tabulate`/matrix-index passes instead of
+  per-row loops). Verified bit-for-bit identical to the previous
+  implementation; the remaining relabelling cost is the external ECR
+  algorithm itself.
+- **Hardening harness.** `inst/harness/run_recovery_suite.R` is now a
+  systematic distribution x engine recovery matrix: every released
+  clustering family (Gaussian, Student-t, Normal-Gamma – univariate and
+  multivariate – Poisson, Binomial) and the regression path are fitted
+  with BOTH engines on data with known truth, across three MCMC seeds
+  (18 combinations, 54 fits). For the DPM on discrete counts the
+  recovery criterion assesses the dominant components (weight \>= 0.1),
+  reflecting the known diffuseness of the DPM posterior on the number of
+  components for such data (Miller & Harrison, 2013). Previously
+  untested engine pairings are additionally pinned in
+  `tests/testthat/test-hardening-matrix.R`.
+
 ## nimix 0.4.3
 
-Bug-fix and packaging/infrastructure release. No new modelling features;
-this clears `R CMD check` and adds continuous integration and a
-documentation site ahead of the v0.5.x reversible-jump work.
+### Robustness and ergonomics
 
-### Fixed
-
-- **Namespace imports under `R_CHECK_DEPENDS_ONLY`.** Added roxygen
-  `@import` / `@importFrom` tags (notably `@import methods`) on the
-  package doc so a regenerated `NAMESPACE` keeps its import directives.
-  Previously a `document()`-regenerated `NAMESPACE` dropped them, so
-  `.onLoad()`’s `new("NormalUvSpec")` failed with *could not find
-  function “new”* when the package was loaded with only its stated
-  dependencies.
-
-- **Poisson / Binomial regression recovery.** Replaced the global-GLM
-  initialisation (one pooled fit copied to every cluster, k-means on the
-  raw response) with a dispersed-slope start plus one hard
-  classification step. Components that differ only by the sign of their
-  slope (crossing regression lines) are now separated at initialisation,
-  so the finite-mixture sampler recovers the per-component slopes.
-
-- **Single-component finite mixture (`K = 1`).**
-  `nimixReg(..., K = 1, method = "fixedk")` (and the clustering
-  analogue) failed to build with *inconsistent dimensionality provided
-  for node ‘alphaVec’*: a length-1 Dirichlet parameter was demoted to a
-  scalar. The weight-vector dimensions are now declared explicitly, so
-  the `K = 1` baseline (useful for WAIC model comparison) builds.
-
-- **Count-response validation.**
-  [`nimixReg()`](https://madsyair.github.io/nimix/reference/nimixReg.md)
-  /
-  [`nimixClust()`](https://madsyair.github.io/nimix/reference/nimixClust.md)
-  now reject a continuous response for `distribution = "poisson"` /
-  `"binomial"` early with a clear message instead of surfacing a
-  numerical underflow inside the sampler.
-
-### Infrastructure
-
-- Added GitHub Actions workflows for `R CMD check` (multi-OS) and a
-  `pkgdown` documentation site, a `_pkgdown.yml` reference layout, and
-  the corresponding `.Rbuildignore` entries.
-
-### Changed
-
-- **DPM truncation handling.** `K_max` is the dCRP truncation level: the
-  sampler errors if the occupied-cluster count ever needs to exceed it.
-  Three improvements make this robust and transparent:
-
-  - The default `K_max` (when unspecified) now scales with `n` and
-    carries generous headroom above the expected cluster count, instead
-    of the old `min(10, floor(n / 5))` which could sit right at the
-    operating point.
-  - If the sampler still exceeds the truncation, NIMBLE’s raw *“not a
-    proper model”* error is translated into an actionable message naming
-    `K_max` and suggesting a concrete larger value.
-  - After a DPM fit, a warning is issued when the posterior is
-    *sustainedly* censored at the truncation (a meaningful share of
-    iterations occupy every slot), so a too-tight `K_max` is flagged
-    rather than silently distorting the posterior on the number of
-    clusters.
-
-- **`verbose` now defaults to `FALSE`** in
+- `verbose` now defaults to `FALSE` for
   [`nimixClust()`](https://madsyair.github.io/nimix/reference/nimixClust.md)
   and
-  [`nimixReg()`](https://madsyair.github.io/nimix/reference/nimixReg.md),
-  matching the documented design. Quiet mode is now **selective, not a
-  blanket warning suppressor**: only NIMBLE’s known-benign configuration
-  chatter (the *“number of clusters … is less than the number of
-  potential clusters”* reminder and the *“model is not fully
-  initialized”* note) is muffled. Any other warning – in particular
-  anything that could indicate the sampler produced invalid draws –
-  propagates to the user even when `verbose = FALSE`, as do nimix’s own
-  diagnostics (the censored-posterior warning) and any error. Pass
-  `verbose = TRUE` for NIMBLE’s full configuration output and a progress
-  bar.
+  [`nimixReg()`](https://madsyair.github.io/nimix/reference/nimixReg.md).
+  Benign NIMBLE configuration chatter (e.g. the
+  Chinese-restaurant-process truncation reminder) is muffled
+  selectively; genuine warnings about potentially invalid MCMC draws and
+  all errors always propagate, in both verbose modes.
+- Dispersed k-means initialisation is now headroom-aware: the number of
+  seeded clusters respects the truncation level (`K_max`) so early CRP
+  transients no longer breach it on smaller `K_max`.
+- The initialisation headroom is configurable through
+  `mcmcControl$initRatio` (default 0.8). Values that leave little
+  headroom (\>= 0.95) warn; values outside `(0, 1)` error.
 
-- **Headroom-aware cluster initialisation.** The k-means / hard-E-step
-  starts used to seed up to `count - 1` clusters (`count` = the
-  truncation level `K_max` for the DPM), which sat right against the
-  ceiling for a modest `K_max` and left no room for the early CRP
-  transient (which briefly occupies more clusters than the modal K
-  before merging). Initialisation now seeds at most `floor(0.8 * count)`
-  clusters, guaranteeing at least `0.2 * K_max` slots of headroom above
-  the dispersed start; the GLM-regression E-step keeps a floor of 2 so
-  small fixed-K starts still separate. For large `K_max` the
-  `ceil(sqrt(n))` cap still binds, so dispersed-start behaviour there is
-  unchanged. This lowers the chance a modest explicit `K_max` breaches
-  the truncation; the headroom default remains the primary safeguard.
+### Engines and distributions
+
+- Two production engines: `method = "dpm"` and `method = "fixedk"`,
+  available for univariate and multivariate clustering and for
+  regression (including multivariate responses).
+- Component distributions: Gaussian (univariate / multivariate),
+  Student-t and Normal-Gamma (heavy-tailed, univariate / multivariate),
+  and Poisson / Binomial counts.
 
 ## nimix 0.4.2
 
-Multivariate-response mixture regression.
-
-### Added – multivariate-response regression (matrix coefficients)
-
 - [`nimixReg()`](https://madsyair.github.io/nimix/reference/nimixReg.md)
-  now accepts a matrix response (e.g. `cbind(y1, y2) ~ x`): each mixture
-  component is a multivariate linear regression with its own coefficient
-  matrix `B_k` (p x d), mean `X B_k`, and a d x d error covariance. The
-  variant is chosen automatically from the response shape.
-  - `NormalMvRegSpec`: `y ~ N_d(X B_k, Sigma_k)`.
-  - `StudentTMvRegSpec`: direct multivariate-t errors via the
-    user-defined `dmvt_nimix` density (non-conjugate).
-  - `NormalGammaMvRegSpec`: conjugate scale-mixture
-    (`omega ~ Gamma(df/2, df/2)`, `y ~ N_d(X B_k, Sigma_k / omega)`),
-    with `omega` slice-sampled.
-- Cluster prior: the conjugate matrix-Normal-Inverse-Wishart of Backlund
-  & Hobert (2020) – inverse-Wishart on the error covariance and, for
-  each coefficient row, prior covariance `v0[l] * Sigma` with a g-prior
-  among-row scale `v0 = g * diag((X'X)^{-1})`. Conditional on `Sigma`
-  the coefficients are Gaussian, so the collapsed CRP cluster sampler is
-  kept. [`predict()`](https://rdrr.io/r/stats/predict.html) returns one
-  fitted column per response.
-- Verified: all three recover the component coefficient matrices under
-  DPM and fixed-K; the `dmvt_nimix` kernel and the scale mixture both
-  run inside the CRP with dynamically indexed coefficient matrices.
-
-### Benchmark
-
-- `inst/harness/run_benchmark_heavytail.R` and the
-  `normal-gamma-vs-studentt` vignette now report measured
-  effective-sample-size-per-second. The direct Student-t route mixes the
-  partition far better for **clustering** (about 7x), while for
-  **regression** the two routes are comparable (the conjugate
-  coefficient update offsets the augmentation penalty) – choose by
-  measurement, not assumption.
-
-### References
-
-- Zellner (1976); Fernandez & Steel (1999); Backlund & Hobert (2020) for
-  multivariate regression with heavy-tailed / scale-mixture errors.
-
-## nimix 0.4.1
-
-Heavy-tailed mixture regression and a regression-routing fix.
-
-### Added – univariate heavy-tail mixture regression
-
-- [`nimixReg()`](https://madsyair.github.io/nimix/reference/nimixReg.md)
-  now accepts `distribution = "studentt"` and `"normalgamma"`: linear
-  mixture regression with Student-t errors, in the two equivalent
-  parameterisations already offered for clustering.
-  - `StudentTRegSpec`: direct t kernel `y ~ t(X beta_k, tau_k, df)`
-    (non-conjugate).
-  - `NormalGammaRegSpec`: conjugate scale mixture
-    `omega ~ Gamma(df/2, df/2)`, `y ~ N(X beta_k, s2_k / omega)` – a
-    pure Gibbs sampler keeping the conjugate NIG g-prior on the
-    coefficients (Geweke 1993), with `omega` slice-sampled and
-    interpretable as robustness weights. Both inherit the g-prior and
-    trace/relabel handling of `NormalRegSpec`; `df` is a fixed
-    hyperparameter (\> 2). Verified: both recover two regression regimes
-    under DPM and fixed-K on heavy-tailed, outlier-contaminated data.
-
-### Fixed
-
-- [`isRegressionSpec()`](https://madsyair.github.io/nimix/reference/isRegressionSpec.md)
-  now returns `TRUE` for `NormalRegSpec`, so
-  [`predict()`](https://rdrr.io/r/stats/predict.html) and
-  [`plot()`](https://rdrr.io/r/graphics/plot.default.html) route
-  Gaussian linear regression through the regression branch (regression
-  introduced in 0.4.0 via the GLM hooks; this restores the routing for
-  the Normal-linear case).
-
-### Examined and deferred (theory + feasibility confirmed)
-
-- Multivariate-response heavy-tail regression (multivariate-t /
-  Normal-Gamma errors, matrix coefficients) is theoretically supported
-  (Zellner 1976; Fernandez & Steel 1999; Backlund & Hobert 2020) and a
-  working prototype recovers matrix coefficients under the CRP. It needs
-  a matrix-response `RegressionMixModel` (a real architecture step) and
-  is proposed as v0.4.2 rather than bundled here, to keep verification
-  rigorous.
+  gains multivariate responses (`cbind(y1, y2) ~ x`) for Normal,
+  Student-t and Normal-Gamma components, with per-component coefficient
+  matrices and error covariances.
 
 ## nimix 0.4.0
 
-Fourth development release. Roadmap scope: **finalise the public
-[`registerDistribution()`](https://madsyair.github.io/nimix/reference/registerDistribution.md),
-and add Student-t and Normal-Gamma (univariate AND multivariate) plus
-Poisson and Binomial components** – all on the existing DPM and fixed-K
-engines, adding only `DistributionSpec` subclasses (no engine changes),
-which is the extensibility claim made concrete.
-
-### Added – heavy-tail components (a matched pair, identical marginal)
-
-- `StudentTUvSpec` / `StudentTMvSpec`: Student-t components evaluated as
-  a **direct** t density. NIMBLE has no multivariate-t, so the
-  multivariate kernel is supplied as a **user-defined NIMBLE
-  distribution** (`dmvt_nimix`, registered at load) – the same mechanism
-  [`registerDistribution()`](https://madsyair.github.io/nimix/reference/registerDistribution.md)
-  offers users. Non-conjugate cluster updates.
-- `NormalGammaUvSpec` / `NormalGammaMvSpec`: the **conjugate
-  scale-mixture** route to the *same* Student-t / multivariate-t
-  marginal, via a per-observation latent precision multiplier `omega`
-  (`y ~ N(mu, Sigma/omega)`, `omega ~ Gamma(df/2, df/2)`). Conditional
-  on `omega` the kernel is Gaussian, so the conjugate
-  Normal-Inverse-Gamma / Normal-Inverse-Wishart cluster updates are kept
-  (cheaper per iteration than the direct t density). The latent `omega`
-  double as robustness weights. These inherit from `NormalUvSpec` /
-  `NormalMvSpec`.
-- The marginal equivalence (scale-mixture == analytic t /
-  multivariate-t) is verified numerically to ~1e-10, both univariate and
-  multivariate.
-- `df` is a fixed hyperparameter (default 4 univariate, 5 multivariate;
-  must exceed 2). These are the SAME marginal reached two ways, offered
-  as distinct choices for their different sampling cost – not different
-  distributions, and unrelated to the Normal-Gamma shrinkage prior.
-
-### Added – discrete count components
-
-- `PoissonSpec` (Gamma-Poisson conjugate) and `BinomialSpec`
-  (Beta-Binomial conjugate; the number of trials `size` is supplied in
-  `prior`). These show the `DistributionSpec` contract is not tied to
-  continuous data.
-
-### Distribution selection
-
-- `distribution = "studentt"` / `"normalgamma"` auto-selects the
-  univariate or multivariate variant from the data shape (as `"normal"`
-  already did); `"poisson"` / `"binomial"` select the count components.
-  All work with both `method = "dpm"` and `method = "fixedk"`.
-- [`registerDistribution()`](https://madsyair.github.io/nimix/reference/registerDistribution.md)
-  (public) registers user `DistributionSpec` objects; `dmvt_nimix`
-  demonstrates pairing a custom spec with a custom NIMBLE density.
-
-### Added – GLM mixture-of-regression (link functions)
-
-- [`nimixReg()`](https://madsyair.github.io/nimix/reference/nimixReg.md)
-  now accepts `distribution = "poisson"` (**log link**) and `"binomial"`
-  (**logit link**, trials in `prior = list(size = ...)`), in addition to
-  `"normal"` (identity link). Each component is a GLM with its own
-  coefficient vector: Poisson `y ~ Poisson(exp(X beta_k))`, Binomial
-  `y ~ Binomial(size, plogis(X beta_k))`. This is the “extend to GLM”
-  item for the regression module.
-- New `PoissonRegSpec` / `BinomialRegSpec` (g-prior on coefficients).
-  The GLM likelihood is non-conjugate, so cluster coefficients are
-  updated non-conjugately (no Polya-Gamma augmentation, keeping
-  dependencies unchanged and avoiding the augmentation mixing penalty).
-  Verified: both recover two regression regimes under DPM and fixed-K;
-  [`predict()`](https://rdrr.io/r/stats/predict.html) applies the
-  inverse link.
-- New polymorphic hooks
-  [`isRegressionSpec()`](https://madsyair.github.io/nimix/reference/isRegressionSpec.md)
-  and
-  [`linkInv()`](https://madsyair.github.io/nimix/reference/linkInv.md)
-  route the predict path and apply the component link without class-name
-  branching.
-
-### Sampler strategy (Normal-Gamma)
-
-- The latent precision multipliers `omega` are now **slice-sampled**
-  (via a new polymorphic
-  [`customizeSamplers()`](https://madsyair.github.io/nimix/reference/customizeSamplers.md)
-  hook), not random-walk sampled. On a controlled run this raised the
-  effective sample size of the number of clusters from ~41 to ~314
-  (about 7x). Even so, an empirical comparison found the **direct
-  Student-t route mixes the partition markedly better than the
-  Normal-Gamma route at equal or lower cost**; Normal-Gamma is preferred
-  when the per-observation robustness weights `omega` are wanted, not
-  for speed. This corrects the earlier expectation; see the knowledge
-  patch.
-
-### Verified (R 4.3.3, NIMBLE 1.4.2)
-
-- Student-t / Normal-Gamma, univariate and multivariate, recover two
-  heavy-tailed clusters under DPM and fixed-K; the custom `dmvt_nimix`
-  kernel compiles and runs inside the CRP model. Poisson (rates 2/12)
-  and Binomial (probs 0.2/0.75, size 20) recover their components.
-
-### Deferred (still planned for the 0.4.x line / later)
-
-- Heavy-tail residuals in
-  [`nimixReg()`](https://madsyair.github.io/nimix/reference/nimixReg.md)
-  (regression with t / Normal-Gamma errors) and a benchmark vignette
-  comparing the two routes are the remaining 0.4.x items. RJMCMC remains
-  v0.5.0+ (experimental, conditional).
+- Student-t and Normal-Gamma components (univariate and multivariate)
+  and Poisson / Binomial counts; public
+  [`registerDistribution()`](https://madsyair.github.io/nimix/reference/registerDistribution.md).
 
 ## nimix 0.3.0
 
-Third development release. Scope follows the official roadmap (project
-knowledge, Section 4): **v0.3.0 = `RegressionMixModel` +
-[`nimixReg()`](https://madsyair.github.io/nimix/reference/nimixReg.md),
-a DPM mixture of linear regressions.**
-
-### Added
-
-- **`FixedKEngine` — finite mixture with a fixed, known number of
-  components** (`method = "fixedk"`, argument `K`). Planned since the
-  start of the roadmap as the simplest engine; now implemented. Uses a
-  symmetric Dirichlet prior on the mixing weights and a categorical
-  allocation (no Chinese Restaurant Process), so NIMBLE assigns
-  conjugate samplers to the weights and component parameters and the DPM
-  truncation reminder does not arise. Works for univariate,
-  multivariate, and regression components. Useful as a fast baseline
-  when `K` is known, and for classical model selection by comparing fits
-  across values of `K`.
-- [`nimixClust()`](https://madsyair.github.io/nimix/reference/nimixClust.md)
-  /
-  [`nimixReg()`](https://madsyair.github.io/nimix/reference/nimixReg.md)
-  gained the argument `K` (for `method = "fixedk"`) alongside `K_max`
-  (for `method = "dpm"`), with validation that errors clearly if the two
-  are swapped.
-- `nimixReg(formula, data, ...)`: Bayesian Dirichlet Process Mixture of
-  Gaussian **linear regressions**. Each component is ; the number of
-  components is inferred via the Chinese Restaurant Process (or fixed
-  with `method = "fixedk"`). **Gating is constant** (mixing weights do
-  not depend on covariates); covariate-dependent (concomitant) gating is
-  a planned opt-in and currently errors with a pointer.
-- `NormalRegSpec`: Normal-linear regression component with a conjugate
-  **Normal-Inverse-Gamma g-prior**
-  (`beta | s2 ~ N(b0, s2 * g * (X'X)^{-1})`, unit-information `g = n`;
-  `s2 ~ InvGamma(nu0, s0)` data-scaled to the global OLS residual
-  variance, `nu0 >= 3` so the residual variance cannot collapse on small
-  components). Verified: NIMBLE assigns the conjugate collapsed CRP
-  samplers (`CRP_cluster_wrapper`) to both `betaTilde` and `s2Tilde`.
-- `RegressionMixModel` (extends `MixtureModel`) carrying the `formula`
-  and the design matrix `X`.
-- [`summary()`](https://rdrr.io/r/base/summary.html) reports relabelled
-  per-component regression coefficients (named after the design columns)
-  and residual variances; `predict(fit, newdata)` returns the posterior
-  predictive mean ; `plot(fit, type = "fitted")` shows observed vs
-  fitted.
-
-### Changed
-
-- Engines are now selected polymorphically through a `runEngine` generic
-  that dispatches on the engine (`DPMEngine` vs `FixedKEngine`); a
-  shared helper does the build / compile / run / extract, so the two
-  engines share one code path.
-- Component initialisation is engine-agnostic (`componentInits`),
-  returning an allocation plus component-parameter starts that both
-  engines reuse.
-- When `verbose = FALSE`, NIMBLE’s compilation notes and the CRP
-  truncation reminder are silenced, so quiet runs and examples produce
-  clean output.
-- Code comments and roxygen no longer cite internal design-document
-  section numbers; the explanatory content is kept inline.
-- The deterministic-node patterns established for the multivariate model
-  are reused for regression: the `s2`-scaled coefficient covariance is
-  bound to a node `covBeta`, and dynamically indexed cluster
-  coefficients are resolved via `betaObs`.
-
-### Deferred (per roadmap — intentionally NOT in 0.3.0)
-
-- Covariate-dependent (concomitant) gating — planned opt-in (Section
-  9.8).
-- Student-t / Normal-Gamma / Poisson / Binomial components are
-  **v0.4.0**.
-- RJMCMC engine is **v0.5.0+** (experimental, conditional — Section
-  4.0).
-
-### Verification status
-
-- Pure-R unit tests (g-prior scaling, NIG invariants, `simulateParams`)
-  and an end-to-end **unbalanced 80/20** recovery (two regression
-  regimes with slopes +2 / -2) pass in R 4.3.3 with NIMBLE 1.4.2: modal
-  K = 2, recovered slopes 2.00 / -1.93 and weights 0.78 / 0.22. The full
-  CRAN harness should still be run before any release is considered
-  CRAN-ready (Section 8, 0.3.4).
+- [`nimixReg()`](https://madsyair.github.io/nimix/reference/nimixReg.md)
+  and the `RegressionMixModel` class: mixture-of-regressions with a
+  Normal-Inverse-Gamma g-prior. `FixedKEngine` implemented across
+  univariate, multivariate and regression models. Engine selection is
+  polymorphic via
+  [`runEngine()`](https://madsyair.github.io/nimix/reference/runEngine.md).
 
 ## nimix 0.2.0
 
-Second development release. Scope follows the official roadmap (project
-knowledge, Section 4): **v0.2.0 = `NormalMvSpec` (multivariate
-Gaussian) + multivariate
-[`nimixClust()`](https://madsyair.github.io/nimix/reference/nimixClust.md)
-on the DPM (dCRP) engine + label switching.**
-
-### Added
-
-- `NormalMvSpec`: multivariate Gaussian component with a conjugate
-  **Normal-Inverse-Wishart** cluster base measure (`dmnorm(cov=)` +
-  `dinvwish`), data-scaled by default (`mu0 = colMeans`, prior mean of
-  the cluster covariance `= cov(data)`, mean dispersion `cLoc`-scaled).
-  The inverse-Wishart degrees of freedom are validated to exceed `d + 1`
-  so prior draws on empty components are finite and non-singular
-  (project knowledge Section 9.3).
-- [`nimixClust()`](https://madsyair.github.io/nimix/reference/nimixClust.md)
-  now accepts a numeric **matrix** (one row per observation) and routes
-  it to `NormalMvSpec`; a numeric vector still routes to `NormalUvSpec`.
-  `distribution = "normal"` chooses univariate/multivariate by data
-  shape; `"normal-uv"` / `"normal-mv"` force a specific family.
-- Dimension-agnostic DPM engine: the engine now delegates all
-  dimension-specific work (constants, data, inits, trace parsing,
-  relabelled summaries) to new `DistributionSpec` generics —
-  [`buildConstants()`](https://madsyair.github.io/nimix/reference/buildConstants.md),
-  [`buildDataList()`](https://madsyair.github.io/nimix/reference/buildDataList.md),
-  `dpmInits()`,
-  [`extractParamTraces()`](https://madsyair.github.io/nimix/reference/extractParamTraces.md),
-  [`relabelComponents()`](https://madsyair.github.io/nimix/reference/relabelComponents.md).
-  Adding a distribution no longer touches the engine (project knowledge
-  Section 3, extensibility seam).
-- [`relabel()`](https://madsyair.github.io/nimix/reference/relabel.md)
-  generalised: the label-permutation derivation (wrapping
-  `label.switching` ECR) depends only on the allocations, so it is
-  identical for univariate and multivariate; parameter permutation and
-  component summaries are delegated to the spec.
-- [`plot()`](https://rdrr.io/r/graphics/plot.default.html) gains
-  `type = "cluster"` (multivariate : scatter of the first two dimensions
-  coloured by MAP cluster);
-  [`summary()`](https://rdrr.io/r/base/summary.html)/[`predict()`](https://rdrr.io/r/stats/predict.html)
-  are dimension-aware (multivariate predictive density via the spec’s
-  [`componentDensity()`](https://madsyair.github.io/nimix/reference/componentDensity.md),
-  with draw subsampling for tractability).
-- Multivariate recovery scenario added to
-  `inst/harness/run_recovery_suite.R` and
-  `tests/testthat/test-dist-normal-mv.R` (verified to recover two
-  well-separated 2-D clusters).
-
-### Changed / fixed
-
-- **`nimble` moved from `Imports` to `Depends`.** NIMBLE’s BUGS-language
-  distributions (`dCRP`, `dinvwish`, …) are only resolvable during model
-  building when `nimble` is attached, not merely imported (this is the
-  convention used by other NIMBLE-extension packages). This fixes a
-  latent model-build error (`R function 'dCRP' ... does not exist`).
-- Multivariate parameterisation note: the conjugate base measure is
-  written with `cov=` + `dinvwish` rather than `prec=` + `dwish`. The
-  two are mathematically equivalent, but the precision/`dwish` path
-  triggers a Cholesky-lifting failure under dynamic CRP indexing in
-  NIMBLE 1.4.x, whereas `cov=` + `dinvwish` compiles, runs, and is
-  assigned NIMBLE’s conjugate collapsed CRP samplers (verified
-  empirically).
-- `ClusterModel` data slot widened to accept matrices while preserving
-  their dimensions; univariate behaviour is unchanged.
-- The univariate engine/relabel logic was relocated into `NormalUvSpec`
-  methods (no behavioural change; required for the dimension-agnostic
-  engine).
-
-### Deferred (per roadmap — intentionally NOT in 0.2.0)
-
-- [`nimixReg()`](https://madsyair.github.io/nimix/reference/nimixReg.md)
-  (mixture-of-regressions) is **v0.3.0** (stub still errors).
-- Student-t / Normal-Gamma / Poisson / Binomial are **v0.4.0**.
-- RJMCMC engine is **v0.5.0+** (experimental, conditional — project
-  knowledge Section 4.0).
-
-### Verification status
-
-- Pure-R unit tests (spec routing, data-scaled prior, NIW invariants,
-  multivariate-normal density, `simulateParams`) and an end-to-end
-  multivariate DPM recovery (two 2-D clusters) pass in R 4.3.3 with
-  NIMBLE 1.4.2. The full CRAN harness (`R CMD check --as-cran`,
-  multi-seed recovery suite, vignette build) should still be run before
-  any release is considered CRAN-ready (project knowledge Section 8,
-  0.3.4).
+- Multivariate Gaussian clustering (`NormalMvSpec`) with a
+  Normal-Inverse-Wishart base measure. Engine generalised to be
+  dimension-agnostic.
 
 ## nimix 0.1.0
 
-First development release. Scope follows the official roadmap (project
-knowledge, Section 4): **v0.1.0 = S4 foundation + `NormalUvSpec` +
-univariate
-[`nimixClust()`](https://madsyair.github.io/nimix/reference/nimixClust.md)
-on the DPM (dCRP) engine.**
-
-### Added
-
-- S4 architecture foundation:
-  - `DistributionSpec` (virtual) with generics
-    [`validateParams()`](https://madsyair.github.io/nimix/reference/validateParams.md),
-    [`defaultPrior()`](https://madsyair.github.io/nimix/reference/defaultPrior.md),
-    [`buildModelCode()`](https://madsyair.github.io/nimix/reference/buildModelCode.md).
-  - `NormalUvSpec`: univariate Gaussian component with a conjugate
-    Normal-Inverse-Gamma cluster prior (data-scaled by default; see
-    project knowledge Section 9.2).
-  - `MixtureModel` (virtual) and `ClusterModel`.
-  - `EngineConfig` (virtual) and `DPMEngine` wrapping NIMBLE’s native
-    `dCRP` / CRP samplers (Neal 2000).
-  - `FitResult` with [`summary()`](https://rdrr.io/r/base/summary.html),
-    [`plot()`](https://rdrr.io/r/graphics/plot.default.html),
-    [`predict()`](https://rdrr.io/r/stats/predict.html),
-    [`relabel()`](https://madsyair.github.io/nimix/reference/relabel.md).
-- [`nimixClust()`](https://madsyair.github.io/nimix/reference/nimixClust.md)
-  user-facing function (univariate, `method = "dpm"`).
-- [`relabel()`](https://madsyair.github.io/nimix/reference/relabel.md)
-  wraps `label.switching` (ECR-ITERATIVE-1 default, Papastamoulis &
-  Iliopoulos 2010), conditioning on the modal number of occupied
-  clusters.
-- [`registerDistribution()`](https://madsyair.github.io/nimix/reference/registerDistribution.md)
-  /
-  [`getDistribution()`](https://madsyair.github.io/nimix/reference/getDistribution.md)
-  registry skeleton.
-- Recovery-test harness (`inst/harness/run_recovery_suite.R`) and CRAN
-  check harness (`inst/harness/run_cran_check.R`).
-
-### Deferred (per roadmap — intentionally NOT in 0.1.0)
-
-- [`nimixReg()`](https://madsyair.github.io/nimix/reference/nimixReg.md)
-  (mixture-of-regressions) is **v0.3.0**. A stub is exported that errors
-  with an informative message rather than silently reordering the
-  roadmap (project knowledge Section 0.3.1).
-- Multivariate clustering (`NormalMvSpec`) is **v0.2.0**.
-- RJMCMC engine is **v0.5.0+**.
-
-### Naming
-
-- Package and user-facing functions are consistently named `nimix`
-  ([`nimixClust()`](https://madsyair.github.io/nimix/reference/nimixClust.md),
-  [`nimixReg()`](https://madsyair.github.io/nimix/reference/nimixReg.md)),
-  matching the interface signatures in the project-knowledge document
-  (Section 3). An earlier draft used the mixed-case spelling `nimMix*`;
-  this has been renamed throughout for consistency, so no
-  package/document naming discrepancy remains.
+- S4 foundation, univariate Gaussian clustering (`NormalUvSpec`),
+  [`nimixClust()`](https://madsyair.github.io/nimix/reference/nimixClust.md)
+  on the DPM and fixed-K engines.

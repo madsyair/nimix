@@ -1,28 +1,32 @@
 # nimix: Bayesian Mixture Clustering and Regression with NIMBLE
 
-Bayesian mixture modelling built on the nimble platform. The release
-implements univariate and multivariate Gaussian mixture clustering
-through a Dirichlet Process Mixture (DPM) engine based on the Chinese
-Restaurant Process. The package is organised around an extensible S4
+Bayesian mixture modelling built on the nimble platform. The package
+implements univariate and multivariate mixture clustering and
+mixture-of-regressions through two inference engines: a Dirichlet
+Process Mixture (DPM) engine based on the Chinese Restaurant Process
+(which estimates the number of occupied components) and a fixed-K
+finite-mixture engine. It is organised around an extensible S4
 [`DistributionSpec`](https://madsyair.github.io/nimix/reference/DistributionSpec-class.md)
-contract so that new component distributions and (later) a
-reversible-jump engine can be added without rewriting existing code.
+contract so that new component distributions and engines can be added
+without rewriting existing code.
 
-## Roadmap (this is v0.2.0)
+## Inference engines
 
-- v0.1.0: S4 foundation,
-  [`NormalUvSpec`](https://madsyair.github.io/nimix/reference/NormalUvSpec-class.md),
-  univariate
-  [`nimixClust`](https://madsyair.github.io/nimix/reference/nimixClust.md)
-  on the DPM engine.
+- `method = "dpm"`: Dirichlet process / Chinese restaurant process; the
+  number of occupied components is estimated from the data.
 
-- v0.2.0 (this release): multivariate clustering
-  ([`NormalMvSpec`](https://madsyair.github.io/nimix/reference/NormalMvSpec-class.md)).
+- `method = "fixedk"`: finite mixture with a known number of components
+  `K`.
 
-- v0.3.0: mixture-of-regressions
-  ([`nimixReg`](https://madsyair.github.io/nimix/reference/nimixReg.md)).
+## Component distributions
 
-- v0.5.0+: reversible jump MCMC engine.
+Gaussian (univariate and multivariate), Student-t and Normal-Gamma
+(heavy-tailed, univariate and multivariate), and Poisson / Binomial
+counts, for both clustering
+([`nimixClust`](https://madsyair.github.io/nimix/reference/nimixClust.md))
+and regression
+([`nimixReg`](https://madsyair.github.io/nimix/reference/nimixReg.md),
+including multivariate responses).
 
 ## References
 
@@ -49,8 +53,10 @@ Useful links:
 
 ## Author
 
-**Maintainer**: nimix Developers <nimix@example.org>
+**Maintainer**: Achmad Syahrul Choir <madsyair@stis.ac.id>
+([ORCID](https://orcid.org/0000-0001-7088-0646))
 
 Authors:
 
-- nimix Developers <nimix@example.org>
+- Achmad Syahrul Choir <madsyair@stis.ac.id>
+  ([ORCID](https://orcid.org/0000-0001-7088-0646))

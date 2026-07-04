@@ -25,9 +25,6 @@ without touching the engine code.
   [`plot()`](https://rdrr.io/r/graphics/plot.default.html) and
   [`predict()`](https://rdrr.io/r/stats/predict.html) methods.
 
-A reversible-jump MCMC engine (`method = "rjmcmc"`) is **planned and
-experimental**; it is gated behind validation and is not yet available.
-
 ## Installation
 
 `nimix` depends on `nimble`, which compiles model code, so you need a

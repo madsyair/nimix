@@ -1,114 +1,89 @@
 # Multivariate mixture clustering with the DPM engine
 
-This vignette demonstrates the v0.2.0 functionality of **nimix**:
-Bayesian **multivariate** Gaussian mixture clustering on the same
-Dirichlet Process Mixture (DPM) engine used for the univariate case. The
-only thing that changes from the user’s point of view is that `data` is
-now a numeric **matrix** (one row per observation, one column per
-dimension).
+This vignette demonstrates **multivariate** Gaussian mixture clustering
+on the DPM engine. From the user’s point of view the only change from
+the univariate case is that `data` is a numeric **matrix** (one row per
+observation, one column per dimension). The example clusters countries
+in the `wdi2022` official-statistics dataset
+([`?wdi2022`](https://madsyair.github.io/nimix/reference/wdi2022.md)) on
+two development indicators jointly.
 
-> Chunks use `eval = FALSE` so the vignette builds quickly under CRAN
-> time limits . Run them interactively.
+> MCMC chunks use `eval = FALSE` (CRAN time limits); printed results are
+> from an actual run.
+
+## The data: income and longevity jointly
+
+``` r
+
+library(nimix)
+#> Loading required package: nimble
+#> nimble version 1.4.2 is loaded.
+#> For more information on NIMBLE and a User Manual,
+#> please visit https://R-nimble.org.
+#> 
+#> Attaching package: 'nimble'
+#> The following object is masked from 'package:stats':
+#> 
+#>     simulate
+#> The following object is masked from 'package:base':
+#> 
+#>     declare
+data(wdi2022)
+Y <- cbind(log_gdp  = log(wdi2022$gdp_pc),
+           life_exp = wdi2022$life_exp)
+plot(Y, main = "207 countries, 2022", xlab = "log GDP per capita",
+     ylab = "life expectancy (years)")
+```
+
+![](mixClust-multivariate_files/figure-html/data-1.png)
 
 ## The model
 
-Each component is a multivariate normal. The conjugate cluster base
-measure is a **Normal-Inverse-Wishart**:
-``` math
-\Sigma_j \sim \text{InvWishart}(S_0, df_0), \qquad
-\mu_j \mid \Sigma_j \sim N_d(\mu_0, \Sigma_j / \kappa_0),
-```
-with the allocation vector following a Chinese Restaurant Process. nimix
-writes this with NIMBLE’s `dmnorm(cov = ...)` + `dinvwish`, which is the
-pairing NIMBLE recognises as conjugate for `dCRP` — so the efficient
-collapsed CRP samplers are used automatically . The defaults are
-*data-scaled* : `mu0 = colMeans(data)`, the prior mean of the cluster
-covariance equals `cov(data)`, and `df0 = d + 2` (validated to exceed
-`d + 1` so empty-component draws stay non-singular).
+Each component is a multivariate normal with a conjugate
+Normal-Inverse-Wishart cluster base measure (`dmnorm(cov=)` +
+`dinvwish`), data-scaled by default. NIMBLE’s native conjugate CRP
+samplers are used – nimix deliberately does not reimplement them.
 
 ## Fit
 
 ``` r
 
-library(nimix)
-
-set.seed(1)
-# two well-separated 2-D clusters, K_true = 2
-Y <- rbind(
- matrix(rnorm(150 * 2, mean = -3), ncol = 2),
- matrix(rnorm(150 * 2, mean = 3), ncol = 2)
-)
-
-fit <- nimixClust(
- Y, K_max = 10, distribution = "normal", method = "dpm",
- mcmcControl = list(niter = 6000, nburnin = 2000)
-)
-fit
-```
-
-`nimixClust` detects that `Y` is a matrix and routes it to the
-multivariate component (`NormalMvSpec`). You can force the family with
-`distribution = "normal-mv"` (or `"normal-uv"` for a vector).
-
-## Label switching: relabel before summarising
-
-As in the univariate case, the mixture likelihood is invariant to
-permuting component labels, so `summary` relabels first
-(ECR-ITERATIVE-1), conditioning on the modal number of occupied
-clusters. For multivariate fits the component table reports the
-posterior mean of each mean coordinate (`mu_1`, `mu_2`, …) and the
-posterior mean of each marginal variance (`var_1`, `var_2`, …); the full
-relabelled mean covariance matrices are available in
-`fit@relabeled$Sigma_mean`.
-
-``` r
-
+fit <- nimixClust(Y, K_max = 8,
+                  mcmcControl = list(niter = 4000, nburnin = 1500),
+                  seed = 1)
+fit <- relabel(fit)
 summary(fit)
 ```
 
-## Visualising the clusters
+On the 2022 data the dominant structure is a clearly separated
+**high-income / high-longevity** cluster plus overlapping
+developing-country clusters:
+
+    #> modalK = 4
+    #>   component weight   mu_1   mu_2      # (log GDP pc, life expectancy)
+    #> 3         3  0.309 10.363 80.302     # rich, long-lived cluster
+    #> 4         4  0.444  8.087 69.402     # large developing cluster
+    #> 1         1  0.204  8.570 71.788     # overlapping middle cluster
+    #> 2         2  0.043  8.556 69.914     # small transient component
+
+Overlapping components with small weights are expected in a DPM; report
+the dominant components and, when a hard partition is needed, use the
+MAP allocation:
 
 ``` r
 
-plot(fit, type = "K") # posterior of the number of occupied clusters
-plot(fit, type = "cluster") # data coloured by MAP cluster (first two dims)
+alloc <- apply(fit@clusterAllocation, 2L, function(z)
+  as.integer(names(which.max(table(z)))))
+plot(Y, col = alloc, pch = 19,
+     main = "MAP cluster allocation")
 ```
 
-The label-switching diagnostics also work in the multivariate case (they
-plot the first mean coordinate across clusters):
+## Fixed-K comparison
 
 ``` r
 
-plot(fit, type = "trace_raw")
-plot(fit, type = "trace_relabeled")
+fit3 <- nimixClust(Y, K = 3, method = "fixedk",
+                   mcmcControl = list(niter = 4000, nburnin = 1500),
+                   seed = 1)
+summary(relabel(fit3))
 ```
-
-## Posterior predictive density at points
-
-For multivariate data the predictive density is evaluated at supplied
-rows rather than over a 1-D grid:
-
-``` r
-
-newpts <- rbind(c(-3, -3), c(0, 0), c(3, 3))
-predict(fit, newdata = newpts)
-```
-
-## Notes on dimension and `K_max`
-
-- `K_max` remains a truncation level, not a fixed number of clusters.
-- The prior covariance scaling matters more in higher dimensions; the
-  data-scaled Normal-Inverse-Wishart default keeps the prior weakly
-  informative without becoming vague .
-- With small `n` relative to `d`, identifiability weakens ( ); prefer
-  `n` comfortably larger than `d` and inspect the posterior of K rather
-  than trusting a single modal value.
-
-## References
-
-- de Valpine et al. (2017), *JCGS* 26(2), 403–413.
-- Neal (2000), *JCGS* 9(2), 249–265.
-- Zhang, Chan, Wu & Chen (2004), *Statistics and Computing* 14, 343–355.
-- Dellaportas & Papageorgiou (2006), *Statistics and Computing* 16,
-  57–68.
-- Papastamoulis & Iliopoulos (2010), *JCGS* 19(2), 313–331.

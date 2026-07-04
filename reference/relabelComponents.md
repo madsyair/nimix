@@ -13,31 +13,40 @@ summary, so multivariate covariance handling stays inside
 ``` r
 relabelComponents(spec, paramTrace, idx, occList, perms, modalK, weights, ...)
 
-# S4 method for class 'NormalUvSpec'
-relabelComponents(spec, paramTrace, idx, occList, perms, modalK, weights, ...)
-
-# S4 method for class 'NormalMvSpec'
-relabelComponents(spec, paramTrace, idx, occList, perms, modalK, weights, ...)
-
-# S4 method for class 'NormalRegSpec'
-relabelComponents(spec, paramTrace, idx, occList, perms, modalK, weights, ...)
-
 # S4 method for class 'PoissonRegSpec'
 relabelComponents(spec, paramTrace, idx, occList, perms, modalK, weights, ...)
 
 # S4 method for class 'BinomialRegSpec'
 relabelComponents(spec, paramTrace, idx, occList, perms, modalK, weights, ...)
 
+# S4 method for class 'GMSNBurrUvSpec'
+relabelComponents(spec, paramTrace, idx, occList, perms, modalK, weights, ...)
+
+# S4 method for class 'NormalRegSpec'
+relabelComponents(spec, paramTrace, idx, occList, perms, modalK, weights, ...)
+
+# S4 method for class 'MSNBurrUvSpec'
+relabelComponents(spec, paramTrace, idx, occList, perms, modalK, weights, ...)
+
+# S4 method for class 'MSNBurr2aUvSpec'
+relabelComponents(spec, paramTrace, idx, occList, perms, modalK, weights, ...)
+
 # S4 method for class 'NormalMvRegSpec'
 relabelComponents(spec, paramTrace, idx, occList, perms, modalK, weights, ...)
 
-# S4 method for class 'StudentTUvSpec'
+# S4 method for class 'NormalMvSpec'
+relabelComponents(spec, paramTrace, idx, occList, perms, modalK, weights, ...)
+
+# S4 method for class 'NormalUvSpec'
 relabelComponents(spec, paramTrace, idx, occList, perms, modalK, weights, ...)
 
 # S4 method for class 'PoissonSpec'
 relabelComponents(spec, paramTrace, idx, occList, perms, modalK, weights, ...)
 
 # S4 method for class 'BinomialSpec'
+relabelComponents(spec, paramTrace, idx, occList, perms, modalK, weights, ...)
+
+# S4 method for class 'StudentTUvSpec'
 relabelComponents(spec, paramTrace, idx, occList, perms, modalK, weights, ...)
 ```
 
@@ -85,27 +94,36 @@ parameter arrays cached on the `FitResult`.
 
 ## Functions
 
-- `relabelComponents(NormalUvSpec)`: Permute (mu, s2) and summarise
-  components.
-
-- `relabelComponents(NormalMvSpec)`: Permute multivariate (mu, Sigma)
-  and summarise.
-
-- `relabelComponents(NormalRegSpec)`: Permute (beta, s2) and summarise
-  the regression components (one coefficient column per predictor).
-
 - `relabelComponents(PoissonRegSpec)`: Permute coefficients and
   summarise.
 
 - `relabelComponents(BinomialRegSpec)`: Permute coefficients and
   summarise.
 
+- `relabelComponents(GMSNBurrUvSpec)`: Permute mu / sigma / alpha /
+  theta, summarise.
+
+- `relabelComponents(NormalRegSpec)`: Permute (beta, s2) and summarise
+  the regression components (one coefficient column per predictor).
+
+- `relabelComponents(MSNBurrUvSpec)`: Permute mu / sigma / alpha and
+  summarise.
+
+- `relabelComponents(MSNBurr2aUvSpec)`: Permute mu / sigma / alpha and
+  summarise.
+
 - `relabelComponents(NormalMvRegSpec)`: Permute coefficient matrices and
   summarise.
 
-- `relabelComponents(StudentTUvSpec)`: Permute (mu, tau) and summarise;
-  the reported scale is \\\sigma = \tau^{-1/2}\\.
+- `relabelComponents(NormalMvSpec)`: Permute multivariate (mu, Sigma)
+  and summarise.
+
+- `relabelComponents(NormalUvSpec)`: Permute (mu, s2) and summarise
+  components.
 
 - `relabelComponents(PoissonSpec)`: Permute lambda and summarise.
 
 - `relabelComponents(BinomialSpec)`: Permute prob and summarise.
+
+- `relabelComponents(StudentTUvSpec)`: Permute (mu, tau) and summarise;
+  the reported scale is \\\sigma = \tau^{-1/2}\\.

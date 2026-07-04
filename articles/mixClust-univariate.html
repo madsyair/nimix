@@ -25,7 +25,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">nimix</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -38,10 +38,9 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/mixClust-multivariate.html">Multivariate mixture clustering with the DPM engine</a></li>
-    <li><a class="dropdown-item" href="../articles/mixClust-univariate.html">Univariate mixture clustering with the DPM engine</a></li>
-    <li><a class="dropdown-item" href="../articles/mixReg.html">Mixtures of linear regressions</a></li>
-    <li><a class="dropdown-item" href="../articles/normal-gamma-vs-studentt.html">Heavy-tailed components: Student-t vs Normal-Gamma</a></li>
+<li><a class="dropdown-item" href="../articles/mixClust-univariate.html">Univariate mixture clustering with the DPM engine</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -72,86 +71,95 @@
 
     
     
-<p>This vignette demonstrates the v0.1.0 functionality of
-<strong>nimix</strong>: Bayesian univariate Gaussian mixture clustering
-using a Dirichlet Process Mixture (DPM) engine built on NIMBLE’s Chinese
-Restaurant Process (<code>dCRP</code>).</p>
+<p>This vignette demonstrates Bayesian univariate Gaussian mixture
+clustering with <strong>nimix</strong>’s Dirichlet Process Mixture (DPM)
+engine, built on NIMBLE’s Chinese Restaurant Process
+(<code>dCRP</code>), using <strong>official statistics</strong>: the
+<code>wdi2022</code> dataset shipped with the package (World Bank World
+Development Indicators, 2022, CC BY 4.0; see <code><a href="../reference/wdi2022.html">?wdi2022</a></code>). The
+same workflow applies directly to other official-statistics sources,
+e.g. BPS regional indicators.</p>
 <blockquote>
-<p>Chunks use <code>eval = FALSE</code> so the vignette builds quickly
-under CRAN time limits . Run them interactively.</p>
+<p>MCMC chunks use <code>eval = FALSE</code> so the vignette builds
+quickly under CRAN time limits; the printed results below are from an
+actual run. Run the chunks interactively to reproduce them.</p>
 </blockquote>
 <div class="section level2">
-<h2 id="fit">Fit<a class="anchor" aria-label="anchor" href="#fit"></a>
+<h2 id="the-data-national-income-across-207-countries">The data: national income across 207 countries<a class="anchor" aria-label="anchor" href="#the-data-national-income-across-207-countries"></a>
 </h2>
+<p>GDP per capita is famously multimodal on the log scale – countries
+group into latent “development regimes” rather than forming one
+homogeneous population.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/madsyair/nimix" class="external-link">nimix</a></span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
-<span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">150</span>, <span class="op">-</span><span class="fl">4</span>, <span class="fl">1</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">150</span>, <span class="fl">4</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span> <span class="co"># two clusters, K_true = 2</span></span>
-<span></span>
-<span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nimixClust.html">nimixClust</a></span><span class="op">(</span></span>
-<span> <span class="va">y</span>, K_max <span class="op">=</span> <span class="fl">10</span>, distribution <span class="op">=</span> <span class="st">"normal"</span>, method <span class="op">=</span> <span class="st">"dpm"</span>,</span>
-<span> mcmcControl <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>niter <span class="op">=</span> <span class="fl">6000</span>, nburnin <span class="op">=</span> <span class="fl">2000</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span><span class="va">fit</span></span></code></pre></div>
-<p>The DPM does not fix the number of clusters: it places a Chinese
-Restaurant Process prior on the allocation vector and lets the data
-determine how many components are occupied. The truncation level
-<code>K_max</code> is the length of the cluster-parameter vectors,
-<strong>not</strong> a fixed number of clusters.</p>
+<span><span class="co">#&gt; Loading required package: nimble</span></span>
+<span><span class="co">#&gt; nimble version 1.4.2 is loaded.</span></span>
+<span><span class="co">#&gt; For more information on NIMBLE and a User Manual,</span></span>
+<span><span class="co">#&gt; please visit https://R-nimble.org.</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Attaching package: 'nimble'</span></span>
+<span><span class="co">#&gt; The following object is masked from 'package:stats':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     simulate</span></span>
+<span><span class="co">#&gt; The following object is masked from 'package:base':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     declare</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">wdi2022</span><span class="op">)</span></span>
+<span><span class="va">ly</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="va">wdi2022</span><span class="op">$</span><span class="va">gdp_pc</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">ly</span><span class="op">)</span></span>
+<span><span class="co">#&gt;    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. </span></span>
+<span><span class="co">#&gt;   5.574   7.766   8.806   8.893   9.984  12.275</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/hist.html" class="external-link">hist</a></span><span class="op">(</span><span class="va">ly</span>, breaks <span class="op">=</span> <span class="fl">30</span>, main <span class="op">=</span> <span class="st">"log GDP per capita, 2022"</span>, xlab <span class="op">=</span> <span class="st">"log US$"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="mixClust-univariate_files/figure-html/data-1.png" class="r-plt" alt="" width="700"></p>
 </div>
 <div class="section level2">
-<h2 id="label-switching-relabel-before-summarising">Label switching: relabel before summarising<a class="anchor" aria-label="anchor" href="#label-switching-relabel-before-summarising"></a>
+<h2 id="fit-how-many-income-regimes">Fit: how many income regimes?<a class="anchor" aria-label="anchor" href="#fit-how-many-income-regimes"></a>
 </h2>
-<p>The mixture likelihood is invariant to permuting component labels, so
-raw per-component posterior means are meaningless. <code>summary</code>
-therefore relabels first (ECR-ITERATIVE-1 from the
-<code>label.switching</code> package), conditioning on the modal number
-of occupied clusters.</p>
+<p><code>method = "dpm"</code> estimates the number of occupied
+components. <code>K_max</code> is only a truncation level (computational
+headroom), not a prior belief about K.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></code></pre></div>
-<p>You can see the switching directly:</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span>, type <span class="op">=</span> <span class="st">"trace_raw"</span><span class="op">)</span> <span class="co"># zig-zags between levels = switching</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span>, type <span class="op">=</span> <span class="st">"trace_relabeled"</span><span class="op">)</span> <span class="co"># stable bands after relabelling</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nimixClust.html">nimixClust</a></span><span class="op">(</span><span class="va">ly</span>, K_max <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>                  mcmcControl <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>niter <span class="op">=</span> <span class="fl">4000</span>, nburnin <span class="op">=</span> <span class="fl">1500</span><span class="op">)</span>,</span>
+<span>                  seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/relabel.html">relabel</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span>   <span class="co"># always relabel before summarising (label switching)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></code></pre></div>
+<p>On the 2022 data this finds a <strong>two-regime</strong>
+structure:</p>
+<pre><code><span><span class="co">#&gt; modalK = 2</span></span>
+<span><span class="co">#&gt;   weight mu_mean</span></span>
+<span><span class="co">#&gt; 1  0.554   7.966    # ~ US$ 2,900  (lower/middle-income regime)</span></span>
+<span><span class="co">#&gt; 2  0.446   9.964    # ~ US$ 21,000 (high-income regime)</span></span></code></pre>
+<p>The posterior on the number of clusters concentrates on 2-3, with the
+usual DPM tail of small transient components. If the fit warns that the
+truncation level was reached in a non-negligible share of iterations,
+increase <code>K_max</code> and re-run – a larger truncation only adds
+headroom.</p>
 </div>
 <div class="section level2">
-<h2 id="posterior-of-the-number-of-clusters">Posterior of the number of clusters<a class="anchor" aria-label="anchor" href="#posterior-of-the-number-of-clusters"></a>
+<h2 id="multi-chain-convergence-check">Multi-chain convergence check<a class="anchor" aria-label="anchor" href="#multi-chain-convergence-check"></a>
 </h2>
+<p>Multiple chains from dispersed starts cost almost nothing extra: the
+compiled model is reused across chains, and <code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code> then
+reports cross-chain split-Rhat / ESS on label-invariant quantities.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span>, type <span class="op">=</span> <span class="st">"K"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">fit3</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nimixClust.html">nimixClust</a></span><span class="op">(</span><span class="va">ly</span>, K_max <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>                   mcmcControl <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>niter <span class="op">=</span> <span class="fl">4000</span>, nburnin <span class="op">=</span> <span class="fl">1500</span>,</span>
+<span>                                      nchains <span class="op">=</span> <span class="fl">3</span><span class="op">)</span>,</span>
+<span>                   seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="fu"><a href="../reference/relabel.html">relabel</a></span><span class="op">(</span><span class="va">fit3</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="posterior-predictive-density">Posterior predictive density<a class="anchor" aria-label="anchor" href="#posterior-predictive-density"></a>
+<h2 id="sanity-check-with-a-fixed-k">Sanity check with a fixed K<a class="anchor" aria-label="anchor" href="#sanity-check-with-a-fixed-k"></a>
 </h2>
+<p><code>method = "fixedk"</code> fits a classic finite mixture with
+known K – useful as a baseline or for model comparison across a few K
+values.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span>, type <span class="op">=</span> <span class="st">"density"</span><span class="op">)</span></span>
-<span><span class="va">pp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">fit</span>, newdata <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="op">-</span><span class="fl">8</span>, <span class="fl">8</span>, length.out <span class="op">=</span> <span class="fl">200</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">pp</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level2">
-<h2 id="choosing-k_max-and-the-concentration-prior">Choosing <code>K_max</code> and the concentration prior<a class="anchor" aria-label="anchor" href="#choosing-k_max-and-the-concentration-prior"></a>
-</h2>
-<p><code>K_max</code> is a truncation, not the answer. A useful default
-is <code>min(10, floor(n / 5))</code>. Posterior conclusions about K
-depend on the prior for the concentration parameter
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>;
-nimix places a Gamma hyperprior on
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>
-(configurable via <code>prior = list(concPrior = c(shape, rate))</code>)
-so the data inform the clustering granularity rather than a fixed value
-.</p>
-</div>
-<div class="section level2">
-<h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
-</h2>
-<ul>
-<li>de Valpine et al. (2017), <em>JCGS</em> 26(2), 403–413.</li>
-<li>Neal (2000), <em>JCGS</em> 9(2), 249–265.</li>
-<li>Papastamoulis &amp; Iliopoulos (2010), <em>JCGS</em> 19(2),
-313–331.</li>
-<li>Papastamoulis (2016), <em>JSS Code Snippets</em> 69(1).</li>
-</ul>
+<code class="sourceCode R"><span><span class="va">fit2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nimixClust.html">nimixClust</a></span><span class="op">(</span><span class="va">ly</span>, K <span class="op">=</span> <span class="fl">2</span>, method <span class="op">=</span> <span class="st">"fixedk"</span>,</span>
+<span>                   mcmcControl <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>niter <span class="op">=</span> <span class="fl">4000</span>, nburnin <span class="op">=</span> <span class="fl">1500</span><span class="op">)</span>,</span>
+<span>                   seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="fu"><a href="../reference/relabel.html">relabel</a></span><span class="op">(</span><span class="va">fit2</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

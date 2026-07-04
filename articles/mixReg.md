@@ -1,89 +1,106 @@
 # Mixtures of linear regressions
 
-This vignette demonstrates `nimixReg`: a Bayesian mixture of Gaussian
-linear regressions. Each component is a linear model
-$`y \sim N(x^\top \beta_k, \sigma^2_k)`$ with a conjugate
-Normal-Inverse-Gamma cluster prior. The number of components can be
-inferred with a Dirichlet Process Mixture (`method = "dpm"`), or fixed
-(`method = "fixedk"`).
+[`nimixReg()`](https://madsyair.github.io/nimix/reference/nimixReg.md)
+fits a Bayesian mixture of Gaussian linear regressions: each component
+is $`y \sim N(x^\top \beta_k, \sigma^2_k)`$ with a conjugate
+Normal-Inverse-Gamma cluster prior. The number of regimes can be
+inferred (`method = "dpm"`) or fixed (`method = "fixedk"`).
 
-> Chunks use `eval = FALSE` so the vignette builds quickly; run them
-> interactively. Pass `verbose = FALSE` to silence NIMBLE’s compilation
-> notes.
+This vignette uses the **Preston curve** – the classic
+official-statistics relationship between national income and life
+expectancy – on the `wdi2022` dataset
+([`?wdi2022`](https://madsyair.github.io/nimix/reference/wdi2022.md)).
 
-## A two-regime example
+> MCMC chunks use `eval = FALSE` (CRAN time limits); printed results are
+> from an actual run.
 
-We simulate two regression regimes that share an intercept but have
-opposite slopes, with an unbalanced 80/20 split between them.
+## The data
 
 ``` r
 
 library(nimix)
-
-set.seed(1)
-n <- 250
-x <- runif(n, -3, 3)
-grp <- c(rep(1L, 200), rep(2L, 50)) # 80% / 20%
-y <- ifelse(grp == 1L, 2 * x, -2 * x) + rnorm(n, 0, 0.7)
-df <- data.frame(y = y, x = x)
+#> Loading required package: nimble
+#> nimble version 1.4.2 is loaded.
+#> For more information on NIMBLE and a User Manual,
+#> please visit https://R-nimble.org.
+#> 
+#> Attaching package: 'nimble'
+#> The following object is masked from 'package:stats':
+#> 
+#>     simulate
+#> The following object is masked from 'package:base':
+#> 
+#>     declare
+data(wdi2022)
+df <- data.frame(life = wdi2022$life_exp,
+                 lgdp = log(wdi2022$gdp_pc))
+plot(df$lgdp, df$life, xlab = "log GDP per capita",
+     ylab = "life expectancy", main = "Preston curve, 2022")
 ```
 
-## Estimating the number of regimes (DPM)
+![](mixReg_files/figure-html/data-1.png)
+
+## Does the Preston curve have latent regimes?
 
 ``` r
 
-fit <- nimixReg(
- y ~ x, data = df,
- K_max = 8, method = "dpm",
- mcmcControl = list(niter = 4000, nburnin = 1000),
- verbose = FALSE
-)
+fit <- nimixReg(life ~ lgdp, df, K_max = 6, method = "dpm",
+                mcmcControl = list(niter = 5000, nburnin = 2000),
+                seed = 1)
+fit <- relabel(fit)
 summary(fit)
 ```
 
-`summary` relabels the components first (the mixture likelihood is
-invariant to permuting the component labels, so raw per-component
-averages are not meaningful) and then reports, per component, the mixing
-weight, the regression coefficients named after the design columns, and
-the residual variance.
+An instructive result: on log income the DPM concentrates on a **single
+regime** –
 
-## Predictions
+    #> modalK = 1
+    #>   (Intercept)  lgdp
+    #> 1      36.782 4.067      # life ~ 36.8 + 4.07 x log GDP pc
 
-`predict` returns the posterior predictive mean $`E[y \mid x]`$,
-averaging the component linear predictors with the posterior mixing
-weights.
+roughly four extra years of life expectancy per log-dollar of income.
+The lesson is that a nonparametric mixture does **not** invent regimes:
+when one regression line (with its residual spread) explains the data,
+the posterior collapses to it. Estimated K always depends on the assumed
+component form – heterogeneity here lives in the residuals, not in
+distinct slopes.
 
-``` r
-
-predict(fit, newdata = data.frame(x = c(-2, 0, 2)))
-
-plot(fit, type = "fitted") # observed vs fitted
-```
-
-## Fixing the number of regimes
-
-When the number of regimes is known or assumed, the finite-mixture
-engine is a fast baseline. It uses a Dirichlet prior on the weights and
-a categorical allocation, so there is no truncation to tune.
+Even when two components are *offered* (fixed K = 2), one simply
+empties:
 
 ``` r
 
-fit2 <- nimixReg(
- y ~ x, data = df,
- K = 2, method = "fixedk",
- mcmcControl = list(niter = 4000, nburnin = 1000),
- verbose = FALSE
-)
-summary(fit2)
+fit2 <- nimixReg(life ~ lgdp, df, K = 2, method = "fixedk",
+                 mcmcControl = list(niter = 5000, nburnin = 2000),
+                 seed = 1)
+summary(relabel(fit2))
+#> one occupied component; weight ~ 1 on the Preston line
 ```
 
-## Notes
+## When regimes do exist
 
-- Gating is constant: the mixing weights do not depend on the
-  covariates. Covariate-dependent (concomitant) gating is a planned
-  option.
-- The residual-variance prior is data-scaled with a finite prior
-  variance, which keeps the variance of a small component from
-  collapsing toward zero.
-- As with clustering, always read component estimates from `summary`
-  (which relabels) rather than from the raw MCMC draws.
+With genuinely regime-structured data the same call recovers them. A
+simulated benchmark (two latent groups with slopes +2 / -2, mixed
+80/20):
+
+``` r
+
+set.seed(107)
+n <- 250; x <- runif(n, -3, 3)
+grp <- rep(1:2, c(200, 50))
+y <- ifelse(grp == 1, 2 * x, -2 * x) + rnorm(n, 0, 0.7)
+fs <- nimixReg(y ~ x, data.frame(y = y, x = x), K_max = 8,
+               mcmcControl = list(niter = 5000, nburnin = 2000), seed = 1)
+summary(relabel(fs))    # recovers slopes near +2 and -2, weights near 0.8/0.2
+```
+
+## Prediction
+
+``` r
+
+newd <- data.frame(lgdp = log(c(1000, 10000, 50000)))
+predict(fit, newdata = newd)
+```
+
+Heavy-tailed residuals (`distribution = "studentt"` / `"normalgamma"`)
+and multivariate responses (`cbind(y1, y2) ~ x`) use the same interface.

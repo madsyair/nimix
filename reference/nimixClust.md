@@ -16,12 +16,13 @@ nimixClust(
   K = NULL,
   K_max = NULL,
   distribution = "normal",
-  method = c("dpm", "fixedk", "rjmcmc"),
+  method = c("dpm", "fixedk", "mrf"),
   prior = list(),
   mcmcControl = list(),
   initMethod = c("kmeans", "single"),
   seed = 1L,
-  verbose = FALSE
+  verbose = FALSE,
+  spatialWeights = NULL
 )
 ```
 
@@ -59,8 +60,10 @@ nimixClust(
 - method:
 
   Engine: `"dpm"` (default; estimate the number of components),
-  `"fixedk"` (finite mixture with known `K`), or `"rjmcmc"` (planned for
-  v0.5.0, currently errors).
+  `"fixedk"` (finite mixture with known `K`), or `"mrf"` (spatially
+  constrained finite mixture: known `K`, Potts smoothing of the labels
+  on a `spatialWeights` graph; univariate Gaussian components, fixed
+  interaction `prior$beta`, default 0.8).
 
 - prior:
 
@@ -73,7 +76,31 @@ nimixClust(
 
 - mcmcControl:
 
-  A named list with `niter`, `nburnin`, `thin`.
+  A named list of MCMC controls: `niter`, `nburnin`, `thin`, the
+  optional `initRatio` – the fraction of the truncation / component cap
+  (`K_max` or `K`) seeded by the dispersed cluster initialisation
+  (default 0.8; must lie in (0, 1)). Lower it to leave more headroom
+  below the truncation; raising it to 0.95 or above is allowed but
+  warns, as it leaves little headroom – and `reuse` (default `TRUE`):
+  reuse a compiled NIMBLE model when a later fit has an identical
+  structure (same generated code, constants, monitors and component
+  family), resetting only data and initial values. This skips
+  recompilation for repeated fits (multiple seeds, multiple chains) and
+  is bit-for-bit identical to a fresh compile. See
+  [`nimixClearCache`](https://madsyair.github.io/nimix/reference/nimixClearCache.md).
+  Also `nchains` (default 1): run this many chains from dispersed,
+  separately seeded starts (reusing the compiled model, so only the
+  first chain compiles) and report multi-chain split-Rhat and effective
+  sample size for label-invariant quantities in
+  [`summary()`](https://rdrr.io/r/base/summary.html). Set
+  `parallel = TRUE` (with `nchains > 1`) to run the chains in parallel:
+  each worker compiles its own model in a separate directory (the only
+  fork-safe way to parallelise NIMBLE), using
+  [`parallel::mclapply`](https://rdrr.io/r/parallel/mclapply.html). This
+  requires a forking platform (Unix/macOS, not Windows, where it falls
+  back to sequential) and trades the compile-once cache for one compile
+  per worker; `ncores` caps the number of workers (default all detected
+  cores).
 
 - initMethod:
 
@@ -91,6 +118,13 @@ nimixClust(
   truncation note are silenced, while nimix's own diagnostics (e.g. a
   censored-posterior warning) and any error still surface. Set `TRUE` to
   see NIMBLE's configuration and a progress bar.
+
+- spatialWeights:
+
+  Optional
+  [`SpatialWeightSpec`](https://madsyair.github.io/nimix/reference/SpatialWeightSpec-class.md)
+  describing a neighbourhood graph on the observations (one region per
+  observation). Required by, and only used with, `method = "mrf"`.
 
 ## Value
 
@@ -137,12 +171,12 @@ summary(fit)
 #> 0.718 0.246 0.030 0.005 0.001 
 #> 
 #> Relabelled component estimates (posterior mean; CIs for univariate):
-#>  component weight mu_mean mu_lwr mu_upr s2_mean s2_lwr s2_upr
-#>          1  0.501    2.94   2.73   3.17    1.28  0.986    1.7
-#>          2  0.499   -2.89  -3.10  -2.68    1.15  0.867    1.5
+#>  component weight mu_mean mu_med mu_lwr mu_upr s2_mean s2_med s2_lwr s2_upr
+#>          1  0.501    2.95   2.95   2.73   3.17    1.28   1.26  0.986    1.7
+#>          2  0.499   -2.89  -2.89  -3.10  -2.68    1.15   1.14  0.867    1.5
 #> 
-#> Mixing diagnostic (single chain): ESS(alpha) = 668, ESS(#clusters) = 432
-#> Note: cross-chain Rhat requires multiple chains (planned v0.9.0).
+#> Mixing diagnostic (single chain): ESS(#clusters) = 432, ESS(alpha) = 668
+#>   Set mcmcControl$nchains > 1 for cross-chain split-Rhat.
 plot(fit, type = "K")
 
 
@@ -163,12 +197,12 @@ summary(fit2)
 #> 1 
 #> 
 #> Relabelled component estimates (posterior mean; CIs for univariate):
-#>  component weight mu_mean mu_lwr mu_upr s2_mean s2_lwr s2_upr
-#>          1  0.499   -2.89  -3.10  -2.68    1.15  0.863   1.53
-#>          2  0.501    2.95   2.73   3.18    1.28  0.958   1.69
+#>  component weight mu_mean mu_med mu_lwr mu_upr s2_mean s2_med s2_lwr s2_upr
+#>          1  0.499   -2.89  -2.88  -3.10  -2.68    1.15   1.14  0.863   1.53
+#>          2  0.501    2.95   2.95   2.73   3.18    1.28   1.26  0.958   1.69
 #> 
-#> Mixing diagnostic (single chain): ESS(alpha) = NA, ESS(#clusters) = 0
-#> Note: cross-chain Rhat requires multiple chains (planned v0.9.0).
+#> Mixing diagnostic (single chain): ESS(#clusters) = 0
+#>   Set mcmcControl$nchains > 1 for cross-chain split-Rhat.
 
 ## Multivariate (2-D), DPM
 Y <- rbind(matrix(rnorm(200, -2), ncol = 2),
@@ -180,21 +214,25 @@ summary(fitMv)
 #> Relabelling MCMC output before summarising (label switching)...
 #> nimix mixture summary (engine: dpm, distribution: normal-mv)
 #> Observations: 200 (dimension d = 2)
-#> Relabelling: ECR-ITERATIVE-1 conditioned on modal K = 3 (325 draws)
+#> Relabelling: ECR-ITERATIVE-1 conditioned on modal K = 3 (303 draws)
 #> 
 #> Posterior of number of occupied clusters:
 #> 
 #>     2     3     4     5     6     7     8 
-#> 0.215 0.325 0.243 0.125 0.063 0.023 0.006 
+#> 0.096 0.303 0.298 0.174 0.093 0.024 0.012 
 #> 
 #> Relabelled component estimates (posterior mean; CIs for univariate):
-#>  component weight   mu_1   mu_2 var_1 var_2
-#>          1 0.0544  0.476 -0.169  2.15 1.557
-#>          2 0.4783 -2.267 -2.113  1.02 1.087
-#>          3 0.4673  2.109  2.005  1.07 0.942
+#>  component weight mu_1_mean mu_1_med mu_1_lwr mu_1_upr mu_2_mean mu_2_med
+#>          1 0.4705    2.1304   2.1200     1.90     2.45     1.974    1.956
+#>          2 0.0898    0.0287   0.0988    -3.03     2.34    -0.549   -0.258
+#>          3 0.4397   -2.3393  -2.3235    -2.79    -1.80    -2.047   -2.077
+#>  mu_2_lwr mu_2_upr var_1_mean var_1_med var_2_mean var_2_med
+#>      1.68     2.35      1.032     1.029      0.977     0.977
+#>     -3.23     2.33      1.906     1.353      1.627     1.349
+#>     -2.33    -1.59      0.944     0.936      1.001     0.996
 #> 
-#> Mixing diagnostic (single chain): ESS(alpha) = 199, ESS(#clusters) = 64
-#> Note: cross-chain Rhat requires multiple chains (planned v0.9.0).
+#> Mixing diagnostic (single chain): ESS(#clusters) = 80, ESS(alpha) = 223
+#>   Set mcmcControl$nchains > 1 for cross-chain split-Rhat.
 plot(fitMv, type = "cluster")
 
 # }

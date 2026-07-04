@@ -136,6 +136,11 @@ predict(object, newdata, maxDraws = 500L, ...)
 
   The MCMC control list actually used.
 
+- `diagnostics`:
+
+  Multi-chain convergence diagnostics (Rhat, ESS) when more than one
+  chain is run; otherwise a single-chain summary.
+
 - `call`:
 
   The matched call.

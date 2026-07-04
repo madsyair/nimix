@@ -16,13 +16,14 @@ nimixReg(
   K = NULL,
   K_max = NULL,
   distribution = "normal",
-  method = c("dpm", "fixedk", "rjmcmc"),
+  method = c("dpm", "fixedk", "mrf"),
   gating = c("constant", "covariate"),
   prior = list(),
   mcmcControl = list(),
   initMethod = c("kmeans", "single"),
   seed = 1L,
-  verbose = FALSE
+  verbose = FALSE,
+  spatialWeights = NULL
 )
 ```
 
@@ -56,7 +57,9 @@ nimixReg(
 - method:
 
   Engine: `"dpm"` (default; estimate the number of components),
-  `"fixedk"` (fixed `K`), or `"rjmcmc"` (planned).
+  `"fixedk"` (fixed `K`), or `"mrf"` (spatially constrained: fixed `K`,
+  Potts smoothing of the labels on a `spatialWeights` graph; Gaussian
+  response, fixed `prior$beta`, default 0.8).
 
 - gating:
 
@@ -74,7 +77,12 @@ nimixReg(
 
 - mcmcControl:
 
-  A named list with `niter`, `nburnin`, `thin`.
+  A named list of MCMC controls: `niter`, `nburnin`, `thin`, and the
+  optional `initRatio` – the fraction of the truncation / component cap
+  (`K_max` or `K`) seeded by the dispersed cluster initialisation
+  (default 0.8; must lie in (0, 1)). Lower it to leave more headroom
+  below the truncation; raising it to 0.95 or above is allowed but
+  warns, as it leaves little headroom.
 
 - initMethod:
 
@@ -91,6 +99,13 @@ nimixReg(
   truncation note are silenced, while nimix's own diagnostics (e.g. a
   censored-posterior warning) and any error still surface. Set `TRUE` to
   see NIMBLE's configuration and a progress bar.
+
+- spatialWeights:
+
+  Optional
+  [`SpatialWeightSpec`](https://madsyair.github.io/nimix/reference/SpatialWeightSpec-class.md)
+  (one region per observation). Required by, and only used with,
+  `method = "mrf"`.
 
 ## Value
 
@@ -128,25 +143,25 @@ summary(fit)
 #> Relabelling MCMC output before summarising (label switching)...
 #> nimix mixture summary (engine: dpm, distribution: normal-reg)
 #> Observations: 200 (dimension d = 1)
-#> Relabelling: ECR-ITERATIVE-1 conditioned on modal K = 2 (831 draws)
+#> Relabelling: ECR-ITERATIVE-1 conditioned on modal K = 2 (834 draws)
 #> 
 #> Posterior of number of occupied clusters:
 #> 
 #>     2     3     4     5 
-#> 0.831 0.144 0.024 0.001 
+#> 0.834 0.141 0.024 0.001 
 #> 
 #> Relabelled component estimates (posterior mean; CIs for univariate):
-#>  component weight (Intercept)     x s2_mean s2_lwr s2_upr
-#>          1  0.501    -0.00271 -1.96    1.09  0.793   1.42
-#>          2  0.499    -0.07628  1.97    1.01  0.753   1.36
+#>  component weight (Intercept)     x s2_mean s2_med s2_lwr s2_upr
+#>          1  0.498    -0.06331  1.97   0.993   0.97  0.749   1.33
+#>          2  0.502     0.00544 -1.97   1.082   1.06  0.820   1.48
 #> 
-#> Mixing diagnostic (single chain): ESS(alpha) = 806, ESS(#clusters) = 450
-#> Note: cross-chain Rhat requires multiple chains (planned v0.9.0).
+#> Mixing diagnostic (single chain): ESS(#clusters) = 421, ESS(alpha) = 832
+#>   Set mcmcControl$nchains > 1 for cross-chain split-Rhat.
 predict(fit, newdata = data.frame(x = c(-2, 0, 2)))
 #>    x     .fitted
-#> 1 -2 -0.05039836
-#> 2  0 -0.03864911
-#> 3  2 -0.02689987
+#> 1 -2 -0.01717332
+#> 2  0 -0.03112922
+#> 3  2 -0.04508512
 
 ## fixed number of regimes (finite mixture)
 fit2 <- nimixReg(y ~ x, df, K = 2, method = "fixedk",
@@ -165,11 +180,11 @@ summary(fit2)
 #> 1 
 #> 
 #> Relabelled component estimates (posterior mean; CIs for univariate):
-#>  component weight (Intercept)     x s2_mean s2_lwr s2_upr
-#>          1  0.497    -0.06728  1.97   0.972  0.745   1.26
-#>          2  0.503     0.00823 -1.97   1.069  0.786   1.45
+#>  component weight (Intercept)     x s2_mean s2_med s2_lwr s2_upr
+#>          1  0.497    -0.06728  1.97   0.972  0.962  0.745   1.26
+#>          2  0.503     0.00823 -1.97   1.069  1.039  0.786   1.45
 #> 
-#> Mixing diagnostic (single chain): ESS(alpha) = NA, ESS(#clusters) = 0
-#> Note: cross-chain Rhat requires multiple chains (planned v0.9.0).
+#> Mixing diagnostic (single chain): ESS(#clusters) = 0
+#>   Set mcmcControl$nchains > 1 for cross-chain split-Rhat.
 # }
 ```

@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">nimix</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -18,10 +18,9 @@
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/mixClust-multivariate.html">Multivariate mixture clustering with the DPM engine</a></li>
-    <li><a class="dropdown-item" href="../articles/mixClust-univariate.html">Univariate mixture clustering with the DPM engine</a></li>
-    <li><a class="dropdown-item" href="../articles/mixReg.html">Mixtures of linear regressions</a></li>
-    <li><a class="dropdown-item" href="../articles/normal-gamma-vs-studentt.html">Heavy-tailed components: Student-t vs Normal-Gamma</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/mixClust-univariate.html">Univariate mixture clustering with the DPM engine</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -494,6 +493,334 @@
 
         </dt>
         <dd>Multivariate-response Normal-Gamma mixture regression (scale mixture)</dd>
+      </dl></div><div class="section level2">
+      <h2 id="neo-normal-component-specs">Neo-normal component specs<a class="anchor" aria-label="anchor" href="#neo-normal-component-specs"></a></h2>
+
+      <div class="section-desc"><p>Skew-capable MSNBurr families (Iriawan 2000; Choir 2020).</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="MSNBurrUvSpec-class.html">MSNBurrUvSpec()</a></code>
+
+        </dt>
+        <dd>MSNBurr mixture components (neo-normal, left-skew capable)</dd>
+
+        <dt>
+
+          <code><a href="MSNBurr2aUvSpec-class.html">MSNBurr2aUvSpec()</a></code>
+
+        </dt>
+        <dd>MSNBurr-IIa mixture components (neo-normal, right-skew capable)</dd>
+
+        <dt>
+
+          <code><a href="GMSNBurrUvSpec-class.html">GMSNBurrUvSpec()</a></code>
+
+        </dt>
+        <dd>GMSNBurr mixture components (generalized neo-normal)</dd>
+      </dl></div><div class="section level2">
+      <h2 id="neo-normal-distribution-functions">Neo-normal distribution functions<a class="anchor" aria-label="anchor" href="#neo-normal-distribution-functions"></a></h2>
+
+      <div class="section-desc"><p>Numerically stable density, distribution, quantile, and RNG.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="msnburr-distribution.html">dmsnburr()</a></code> <code><a href="msnburr-distribution.html">pmsnburr()</a></code> <code><a href="msnburr-distribution.html">qmsnburr()</a></code> <code><a href="msnburr-distribution.html">rmsnburr()</a></code>
+
+        </dt>
+        <dd>MSNBurr Distribution</dd>
+
+        <dt>
+
+          <code><a href="msnburr2a-distribution.html">dmsnburr2a()</a></code> <code><a href="msnburr2a-distribution.html">pmsnburr2a()</a></code> <code><a href="msnburr2a-distribution.html">qmsnburr2a()</a></code> <code><a href="msnburr2a-distribution.html">rmsnburr2a()</a></code>
+
+        </dt>
+        <dd>MSNBurr-IIa Distribution</dd>
+
+        <dt>
+
+          <code><a href="gmsnburr-distribution.html">dgmsnburr()</a></code> <code><a href="gmsnburr-distribution.html">pgmsnburr()</a></code> <code><a href="gmsnburr-distribution.html">qgmsnburr()</a></code> <code><a href="gmsnburr-distribution.html">rgmsnburr()</a></code>
+
+        </dt>
+        <dd>GMSNBurr Distribution</dd>
+      </dl></div><div class="section level2">
+      <h2 id="spatial-mixtures-mrf-">Spatial mixtures (MRF)<a class="anchor" aria-label="anchor" href="#spatial-mixtures-mrf-"></a></h2>
+
+      <div class="section-desc"><p>Spatially constrained mixtures whose labels follow a Potts / Markov random field over a neighbourhood graph.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="spatialWeights.html">spatialWeights()</a></code>
+
+        </dt>
+        <dd>Construct a SpatialWeightSpec from an adjacency/weight matrix</dd>
+
+        <dt>
+
+          <code><a href="gridAdjacency.html">gridAdjacency()</a></code>
+
+        </dt>
+        <dd>Rook/queen contiguity on a regular grid</dd>
+
+        <dt>
+
+          <code><a href="nRegions.html">nRegions()</a></code>
+
+        </dt>
+        <dd>Number of regions in a spatial weight structure</dd>
+
+        <dt>
+
+          <code><a href="getAdjacency.html">getAdjacency()</a></code>
+
+        </dt>
+        <dd>Adjacency matrix of a spatial weight structure</dd>
+
+        <dt>
+
+          <code><a href="neighborsOf.html">neighborsOf()</a></code>
+
+        </dt>
+        <dd>Neighbours of one region</dd>
+
+        <dt>
+
+          <code><a href="MRFEngine-class.html">MRFEngine()</a></code>
+
+        </dt>
+        <dd>Markov random field engine (spatially constrained finite mixture)</dd>
+
+        <dt>
+
+          <code><a href="SpatialWeightSpec-class.html">show(<i>&lt;SpatialWeightSpec&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Spatial neighbourhood structure for spatially constrained mixtures</dd>
+      </dl></div><div class="section level2">
+      <h2 id="model-containers">Model containers<a class="anchor" aria-label="anchor" href="#model-containers"></a></h2>
+
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="ClusterModel.html">ClusterModel()</a></code>
+
+        </dt>
+        <dd>Construct a ClusterModel</dd>
+
+        <dt>
+
+          <code><a href="RegressionMixModel.html">RegressionMixModel()</a></code>
+
+        </dt>
+        <dd>Construct a RegressionMixModel</dd>
+      </dl></div><div class="section level2">
+      <h2 id="bayesian-workflow">Bayesian workflow<a class="anchor" aria-label="anchor" href="#bayesian-workflow"></a></h2>
+
+      <div class="section-desc"><p>Posterior predictive checks; convergence diagnostics print via summary().</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="ppCheck.html">ppCheck()</a></code>
+
+        </dt>
+        <dd>Posterior predictive check</dd>
+      </dl></div><div class="section level2">
+      <h2 id="extension-api-engine-facing-generics-">Extension API (engine-facing generics)<a class="anchor" aria-label="anchor" href="#extension-api-engine-facing-generics-"></a></h2>
+
+      <div class="section-desc"><p>The remaining S4 contract a component spec implements so a new family plugs into every engine.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="runEngine.html">runEngine()</a></code>
+
+        </dt>
+        <dd>Run a mixture engine on a model (internal generic)</dd>
+
+        <dt>
+
+          <code><a href="componentDensity.html">componentDensity()</a></code>
+
+        </dt>
+        <dd>Component density evaluator (R-level, for posterior predictive checks)</dd>
+
+        <dt>
+
+          <code><a href="simulateParams.html">simulateParams()</a></code>
+
+        </dt>
+        <dd>Simulate component parameters from a prior (for inits / recovery tests)</dd>
+
+        <dt>
+
+          <code><a href="componentInits.html">componentInits()</a></code>
+
+        </dt>
+        <dd>Build dispersed initial values (engine-agnostic)</dd>
+
+        <dt>
+
+          <code><a href="buildConstants.html">buildConstants()</a></code>
+
+        </dt>
+        <dd>Assemble distribution-specific NIMBLE constants for the DPM engine</dd>
+
+        <dt>
+
+          <code><a href="buildDataList.html">buildDataList()</a></code>
+
+        </dt>
+        <dd>Shape the observed data into the NIMBLE <code>data</code> list</dd>
+
+        <dt>
+
+          <code><a href="extractParamTraces.html">extractParamTraces()</a></code>
+
+        </dt>
+        <dd>Parse raw cluster-parameter traces from the MCMC sample matrix</dd>
+
+        <dt>
+
+          <code><a href="relabelComponents.html">relabelComponents()</a></code>
+
+        </dt>
+        <dd>Permute cluster parameters and build the relabelled component summary</dd>
+      </dl></div><div class="section level2">
+      <h2 id="utilities">Utilities<a class="anchor" aria-label="anchor" href="#utilities"></a></h2>
+
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="nimixClearCache.html">nimixClearCache()</a></code>
+
+        </dt>
+        <dd>Clear the compiled-model cache</dd>
+      </dl></div><div class="section level2">
+      <h2 id="datasets">Datasets<a class="anchor" aria-label="anchor" href="#datasets"></a></h2>
+
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="usStates2023.html">usStates2023</a></code>
+
+        </dt>
+        <dd>US state poverty and income, 2023 (SAIPE official estimates)</dd>
+
+        <dt>
+
+          <code><a href="usStateAdj.html">usStateAdj</a></code>
+
+        </dt>
+        <dd>Contiguity of the 48 contiguous US states + DC (official derivation)</dd>
+
+        <dt>
+
+          <code><a href="wdi2022.html">wdi2022</a></code>
+
+        </dt>
+        <dd>World Development Indicators, 2022 (country-level official statistics)</dd>
+      </dl></div><div class="section level2">
+      <h2 id="cluster-profiling">Cluster profiling<a class="anchor" aria-label="anchor" href="#cluster-profiling"></a></h2>
+
+
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="clusterProfile.html">clusterProfile()</a></code>
+
+        </dt>
+        <dd>Profile the clusters of a fitted mixture</dd>
+      </dl></div><div class="section level2">
+      <h2 id="model-selection-and-ensembling">Model selection and ensembling<a class="anchor" aria-label="anchor" href="#model-selection-and-ensembling"></a></h2>
+
+      <div class="section-desc"><p>Predictive comparison (WAIC / PSIS-LOO) and weighted ensembles.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="nimixWAIC.html">nimixWAIC()</a></code>
+
+        </dt>
+        <dd>WAIC for a fitted mixture</dd>
+
+        <dt>
+
+          <code><a href="nimixLOO.html">nimixLOO()</a></code>
+
+        </dt>
+        <dd>PSIS-LOO for a fitted mixture</dd>
+
+        <dt>
+
+          <code><a href="modelSelect.html">modelSelect()</a></code>
+
+        </dt>
+        <dd>Compare mixture models by predictive fit</dd>
+
+        <dt>
+
+          <code><a href="ensembleFit.html">ensembleFit()</a></code>
+
+        </dt>
+        <dd>Ensemble several fitted mixtures</dd>
+
+        <dt>
+
+          <code><a href="predict-nimixEnsemble.html">predict(<i>&lt;nimixEnsemble&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Weighted predictive density from a mixture ensemble</dd>
       </dl></div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>

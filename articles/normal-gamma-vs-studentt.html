@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Heavy-tailed components: Student-t vs Normal-Gamma • nimix</title>
+<title>Heavy tails: Student-t vs Normal-Gamma components • nimix</title>
 <!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="../favicon-96x96.png">
 <link rel="icon" type="”image/svg+xml”" href="../favicon.svg">
 <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
@@ -15,7 +15,7 @@
 <link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Heavy-tailed components: Student-t vs Normal-Gamma">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Heavy tails: Student-t vs Normal-Gamma components">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -25,7 +25,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">nimix</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -38,10 +38,9 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/mixClust-multivariate.html">Multivariate mixture clustering with the DPM engine</a></li>
-    <li><a class="dropdown-item" href="../articles/mixClust-univariate.html">Univariate mixture clustering with the DPM engine</a></li>
-    <li><a class="dropdown-item" href="../articles/mixReg.html">Mixtures of linear regressions</a></li>
-    <li><a class="dropdown-item" href="../articles/normal-gamma-vs-studentt.html">Heavy-tailed components: Student-t vs Normal-Gamma</a></li>
+<li><a class="dropdown-item" href="../articles/mixClust-univariate.html">Univariate mixture clustering with the DPM engine</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -63,146 +62,99 @@
 
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
-      <img src="../logo.png" class="logo" alt=""><h1>Heavy-tailed components: Student-t vs Normal-Gamma</h1>
+      <img src="../logo.png" class="logo" alt=""><h1>Heavy tails: Student-t vs Normal-Gamma components</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/madsyair/nimix/blob/main/vignettes/normal-gamma-vs-studentt.Rmd" class="external-link"><code>vignettes/normal-gamma-vs-studentt.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/madsyair/nimix/blob/main/vignettes/articles/normal-gamma-vs-studentt.Rmd" class="external-link"><code>vignettes/articles/normal-gamma-vs-studentt.Rmd</code></a></small>
       <div class="d-none name"><code>normal-gamma-vs-studentt.Rmd</code></div>
     </div>
 
     
     
-<p><code>nimix</code> offers two ways to put <strong>heavy-tailed
-(Student-t) components</strong> in a mixture. They have the
-<em>same</em> marginal distribution; they differ only in how the sampler
-reaches it.</p>
+<p>nimix offers two mathematically equivalent heavy-tailed component
+families:</p>
 <ul>
 <li>
-<code>distribution = "studentt"</code> evaluates the <strong>t
-density directly</strong>. The cluster parameters are updated
-non-conjugately. For multivariate data the t density is supplied by
-<code>nimix</code> as a user-defined NIMBLE distribution, since NIMBLE
-has no built-in multivariate-t.</li>
+<code>distribution = "studentt"</code> – the Student-t density used
+<strong>directly</strong> (non-conjugate; slice sampling on the
+component parameters);</li>
 <li>
-<code>distribution = "normalgamma"</code> uses the <strong>conjugate
-scale-mixture</strong> representation: a per-observation latent
-precision multiplier <code>omega</code> with
-<code>y ~ N(mu, Sigma / omega)</code>,
-<code>omega ~ Gamma(df/2, df/2)</code>. Conditional on
-<code>omega</code> the kernel is Gaussian, so the conjugate cluster
-updates are kept, which is cheaper per iteration. The latent
-<code>omega</code> also act as robustness weights.</li>
+<code>distribution = "normalgamma"</code> – the same marginal
+Student-t obtained by <strong>data augmentation</strong>
+(<code>y_i | omega_i ~ N(mu_k, sigma_k^2 / omega_i)</code>,
+<code>omega_i ~ Gamma(df/2, df/2)</code>), which restores conjugacy at
+the price of one latent scale per observation.</li>
 </ul>
-<p>The univariate or multivariate variant is chosen automatically from
-the data shape. <code>df</code> is a fixed hyperparameter (must exceed
-2).</p>
+<p>The marginal model is identical; the <em>computational</em> behaviour
+is not, and that trade-off is the point of this vignette. We compare
+both on official statistics: log GDP per capita from
+<code>wdi2022</code> (<code><a href="../reference/wdi2022.html">?wdi2022</a></code>), a skewed, heavy-tailed
+cross-country distribution.</p>
 <blockquote>
-<p>These are the <strong>same distribution, two routes</strong> – not
-two different distributions. They are also unrelated to the
-“Normal-Gamma” <em>shrinkage prior</em> on coefficients, which is a
-different idea.</p>
+<p>MCMC chunks use <code>eval = FALSE</code> (CRAN time limits); printed
+results are from an actual run on this data.</p>
 </blockquote>
 <div class="section level2">
-<h2 id="same-marginal">Same marginal<a class="anchor" aria-label="anchor" href="#same-marginal"></a>
+<h2 id="data">Data<a class="anchor" aria-label="anchor" href="#data"></a>
 </h2>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">mu</span> <span class="op">&lt;-</span> <span class="fl">1.5</span>; <span class="va">s2</span> <span class="op">&lt;-</span> <span class="fl">2.3</span>; <span class="va">df</span> <span class="op">&lt;-</span> <span class="fl">5</span></span>
-<span><span class="va">mix</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">y</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/stats/integrate.html" class="external-link">integrate</a></span><span class="op">(</span><span class="kw">function</span><span class="op">(</span><span class="va">w</span><span class="op">)</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">dnorm</a></span><span class="op">(</span><span class="va">y</span>, <span class="va">mu</span>, <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="va">s2</span> <span class="op">/</span> <span class="va">w</span><span class="op">)</span><span class="op">)</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/stats/GammaDist.html" class="external-link">dgamma</a></span><span class="op">(</span><span class="va">w</span>, <span class="va">df</span> <span class="op">/</span> <span class="fl">2</span>, <span class="va">df</span> <span class="op">/</span> <span class="fl">2</span><span class="op">)</span>, <span class="fl">0</span>, <span class="cn">Inf</span><span class="op">)</span><span class="op">$</span><span class="va">value</span></span>
-<span><span class="va">tdn</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">y</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/stats/TDist.html" class="external-link">dt</a></span><span class="op">(</span><span class="op">(</span><span class="va">y</span> <span class="op">-</span> <span class="va">mu</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="va">s2</span><span class="op">)</span>, <span class="va">df</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="va">s2</span><span class="op">)</span></span>
-<span><span class="va">ys</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">2</span>, <span class="fl">0</span>, <span class="fl">1.5</span>, <span class="fl">4</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>y <span class="op">=</span> <span class="va">ys</span>, scale_mixture <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">sapply</a></span><span class="op">(</span><span class="va">ys</span>, <span class="va">mix</span><span class="op">)</span>, student_t <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">sapply</a></span><span class="op">(</span><span class="va">ys</span>, <span class="va">tdn</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co"># the two columns agree to numerical-integration error</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/madsyair/nimix" class="external-link">nimix</a></span><span class="op">)</span></span>
+<span><span class="co">#&gt; Loading required package: nimble</span></span>
+<span><span class="co">#&gt; nimble version 1.4.2 is loaded.</span></span>
+<span><span class="co">#&gt; For more information on NIMBLE and a User Manual,</span></span>
+<span><span class="co">#&gt; please visit https://R-nimble.org.</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Attaching package: 'nimble'</span></span>
+<span><span class="co">#&gt; The following object is masked from 'package:stats':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     simulate</span></span>
+<span><span class="co">#&gt; The following object is masked from 'package:base':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     declare</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">wdi2022</span><span class="op">)</span></span>
+<span><span class="va">ly</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="va">wdi2022</span><span class="op">$</span><span class="va">gdp_pc</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="fitting-both-on-the-same-data">Fitting both on the same data<a class="anchor" aria-label="anchor" href="#fitting-both-on-the-same-data"></a>
+<h2 id="both-fits">Both fits<a class="anchor" aria-label="anchor" href="#both-fits"></a>
 </h2>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/madsyair/nimix" class="external-link">nimix</a></span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
-<span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/TDist.html" class="external-link">rt</a></span><span class="op">(</span><span class="fl">120</span>, df <span class="op">=</span> <span class="fl">4</span><span class="op">)</span> <span class="op">-</span> <span class="fl">5</span>, <span class="fu"><a href="https://rdrr.io/r/stats/TDist.html" class="external-link">rt</a></span><span class="op">(</span><span class="fl">120</span>, df <span class="op">=</span> <span class="fl">4</span><span class="op">)</span> <span class="op">+</span> <span class="fl">5</span><span class="op">)</span>   <span class="co"># two heavy-tailed clusters</span></span>
-<span></span>
-<span><span class="va">fit_t</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nimixClust.html">nimixClust</a></span><span class="op">(</span><span class="va">y</span>, K_max <span class="op">=</span> <span class="fl">8</span>, distribution <span class="op">=</span> <span class="st">"studentt"</span>, prior <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>df <span class="op">=</span> <span class="fl">4</span><span class="op">)</span>,</span>
-<span>                    mcmcControl <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>niter <span class="op">=</span> <span class="fl">4000</span>, nburnin <span class="op">=</span> <span class="fl">1000</span><span class="op">)</span>,</span>
-<span>                    verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
-<span><span class="va">fit_ng</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nimixClust.html">nimixClust</a></span><span class="op">(</span><span class="va">y</span>, K_max <span class="op">=</span> <span class="fl">8</span>, distribution <span class="op">=</span> <span class="st">"normalgamma"</span>, prior <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>df <span class="op">=</span> <span class="fl">4</span><span class="op">)</span>,</span>
-<span>                     mcmcControl <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>niter <span class="op">=</span> <span class="fl">4000</span>, nburnin <span class="op">=</span> <span class="fl">1000</span><span class="op">)</span>,</span>
-<span>                     verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit_t</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit_ng</span><span class="op">)</span></span></code></pre></div>
-<p>Both recover the same two clusters. To compare sampling efficiency on
-your own problem, time each fit and divide by the effective sample size
-of the parameters of interest (effective samples per second); the
-Normal-Gamma route is usually cheaper per iteration, while the direct-t
-route stores no latent <code>omega</code>.</p>
+<code class="sourceCode R"><span><span class="va">ctrl</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>niter <span class="op">=</span> <span class="fl">4000</span>, nburnin <span class="op">=</span> <span class="fl">1500</span><span class="op">)</span></span>
+<span><span class="va">ft</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/relabel.html">relabel</a></span><span class="op">(</span><span class="fu"><a href="../reference/nimixClust.html">nimixClust</a></span><span class="op">(</span><span class="va">ly</span>, K_max <span class="op">=</span> <span class="fl">8</span>, distribution <span class="op">=</span> <span class="st">"studentt"</span>,</span>
+<span>                         mcmcControl <span class="op">=</span> <span class="va">ctrl</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">fg</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/relabel.html">relabel</a></span><span class="op">(</span><span class="fu"><a href="../reference/nimixClust.html">nimixClust</a></span><span class="op">(</span><span class="va">ly</span>, K_max <span class="op">=</span> <span class="fl">8</span>, distribution <span class="op">=</span> <span class="st">"normalgamma"</span>,</span>
+<span>                         mcmcControl <span class="op">=</span> <span class="va">ctrl</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">ft</span><span class="op">)</span>; <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fg</span><span class="op">)</span></span></code></pre></div>
+<p>Actual results on this dataset:</p>
+<pre><code><span><span class="co">#&gt; studentt     : modalK = 2, regimes at log-GDP 8.00 / 10.06,</span></span>
+<span><span class="co">#&gt;                ESS(#clusters) = 147, ~30 s</span></span>
+<span><span class="co">#&gt; normalgamma  : modalK = 3, dominant regimes 8.07 / 10.10 (+ small 10%</span></span>
+<span><span class="co">#&gt;                middle component), ESS(#clusters) = 116, ~38 s</span></span></code></pre>
+<p>Both agree on the two dominant income regimes. The augmented path
+found one extra small component and mixed somewhat more slowly on the
+partition.</p>
 </div>
 <div class="section level2">
-<h2 id="which-to-choose-measured-not-assumed">Which to choose – measured, not assumed<a class="anchor" aria-label="anchor" href="#which-to-choose-measured-not-assumed"></a>
+<h2 id="which-one-should-you-use">Which one should you use?<a class="anchor" aria-label="anchor" href="#which-one-should-you-use"></a>
 </h2>
-<p>The honest comparison is by effective samples per second of the
-number of clusters <code>K</code> (a label-invariant quantity). The
-script <code>inst/harness/run_benchmark_heavytail.R</code> runs this;
-representative numbers on one machine (R 4.3.3, NIMBLE 1.4.2, 6000
-iterations) were:</p>
-<table class="table">
-<thead><tr class="header">
-<th>task</th>
-<th>route</th>
-<th align="right">ESS(K)/s</th>
-<th align="right">wall time</th>
-</tr></thead>
-<tbody>
-<tr class="odd">
-<td>univariate <strong>clustering</strong>
-</td>
-<td>Student-t</td>
-<td align="right">~41</td>
-<td align="right">~39 s</td>
-</tr>
-<tr class="even">
-<td>univariate <strong>clustering</strong>
-</td>
-<td>Normal-Gamma</td>
-<td align="right">~6</td>
-<td align="right">~41 s</td>
-</tr>
-<tr class="odd">
-<td>univariate <strong>regression</strong>
-</td>
-<td>Student-t</td>
-<td align="right">~13</td>
-<td align="right">~51 s</td>
-</tr>
-<tr class="even">
-<td>univariate <strong>regression</strong>
-</td>
-<td>Normal-Gamma</td>
-<td align="right">~14</td>
-<td align="right">~58 s</td>
-</tr>
-</tbody>
-</table>
-<p>The pattern is not “one route always wins”:</p>
+<p>The augmentation restores conjugacy, but the per-observation
+<code>omega_i</code> couple tightly to the partition, which can slow the
+mixing of the <em>number of clusters</em> – a penalty we found
+consistently in benchmarks and mitigate by replacing the default
+random-walk sampler on <code>omega</code> with slice sampling (done
+automatically via the spec’s sampler hook). Practical guidance:</p>
 <ul>
-<li>For <strong>clustering</strong>, the direct Student-t route mixes
-the partition far better (here about 7x the ESS per second). Augmenting
-with the latent <code>omega</code> couples the partition to a
-high-dimensional latent vector and slows mixing, even with
-<code>omega</code> slice-sampled (van Dyk &amp; Meng 2001).</li>
-<li>For <strong>regression</strong>, the two are comparable. The
-conjugate Gibbs update of the <code>p</code> regression coefficients
-(which Normal-Gamma keeps and the direct t route gives up) is worth more
-here, roughly offsetting the augmentation penalty.</li>
+<li>
+<code>"studentt"</code> is the sensible default for heavy-tailed
+clustering;</li>
+<li>
+<code>"normalgamma"</code> is worth trying when its Gibbs updates
+are advantageous (e.g. larger n per component), and its
+<code>omega_i</code> posteriors are themselves useful: small values flag
+the observations the model treats as outliers (a robustness-weight
+interpretation).</li>
 </ul>
-<p>So: prefer <strong>Student-t for clustering</strong>; treat the two
-as <strong>interchangeable for regression</strong>, choosing
-Normal-Gamma when you also want the robustness weights
-<code>omega</code>. Always confirm on your own data with the benchmark
-script rather than assuming.</p>
-<p>For regression with heavy-tailed multivariate errors, note the
-identifiability “pitfalls” with small <code>df</code> discussed by
-Fernández &amp; Steel (1999): small <code>df</code> can make some
-quantities weakly identified – a property of the model, not a bug.</p>
+<p>Always compare <code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code> ESS diagnostics on your own
+data rather than assuming one is uniformly better.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

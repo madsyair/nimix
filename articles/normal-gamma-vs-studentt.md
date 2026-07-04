@@ -1,95 +1,84 @@
-# Heavy-tailed components: Student-t vs Normal-Gamma
+# Heavy tails: Student-t vs Normal-Gamma components
 
-`nimix` offers two ways to put **heavy-tailed (Student-t) components**
-in a mixture. They have the *same* marginal distribution; they differ
-only in how the sampler reaches it.
+nimix offers two mathematically equivalent heavy-tailed component
+families:
 
-- `distribution = "studentt"` evaluates the **t density directly**. The
-  cluster parameters are updated non-conjugately. For multivariate data
-  the t density is supplied by `nimix` as a user-defined NIMBLE
-  distribution, since NIMBLE has no built-in multivariate-t.
-- `distribution = "normalgamma"` uses the **conjugate scale-mixture**
-  representation: a per-observation latent precision multiplier `omega`
-  with `y ~ N(mu, Sigma / omega)`, `omega ~ Gamma(df/2, df/2)`.
-  Conditional on `omega` the kernel is Gaussian, so the conjugate
-  cluster updates are kept, which is cheaper per iteration. The latent
-  `omega` also act as robustness weights.
+- `distribution = "studentt"` – the Student-t density used **directly**
+  (non-conjugate; slice sampling on the component parameters);
+- `distribution = "normalgamma"` – the same marginal Student-t obtained
+  by **data augmentation**
+  (`y_i | omega_i ~ N(mu_k, sigma_k^2 / omega_i)`,
+  `omega_i ~ Gamma(df/2, df/2)`), which restores conjugacy at the price
+  of one latent scale per observation.
 
-The univariate or multivariate variant is chosen automatically from the
-data shape. `df` is a fixed hyperparameter (must exceed 2).
+The marginal model is identical; the *computational* behaviour is not,
+and that trade-off is the point of this vignette. We compare both on
+official statistics: log GDP per capita from `wdi2022`
+([`?wdi2022`](https://madsyair.github.io/nimix/reference/wdi2022.md)), a
+skewed, heavy-tailed cross-country distribution.
 
-> These are the **same distribution, two routes** – not two different
-> distributions. They are also unrelated to the “Normal-Gamma”
-> *shrinkage prior* on coefficients, which is a different idea.
+> MCMC chunks use `eval = FALSE` (CRAN time limits); printed results are
+> from an actual run on this data.
 
-## Same marginal
-
-``` r
-
-mu <- 1.5; s2 <- 2.3; df <- 5
-mix <- function(y) integrate(function(w)
-  dnorm(y, mu, sqrt(s2 / w)) * dgamma(w, df / 2, df / 2), 0, Inf)$value
-tdn <- function(y) dt((y - mu) / sqrt(s2), df) / sqrt(s2)
-ys <- c(-2, 0, 1.5, 4)
-data.frame(y = ys, scale_mixture = sapply(ys, mix), student_t = sapply(ys, tdn))
-# the two columns agree to numerical-integration error
-```
-
-## Fitting both on the same data
+## Data
 
 ``` r
 
 library(nimix)
-set.seed(1)
-y <- c(rt(120, df = 4) - 5, rt(120, df = 4) + 5)   # two heavy-tailed clusters
-
-fit_t <- nimixClust(y, K_max = 8, distribution = "studentt", prior = list(df = 4),
-                    mcmcControl = list(niter = 4000, nburnin = 1000),
-                    verbose = FALSE)
-fit_ng <- nimixClust(y, K_max = 8, distribution = "normalgamma", prior = list(df = 4),
-                     mcmcControl = list(niter = 4000, nburnin = 1000),
-                     verbose = FALSE)
-summary(fit_t)
-summary(fit_ng)
+#> Loading required package: nimble
+#> nimble version 1.4.2 is loaded.
+#> For more information on NIMBLE and a User Manual,
+#> please visit https://R-nimble.org.
+#> 
+#> Attaching package: 'nimble'
+#> The following object is masked from 'package:stats':
+#> 
+#>     simulate
+#> The following object is masked from 'package:base':
+#> 
+#>     declare
+data(wdi2022)
+ly <- log(wdi2022$gdp_pc)
 ```
 
-Both recover the same two clusters. To compare sampling efficiency on
-your own problem, time each fit and divide by the effective sample size
-of the parameters of interest (effective samples per second); the
-Normal-Gamma route is usually cheaper per iteration, while the direct-t
-route stores no latent `omega`.
+## Both fits
 
-## Which to choose – measured, not assumed
+``` r
 
-The honest comparison is by effective samples per second of the number
-of clusters `K` (a label-invariant quantity). The script
-`inst/harness/run_benchmark_heavytail.R` runs this; representative
-numbers on one machine (R 4.3.3, NIMBLE 1.4.2, 6000 iterations) were:
+ctrl <- list(niter = 4000, nburnin = 1500)
+ft <- relabel(nimixClust(ly, K_max = 8, distribution = "studentt",
+                         mcmcControl = ctrl, seed = 1))
+fg <- relabel(nimixClust(ly, K_max = 8, distribution = "normalgamma",
+                         mcmcControl = ctrl, seed = 1))
+summary(ft); summary(fg)
+```
 
-| task                      | route        | ESS(K)/s | wall time |
-|---------------------------|--------------|---------:|----------:|
-| univariate **clustering** | Student-t    |      ~41 |     ~39 s |
-| univariate **clustering** | Normal-Gamma |       ~6 |     ~41 s |
-| univariate **regression** | Student-t    |      ~13 |     ~51 s |
-| univariate **regression** | Normal-Gamma |      ~14 |     ~58 s |
+Actual results on this dataset:
 
-The pattern is not “one route always wins”:
+    #> studentt     : modalK = 2, regimes at log-GDP 8.00 / 10.06,
+    #>                ESS(#clusters) = 147, ~30 s
+    #> normalgamma  : modalK = 3, dominant regimes 8.07 / 10.10 (+ small 10%
+    #>                middle component), ESS(#clusters) = 116, ~38 s
 
-- For **clustering**, the direct Student-t route mixes the partition far
-  better (here about 7x the ESS per second). Augmenting with the latent
-  `omega` couples the partition to a high-dimensional latent vector and
-  slows mixing, even with `omega` slice-sampled (van Dyk & Meng 2001).
-- For **regression**, the two are comparable. The conjugate Gibbs update
-  of the `p` regression coefficients (which Normal-Gamma keeps and the
-  direct t route gives up) is worth more here, roughly offsetting the
-  augmentation penalty.
+Both agree on the two dominant income regimes. The augmented path found
+one extra small component and mixed somewhat more slowly on the
+partition.
 
-So: prefer **Student-t for clustering**; treat the two as
-**interchangeable for regression**, choosing Normal-Gamma when you also
-want the robustness weights `omega`. Always confirm on your own data
-with the benchmark script rather than assuming.
+## Which one should you use?
 
-For regression with heavy-tailed multivariate errors, note the
-identifiability “pitfalls” with small `df` discussed by Fernández &
-Steel (1999): small `df` can make some quantities weakly identified – a
-property of the model, not a bug.
+The augmentation restores conjugacy, but the per-observation `omega_i`
+couple tightly to the partition, which can slow the mixing of the
+*number of clusters* – a penalty we found consistently in benchmarks and
+mitigate by replacing the default random-walk sampler on `omega` with
+slice sampling (done automatically via the spec’s sampler hook).
+Practical guidance:
+
+- `"studentt"` is the sensible default for heavy-tailed clustering;
+- `"normalgamma"` is worth trying when its Gibbs updates are
+  advantageous (e.g. larger n per component), and its `omega_i`
+  posteriors are themselves useful: small values flag the observations
+  the model treats as outliers (a robustness-weight interpretation).
+
+Always compare [`summary()`](https://rdrr.io/r/base/summary.html) ESS
+diagnostics on your own data rather than assuming one is uniformly
+better.

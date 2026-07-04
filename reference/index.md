@@ -152,3 +152,137 @@ these document the underlying S4 classes.
 - [`NormalGammaMvRegSpec-class`](https://madsyair.github.io/nimix/reference/NormalGammaMvRegSpec-class.md)
   : Multivariate-response Normal-Gamma mixture regression (scale
   mixture)
+
+## Neo-normal component specs
+
+Skew-capable MSNBurr families (Iriawan 2000; Choir 2020).
+
+- [`MSNBurrUvSpec()`](https://madsyair.github.io/nimix/reference/MSNBurrUvSpec-class.md)
+  : MSNBurr mixture components (neo-normal, left-skew capable)
+- [`MSNBurr2aUvSpec()`](https://madsyair.github.io/nimix/reference/MSNBurr2aUvSpec-class.md)
+  : MSNBurr-IIa mixture components (neo-normal, right-skew capable)
+- [`GMSNBurrUvSpec()`](https://madsyair.github.io/nimix/reference/GMSNBurrUvSpec-class.md)
+  : GMSNBurr mixture components (generalized neo-normal)
+
+## Neo-normal distribution functions
+
+Numerically stable density, distribution, quantile, and RNG.
+
+- [`dmsnburr()`](https://madsyair.github.io/nimix/reference/msnburr-distribution.md)
+  [`pmsnburr()`](https://madsyair.github.io/nimix/reference/msnburr-distribution.md)
+  [`qmsnburr()`](https://madsyair.github.io/nimix/reference/msnburr-distribution.md)
+  [`rmsnburr()`](https://madsyair.github.io/nimix/reference/msnburr-distribution.md)
+  : MSNBurr Distribution
+- [`dmsnburr2a()`](https://madsyair.github.io/nimix/reference/msnburr2a-distribution.md)
+  [`pmsnburr2a()`](https://madsyair.github.io/nimix/reference/msnburr2a-distribution.md)
+  [`qmsnburr2a()`](https://madsyair.github.io/nimix/reference/msnburr2a-distribution.md)
+  [`rmsnburr2a()`](https://madsyair.github.io/nimix/reference/msnburr2a-distribution.md)
+  : MSNBurr-IIa Distribution
+- [`dgmsnburr()`](https://madsyair.github.io/nimix/reference/gmsnburr-distribution.md)
+  [`pgmsnburr()`](https://madsyair.github.io/nimix/reference/gmsnburr-distribution.md)
+  [`qgmsnburr()`](https://madsyair.github.io/nimix/reference/gmsnburr-distribution.md)
+  [`rgmsnburr()`](https://madsyair.github.io/nimix/reference/gmsnburr-distribution.md)
+  : GMSNBurr Distribution
+
+## Spatial mixtures (MRF)
+
+Spatially constrained mixtures whose labels follow a Potts / Markov
+random field over a neighbourhood graph.
+
+- [`spatialWeights()`](https://madsyair.github.io/nimix/reference/spatialWeights.md)
+  : Construct a SpatialWeightSpec from an adjacency/weight matrix
+- [`gridAdjacency()`](https://madsyair.github.io/nimix/reference/gridAdjacency.md)
+  : Rook/queen contiguity on a regular grid
+- [`nRegions()`](https://madsyair.github.io/nimix/reference/nRegions.md)
+  : Number of regions in a spatial weight structure
+- [`getAdjacency()`](https://madsyair.github.io/nimix/reference/getAdjacency.md)
+  : Adjacency matrix of a spatial weight structure
+- [`neighborsOf()`](https://madsyair.github.io/nimix/reference/neighborsOf.md)
+  : Neighbours of one region
+- [`MRFEngine()`](https://madsyair.github.io/nimix/reference/MRFEngine-class.md)
+  : Markov random field engine (spatially constrained finite mixture)
+- [`show(`*`<SpatialWeightSpec>`*`)`](https://madsyair.github.io/nimix/reference/SpatialWeightSpec-class.md)
+  : Spatial neighbourhood structure for spatially constrained mixtures
+
+## Model containers
+
+- [`ClusterModel()`](https://madsyair.github.io/nimix/reference/ClusterModel.md)
+  : Construct a ClusterModel
+- [`RegressionMixModel()`](https://madsyair.github.io/nimix/reference/RegressionMixModel.md)
+  : Construct a RegressionMixModel
+
+## Bayesian workflow
+
+Posterior predictive checks; convergence diagnostics print via
+summary().
+
+- [`ppCheck()`](https://madsyair.github.io/nimix/reference/ppCheck.md) :
+  Posterior predictive check
+
+## Extension API (engine-facing generics)
+
+The remaining S4 contract a component spec implements so a new family
+plugs into every engine.
+
+- [`runEngine()`](https://madsyair.github.io/nimix/reference/runEngine.md)
+  : Run a mixture engine on a model (internal generic)
+
+- [`componentDensity()`](https://madsyair.github.io/nimix/reference/componentDensity.md)
+  : Component density evaluator (R-level, for posterior predictive
+  checks)
+
+- [`simulateParams()`](https://madsyair.github.io/nimix/reference/simulateParams.md)
+  : Simulate component parameters from a prior (for inits / recovery
+  tests)
+
+- [`componentInits()`](https://madsyair.github.io/nimix/reference/componentInits.md)
+  : Build dispersed initial values (engine-agnostic)
+
+- [`buildConstants()`](https://madsyair.github.io/nimix/reference/buildConstants.md)
+  : Assemble distribution-specific NIMBLE constants for the DPM engine
+
+- [`buildDataList()`](https://madsyair.github.io/nimix/reference/buildDataList.md)
+  :
+
+  Shape the observed data into the NIMBLE `data` list
+
+- [`extractParamTraces()`](https://madsyair.github.io/nimix/reference/extractParamTraces.md)
+  : Parse raw cluster-parameter traces from the MCMC sample matrix
+
+- [`relabelComponents()`](https://madsyair.github.io/nimix/reference/relabelComponents.md)
+  : Permute cluster parameters and build the relabelled component
+  summary
+
+## Utilities
+
+- [`nimixClearCache()`](https://madsyair.github.io/nimix/reference/nimixClearCache.md)
+  : Clear the compiled-model cache
+
+## Datasets
+
+- [`usStates2023`](https://madsyair.github.io/nimix/reference/usStates2023.md)
+  : US state poverty and income, 2023 (SAIPE official estimates)
+- [`usStateAdj`](https://madsyair.github.io/nimix/reference/usStateAdj.md)
+  : Contiguity of the 48 contiguous US states + DC (official derivation)
+- [`wdi2022`](https://madsyair.github.io/nimix/reference/wdi2022.md) :
+  World Development Indicators, 2022 (country-level official statistics)
+
+## Cluster profiling
+
+- [`clusterProfile()`](https://madsyair.github.io/nimix/reference/clusterProfile.md)
+  : Profile the clusters of a fitted mixture
+
+## Model selection and ensembling
+
+Predictive comparison (WAIC / PSIS-LOO) and weighted ensembles.
+
+- [`nimixWAIC()`](https://madsyair.github.io/nimix/reference/nimixWAIC.md)
+  : WAIC for a fitted mixture
+- [`nimixLOO()`](https://madsyair.github.io/nimix/reference/nimixLOO.md)
+  : PSIS-LOO for a fitted mixture
+- [`modelSelect()`](https://madsyair.github.io/nimix/reference/modelSelect.md)
+  : Compare mixture models by predictive fit
+- [`ensembleFit()`](https://madsyair.github.io/nimix/reference/ensembleFit.md)
+  : Ensemble several fitted mixtures
+- [`predict(`*`<nimixEnsemble>`*`)`](https://madsyair.github.io/nimix/reference/predict-nimixEnsemble.md)
+  : Weighted predictive density from a mixture ensemble

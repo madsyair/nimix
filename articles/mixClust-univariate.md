@@ -1,83 +1,101 @@
 # Univariate mixture clustering with the DPM engine
 
-This vignette demonstrates the v0.1.0 functionality of **nimix**:
-Bayesian univariate Gaussian mixture clustering using a Dirichlet
-Process Mixture (DPM) engine built on NIMBLE’s Chinese Restaurant
-Process (`dCRP`).
+This vignette demonstrates Bayesian univariate Gaussian mixture
+clustering with **nimix**’s Dirichlet Process Mixture (DPM) engine,
+built on NIMBLE’s Chinese Restaurant Process (`dCRP`), using **official
+statistics**: the `wdi2022` dataset shipped with the package (World Bank
+World Development Indicators, 2022, CC BY 4.0; see
+[`?wdi2022`](https://madsyair.github.io/nimix/reference/wdi2022.md)).
+The same workflow applies directly to other official-statistics sources,
+e.g. BPS regional indicators.
 
-> Chunks use `eval = FALSE` so the vignette builds quickly under CRAN
-> time limits . Run them interactively.
+> MCMC chunks use `eval = FALSE` so the vignette builds quickly under
+> CRAN time limits; the printed results below are from an actual run.
+> Run the chunks interactively to reproduce them.
 
-## Fit
+## The data: national income across 207 countries
+
+GDP per capita is famously multimodal on the log scale – countries group
+into latent “development regimes” rather than forming one homogeneous
+population.
 
 ``` r
 
 library(nimix)
-
-set.seed(1)
-y <- c(rnorm(150, -4, 1), rnorm(150, 4, 1)) # two clusters, K_true = 2
-
-fit <- nimixClust(
- y, K_max = 10, distribution = "normal", method = "dpm",
- mcmcControl = list(niter = 6000, nburnin = 2000)
-)
-fit
+#> Loading required package: nimble
+#> nimble version 1.4.2 is loaded.
+#> For more information on NIMBLE and a User Manual,
+#> please visit https://R-nimble.org.
+#> 
+#> Attaching package: 'nimble'
+#> The following object is masked from 'package:stats':
+#> 
+#>     simulate
+#> The following object is masked from 'package:base':
+#> 
+#>     declare
+data(wdi2022)
+ly <- log(wdi2022$gdp_pc)
+summary(ly)
+#>    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+#>   5.574   7.766   8.806   8.893   9.984  12.275
+hist(ly, breaks = 30, main = "log GDP per capita, 2022", xlab = "log US$")
 ```
 
-The DPM does not fix the number of clusters: it places a Chinese
-Restaurant Process prior on the allocation vector and lets the data
-determine how many components are occupied. The truncation level `K_max`
-is the length of the cluster-parameter vectors, **not** a fixed number
-of clusters.
+![](mixClust-univariate_files/figure-html/data-1.png)
 
-## Label switching: relabel before summarising
+## Fit: how many income regimes?
 
-The mixture likelihood is invariant to permuting component labels, so
-raw per-component posterior means are meaningless. `summary` therefore
-relabels first (ECR-ITERATIVE-1 from the `label.switching` package),
-conditioning on the modal number of occupied clusters.
+`method = "dpm"` estimates the number of occupied components. `K_max` is
+only a truncation level (computational headroom), not a prior belief
+about K.
 
 ``` r
 
+fit <- nimixClust(ly, K_max = 10,
+                  mcmcControl = list(niter = 4000, nburnin = 1500),
+                  seed = 1)
+fit <- relabel(fit)   # always relabel before summarising (label switching)
 summary(fit)
 ```
 
-You can see the switching directly:
+On the 2022 data this finds a **two-regime** structure:
+
+    #> modalK = 2
+    #>   weight mu_mean
+    #> 1  0.554   7.966    # ~ US$ 2,900  (lower/middle-income regime)
+    #> 2  0.446   9.964    # ~ US$ 21,000 (high-income regime)
+
+The posterior on the number of clusters concentrates on 2-3, with the
+usual DPM tail of small transient components. If the fit warns that the
+truncation level was reached in a non-negligible share of iterations,
+increase `K_max` and re-run – a larger truncation only adds headroom.
+
+## Multi-chain convergence check
+
+Multiple chains from dispersed starts cost almost nothing extra: the
+compiled model is reused across chains, and
+[`summary()`](https://rdrr.io/r/base/summary.html) then reports
+cross-chain split-Rhat / ESS on label-invariant quantities.
 
 ``` r
 
-plot(fit, type = "trace_raw") # zig-zags between levels = switching
-plot(fit, type = "trace_relabeled") # stable bands after relabelling
+fit3 <- nimixClust(ly, K_max = 10,
+                   mcmcControl = list(niter = 4000, nburnin = 1500,
+                                      nchains = 3),
+                   seed = 1)
+summary(relabel(fit3))
 ```
 
-## Posterior of the number of clusters
+## Sanity check with a fixed K
+
+`method = "fixedk"` fits a classic finite mixture with known K – useful
+as a baseline or for model comparison across a few K values.
 
 ``` r
 
-plot(fit, type = "K")
+fit2 <- nimixClust(ly, K = 2, method = "fixedk",
+                   mcmcControl = list(niter = 4000, nburnin = 1500),
+                   seed = 1)
+summary(relabel(fit2))
 ```
-
-## Posterior predictive density
-
-``` r
-
-plot(fit, type = "density")
-pp <- predict(fit, newdata = seq(-8, 8, length.out = 200))
-head(pp)
-```
-
-## Choosing `K_max` and the concentration prior
-
-`K_max` is a truncation, not the answer. A useful default is
-`min(10, floor(n / 5))`. Posterior conclusions about K depend on the
-prior for the concentration parameter $`\alpha`$; nimix places a Gamma
-hyperprior on $`\alpha`$ (configurable via
-`prior = list(concPrior = c(shape, rate))`) so the data inform the
-clustering granularity rather than a fixed value .
-
-## References
-
-- de Valpine et al. (2017), *JCGS* 26(2), 403–413.
-- Neal (2000), *JCGS* 9(2), 249–265.
-- Papastamoulis & Iliopoulos (2010), *JCGS* 19(2), 313–331.
-- Papastamoulis (2016), *JSS Code Snippets* 69(1).

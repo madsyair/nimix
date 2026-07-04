@@ -25,7 +25,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">nimix</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -38,10 +38,9 @@
 <li class="active nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/mixClust-multivariate.html">Multivariate mixture clustering with the DPM engine</a></li>
-    <li><a class="dropdown-item" href="../articles/mixClust-univariate.html">Univariate mixture clustering with the DPM engine</a></li>
-    <li><a class="dropdown-item" href="../articles/mixReg.html">Mixtures of linear regressions</a></li>
-    <li><a class="dropdown-item" href="../articles/normal-gamma-vs-studentt.html">Heavy-tailed components: Student-t vs Normal-Gamma</a></li>
+<li><a class="dropdown-item" href="../articles/mixClust-univariate.html">Univariate mixture clustering with the DPM engine</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -66,129 +65,91 @@
       <img src="../logo.png" class="logo" alt=""><h1>Multivariate mixture clustering with the DPM engine</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/madsyair/nimix/blob/main/vignettes/mixClust-multivariate.Rmd" class="external-link"><code>vignettes/mixClust-multivariate.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/madsyair/nimix/blob/main/vignettes/articles/mixClust-multivariate.Rmd" class="external-link"><code>vignettes/articles/mixClust-multivariate.Rmd</code></a></small>
       <div class="d-none name"><code>mixClust-multivariate.Rmd</code></div>
     </div>
 
     
     
-<p>This vignette demonstrates the v0.2.0 functionality of
-<strong>nimix</strong>: Bayesian <strong>multivariate</strong> Gaussian
-mixture clustering on the same Dirichlet Process Mixture (DPM) engine
-used for the univariate case. The only thing that changes from the
-user’s point of view is that <code>data</code> is now a numeric
-<strong>matrix</strong> (one row per observation, one column per
-dimension).</p>
+<p>This vignette demonstrates <strong>multivariate</strong> Gaussian
+mixture clustering on the DPM engine. From the user’s point of view the
+only change from the univariate case is that <code>data</code> is a
+numeric <strong>matrix</strong> (one row per observation, one column per
+dimension). The example clusters countries in the <code>wdi2022</code>
+official-statistics dataset (<code><a href="../reference/wdi2022.html">?wdi2022</a></code>) on two development
+indicators jointly.</p>
 <blockquote>
-<p>Chunks use <code>eval = FALSE</code> so the vignette builds quickly
-under CRAN time limits . Run them interactively.</p>
+<p>MCMC chunks use <code>eval = FALSE</code> (CRAN time limits); printed
+results are from an actual run.</p>
 </blockquote>
+<div class="section level2">
+<h2 id="the-data-income-and-longevity-jointly">The data: income and longevity jointly<a class="anchor" aria-label="anchor" href="#the-data-income-and-longevity-jointly"></a>
+</h2>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/madsyair/nimix" class="external-link">nimix</a></span><span class="op">)</span></span>
+<span><span class="co">#&gt; Loading required package: nimble</span></span>
+<span><span class="co">#&gt; nimble version 1.4.2 is loaded.</span></span>
+<span><span class="co">#&gt; For more information on NIMBLE and a User Manual,</span></span>
+<span><span class="co">#&gt; please visit https://R-nimble.org.</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Attaching package: 'nimble'</span></span>
+<span><span class="co">#&gt; The following object is masked from 'package:stats':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     simulate</span></span>
+<span><span class="co">#&gt; The following object is masked from 'package:base':</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;     declare</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">wdi2022</span><span class="op">)</span></span>
+<span><span class="va">Y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span>log_gdp  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="va">wdi2022</span><span class="op">$</span><span class="va">gdp_pc</span><span class="op">)</span>,</span>
+<span>           life_exp <span class="op">=</span> <span class="va">wdi2022</span><span class="op">$</span><span class="va">life_exp</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">Y</span>, main <span class="op">=</span> <span class="st">"207 countries, 2022"</span>, xlab <span class="op">=</span> <span class="st">"log GDP per capita"</span>,</span>
+<span>     ylab <span class="op">=</span> <span class="st">"life expectancy (years)"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="mixClust-multivariate_files/figure-html/data-1.png" class="r-plt" alt="" width="700"></p>
+</div>
 <div class="section level2">
 <h2 id="the-model">The model<a class="anchor" aria-label="anchor" href="#the-model"></a>
 </h2>
-<p>Each component is a multivariate normal. The conjugate cluster base
-measure is a <strong>Normal-Inverse-Wishart</strong>:
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi mathvariant="normal">Σ</mi><mi>j</mi></msub><mo>∼</mo><mtext mathvariant="normal">InvWishart</mtext><mo stretchy="false" form="prefix">(</mo><msub><mi>S</mi><mn>0</mn></msub><mo>,</mo><mi>d</mi><msub><mi>f</mi><mn>0</mn></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>μ</mi><mi>j</mi></msub><mo>∣</mo><msub><mi mathvariant="normal">Σ</mi><mi>j</mi></msub><mo>∼</mo><msub><mi>N</mi><mi>d</mi></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>μ</mi><mn>0</mn></msub><mo>,</mo><msub><mi mathvariant="normal">Σ</mi><mi>j</mi></msub><mi>/</mi><msub><mi>κ</mi><mn>0</mn></msub><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
-\Sigma_j \sim \text{InvWishart}(S_0, df_0), \qquad
-\mu_j \mid \Sigma_j \sim N_d(\mu_0, \Sigma_j / \kappa_0),
-</annotation></semantics></math> with the allocation vector following a
-Chinese Restaurant Process. nimix writes this with NIMBLE’s
-<code>dmnorm(cov = ...)</code> + <code>dinvwish</code>, which is the
-pairing NIMBLE recognises as conjugate for <code>dCRP</code> — so the
-efficient collapsed CRP samplers are used automatically . The defaults
-are <em>data-scaled</em> : <code>mu0 = colMeans(data)</code>, the prior
-mean of the cluster covariance equals <code>cov(data)</code>, and
-<code>df0 = d + 2</code> (validated to exceed <code>d + 1</code> so
-empty-component draws stay non-singular).</p>
+<p>Each component is a multivariate normal with a conjugate
+Normal-Inverse-Wishart cluster base measure (<code>dmnorm(cov=)</code> +
+<code>dinvwish</code>), data-scaled by default. NIMBLE’s native
+conjugate CRP samplers are used – nimix deliberately does not
+reimplement them.</p>
 </div>
 <div class="section level2">
 <h2 id="fit">Fit<a class="anchor" aria-label="anchor" href="#fit"></a>
 </h2>
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/madsyair/nimix" class="external-link">nimix</a></span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
-<span><span class="co"># two well-separated 2-D clusters, K_true = 2</span></span>
-<span><span class="va">Y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span></span>
-<span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">150</span> <span class="op">*</span> <span class="fl">2</span>, mean <span class="op">=</span> <span class="op">-</span><span class="fl">3</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>,</span>
-<span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">150</span> <span class="op">*</span> <span class="fl">2</span>, mean <span class="op">=</span> <span class="fl">3</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nimixClust.html">nimixClust</a></span><span class="op">(</span></span>
-<span> <span class="va">Y</span>, K_max <span class="op">=</span> <span class="fl">10</span>, distribution <span class="op">=</span> <span class="st">"normal"</span>, method <span class="op">=</span> <span class="st">"dpm"</span>,</span>
-<span> mcmcControl <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>niter <span class="op">=</span> <span class="fl">6000</span>, nburnin <span class="op">=</span> <span class="fl">2000</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span><span class="va">fit</span></span></code></pre></div>
-<p><code>nimixClust</code> detects that <code>Y</code> is a matrix and
-routes it to the multivariate component (<code>NormalMvSpec</code>). You
-can force the family with <code>distribution = "normal-mv"</code> (or
-<code>"normal-uv"</code> for a vector).</p>
-</div>
-<div class="section level2">
-<h2 id="label-switching-relabel-before-summarising">Label switching: relabel before summarising<a class="anchor" aria-label="anchor" href="#label-switching-relabel-before-summarising"></a>
-</h2>
-<p>As in the univariate case, the mixture likelihood is invariant to
-permuting component labels, so <code>summary</code> relabels first
-(ECR-ITERATIVE-1), conditioning on the modal number of occupied
-clusters. For multivariate fits the component table reports the
-posterior mean of each mean coordinate (<code>mu_1</code>,
-<code>mu_2</code>, …) and the posterior mean of each marginal variance
-(<code>var_1</code>, <code>var_2</code>, …); the full relabelled mean
-covariance matrices are available in
-<code>fit@relabeled$Sigma_mean</code>.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level2">
-<h2 id="visualising-the-clusters">Visualising the clusters<a class="anchor" aria-label="anchor" href="#visualising-the-clusters"></a>
-</h2>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span>, type <span class="op">=</span> <span class="st">"K"</span><span class="op">)</span> <span class="co"># posterior of the number of occupied clusters</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span>, type <span class="op">=</span> <span class="st">"cluster"</span><span class="op">)</span> <span class="co"># data coloured by MAP cluster (first two dims)</span></span></code></pre></div>
-<p>The label-switching diagnostics also work in the multivariate case
-(they plot the first mean coordinate across clusters):</p>
+<code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nimixClust.html">nimixClust</a></span><span class="op">(</span><span class="va">Y</span>, K_max <span class="op">=</span> <span class="fl">8</span>,</span>
+<span>                  mcmcControl <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>niter <span class="op">=</span> <span class="fl">4000</span>, nburnin <span class="op">=</span> <span class="fl">1500</span><span class="op">)</span>,</span>
+<span>                  seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/relabel.html">relabel</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span></code></pre></div>
+<p>On the 2022 data the dominant structure is a clearly separated
+<strong>high-income / high-longevity</strong> cluster plus overlapping
+developing-country clusters:</p>
+<pre><code><span><span class="co">#&gt; modalK = 4</span></span>
+<span><span class="co">#&gt;   component weight   mu_1   mu_2      # (log GDP pc, life expectancy)</span></span>
+<span><span class="co">#&gt; 3         3  0.309 10.363 80.302     # rich, long-lived cluster</span></span>
+<span><span class="co">#&gt; 4         4  0.444  8.087 69.402     # large developing cluster</span></span>
+<span><span class="co">#&gt; 1         1  0.204  8.570 71.788     # overlapping middle cluster</span></span>
+<span><span class="co">#&gt; 2         2  0.043  8.556 69.914     # small transient component</span></span></code></pre>
+<p>Overlapping components with small weights are expected in a DPM;
+report the dominant components and, when a hard partition is needed, use
+the MAP allocation:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span>, type <span class="op">=</span> <span class="st">"trace_raw"</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span>, type <span class="op">=</span> <span class="st">"trace_relabeled"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">alloc</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/apply.html" class="external-link">apply</a></span><span class="op">(</span><span class="va">fit</span><span class="op">@</span><span class="va">clusterAllocation</span>, <span class="fl">2L</span>, <span class="kw">function</span><span class="op">(</span><span class="va">z</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/integer.html" class="external-link">as.integer</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/which.min.html" class="external-link">which.max</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">z</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">Y</span>, col <span class="op">=</span> <span class="va">alloc</span>, pch <span class="op">=</span> <span class="fl">19</span>,</span>
+<span>     main <span class="op">=</span> <span class="st">"MAP cluster allocation"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="posterior-predictive-density-at-points">Posterior predictive density at points<a class="anchor" aria-label="anchor" href="#posterior-predictive-density-at-points"></a>
+<h2 id="fixed-k-comparison">Fixed-K comparison<a class="anchor" aria-label="anchor" href="#fixed-k-comparison"></a>
 </h2>
-<p>For multivariate data the predictive density is evaluated at supplied
-rows rather than over a 1-D grid:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">newpts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">3</span>, <span class="op">-</span><span class="fl">3</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">fit</span>, newdata <span class="op">=</span> <span class="va">newpts</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level2">
-<h2 id="notes-on-dimension-and-k_max">Notes on dimension and <code>K_max</code><a class="anchor" aria-label="anchor" href="#notes-on-dimension-and-k_max"></a>
-</h2>
-<ul>
-<li>
-<code>K_max</code> remains a truncation level, not a fixed number of
-clusters.</li>
-<li>The prior covariance scaling matters more in higher dimensions; the
-data-scaled Normal-Inverse-Wishart default keeps the prior weakly
-informative without becoming vague .</li>
-<li>With small <code>n</code> relative to <code>d</code>,
-identifiability weakens ( ); prefer <code>n</code> comfortably larger
-than <code>d</code> and inspect the posterior of K rather than trusting
-a single modal value.</li>
-</ul>
-</div>
-<div class="section level2">
-<h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
-</h2>
-<ul>
-<li>de Valpine et al. (2017), <em>JCGS</em> 26(2), 403–413.</li>
-<li>Neal (2000), <em>JCGS</em> 9(2), 249–265.</li>
-<li>Zhang, Chan, Wu &amp; Chen (2004), <em>Statistics and Computing</em>
-14, 343–355.</li>
-<li>Dellaportas &amp; Papageorgiou (2006), <em>Statistics and
-Computing</em> 16, 57–68.</li>
-<li>Papastamoulis &amp; Iliopoulos (2010), <em>JCGS</em> 19(2),
-313–331.</li>
-</ul>
+<code class="sourceCode R"><span><span class="va">fit3</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nimixClust.html">nimixClust</a></span><span class="op">(</span><span class="va">Y</span>, K <span class="op">=</span> <span class="fl">3</span>, method <span class="op">=</span> <span class="st">"fixedk"</span>,</span>
+<span>                   mcmcControl <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>niter <span class="op">=</span> <span class="fl">4000</span>, nburnin <span class="op">=</span> <span class="fl">1500</span><span class="op">)</span>,</span>
+<span>                   seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="fu"><a href="../reference/relabel.html">relabel</a></span><span class="op">(</span><span class="va">fit3</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

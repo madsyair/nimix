@@ -13,7 +13,7 @@ engine or the spec base class."><meta property="og:image" content="https://madsy
 
     <a class="navbar-brand me-2" href="../index.html">nimix</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -24,10 +24,9 @@ engine or the spec base class."><meta property="og:image" content="https://madsy
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/mixClust-multivariate.html">Multivariate mixture clustering with the DPM engine</a></li>
-    <li><a class="dropdown-item" href="../articles/mixClust-univariate.html">Univariate mixture clustering with the DPM engine</a></li>
-    <li><a class="dropdown-item" href="../articles/mixReg.html">Mixtures of linear regressions</a></li>
-    <li><a class="dropdown-item" href="../articles/normal-gamma-vs-studentt.html">Heavy-tailed components: Student-t vs Normal-Gamma</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/mixClust-univariate.html">Univariate mixture clustering with the DPM engine</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -41,7 +40,7 @@ engine or the spec base class."><meta property="og:image" content="https://madsy
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Build the NIMBLE model code for a (distribution, engine) pair</h1>
-      <small class="dont-index">Source: <a href="https://github.com/madsyair/nimix/blob/main/R/class-DistributionSpec.R" class="external-link"><code>R/class-DistributionSpec.R</code></a>, <a href="https://github.com/madsyair/nimix/blob/main/R/dist-normal-uv.R" class="external-link"><code>R/dist-normal-uv.R</code></a>, <a href="https://github.com/madsyair/nimix/blob/main/R/dist-normal-mv.R" class="external-link"><code>R/dist-normal-mv.R</code></a>, and 10 more</small>
+      <small class="dont-index">Source: <a href="https://github.com/madsyair/nimix/blob/main/R/class-DistributionSpec.R" class="external-link"><code>R/class-DistributionSpec.R</code></a>, <a href="https://github.com/madsyair/nimix/blob/main/R/dist-glm-reg.R" class="external-link"><code>R/dist-glm-reg.R</code></a>, <a href="https://github.com/madsyair/nimix/blob/main/R/dist-gmsnburr.R" class="external-link"><code>R/dist-gmsnburr.R</code></a>, and 13 more</small>
       <div class="d-none name"><code>buildModelCode.Rd</code></div>
     </div>
 
@@ -56,15 +55,6 @@ engine or the spec base class.</p>
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># S4 method for class 'NormalUvSpec,DPMEngine'</span></span>
-<span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># S4 method for class 'NormalMvSpec,DPMEngine'</span></span>
-<span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># S4 method for class 'NormalRegSpec,DPMEngine'</span></span>
-<span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
-<span></span>
 <span><span class="co"># S4 method for class 'PoissonRegSpec,DPMEngine'</span></span>
 <span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
@@ -77,6 +67,15 @@ engine or the spec base class.</p>
 <span><span class="co"># S4 method for class 'BinomialRegSpec,FixedKEngine'</span></span>
 <span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
+<span><span class="co"># S4 method for class 'GMSNBurrUvSpec,FixedKEngine'</span></span>
+<span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'GMSNBurrUvSpec,DPMEngine'</span></span>
+<span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'NormalRegSpec,DPMEngine'</span></span>
+<span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
 <span><span class="co"># S4 method for class 'StudentTRegSpec,DPMEngine'</span></span>
 <span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
@@ -87,6 +86,18 @@ engine or the spec base class.</p>
 <span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S4 method for class 'NormalGammaRegSpec,FixedKEngine'</span></span>
+<span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'MSNBurrUvSpec,FixedKEngine'</span></span>
+<span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'MSNBurr2aUvSpec,FixedKEngine'</span></span>
+<span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'MSNBurrUvSpec,DPMEngine'</span></span>
+<span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'MSNBurr2aUvSpec,DPMEngine'</span></span>
 <span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S4 method for class 'NormalMvRegSpec,DPMEngine'</span></span>
@@ -107,22 +118,28 @@ engine or the spec base class.</p>
 <span><span class="co"># S4 method for class 'NormalGammaMvRegSpec,FixedKEngine'</span></span>
 <span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># S4 method for class 'StudentTUvSpec,DPMEngine'</span></span>
-<span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># S4 method for class 'NormalGammaUvSpec,DPMEngine'</span></span>
-<span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># S4 method for class 'StudentTMvSpec,DPMEngine'</span></span>
+<span><span class="co"># S4 method for class 'NormalMvSpec,DPMEngine'</span></span>
 <span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S4 method for class 'NormalGammaMvSpec,DPMEngine'</span></span>
+<span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'NormalUvSpec,DPMEngine'</span></span>
+<span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'NormalGammaUvSpec,DPMEngine'</span></span>
 <span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S4 method for class 'PoissonSpec,DPMEngine'</span></span>
 <span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S4 method for class 'BinomialSpec,DPMEngine'</span></span>
+<span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'StudentTMvSpec,DPMEngine'</span></span>
+<span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'StudentTUvSpec,DPMEngine'</span></span>
 <span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S4 method for class 'NormalUvSpec,FixedKEngine'</span></span>
@@ -150,6 +167,9 @@ engine or the spec base class.</p>
 <span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S4 method for class 'BinomialSpec,FixedKEngine'</span></span>
+<span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'DistributionSpec,MRFEngine'</span></span>
 <span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -186,22 +206,12 @@ engine or the spec base class.</p>
     <div class="section level2">
     <h2 id="functions">Functions<a class="anchor" aria-label="anchor" href="#functions"></a></h2>
 
-<ul><li><p><code>buildModelCode(spec = NormalUvSpec, engine = DPMEngine)</code>: Univariate Gaussian DPM model code (dCRP).</p>
-<p>Builds the NIMBLE code for
-$$y_i \sim N(\mu_{\xi_i}, s^2_{\xi_i}), \quad
-      \xi_{1:n} \sim CRP(\alpha, n),$$
-with a conjugate Normal-Inverse-Gamma cluster prior and a Gamma hyperprior
-on \(\alpha\). Cluster-parameter vectors have length <code>L = K_max</code>
-(NIMBLE's exact truncation; the sampler stays proper as long as the number
-of occupied clusters is strictly below <code>L</code>).</p></li>
-<li><p><code>buildModelCode(spec = NormalMvSpec, engine = DPMEngine)</code>: Multivariate Gaussian DPM model code (dCRP) with a
-  conjugate Normal-Inverse-Wishart cluster base measure.</p>
-<p>Builds NIMBLE code for
-$$y_i \sim N_d(\mu_{\xi_i}, \Sigma_{\xi_i}), \quad
-      \xi_{1:n} \sim CRP(\alpha, n),$$
-with \(\Sigma_j \sim InvWishart(S_0, df_0)\) and
-\(\mu_j \sim N_d(\mu_0, \Sigma_j / \kappa_0)\). The dimension \(d\) is a
-constant so the index ranges <code>1:d</code> expand at model-build time.</p></li>
+<ul><li><p><code>buildModelCode(spec = PoissonRegSpec, engine = DPMEngine)</code>: Poisson GLM regression DPM code (log link).</p></li>
+<li><p><code>buildModelCode(spec = PoissonRegSpec, engine = FixedKEngine)</code>: Poisson GLM regression fixed-K code (log link).</p></li>
+<li><p><code>buildModelCode(spec = BinomialRegSpec, engine = DPMEngine)</code>: Binomial GLM regression DPM code (logit link).</p></li>
+<li><p><code>buildModelCode(spec = BinomialRegSpec, engine = FixedKEngine)</code>: Binomial GLM regression fixed-K code (logit link).</p></li>
+<li><p><code>buildModelCode(spec = GMSNBurrUvSpec, engine = FixedKEngine)</code>: GMSNBurr finite mixture (fixed K).</p></li>
+<li><p><code>buildModelCode(spec = GMSNBurrUvSpec, engine = DPMEngine)</code>: GMSNBurr DPM mixture.</p></li>
 <li><p><code>buildModelCode(spec = NormalRegSpec, engine = DPMEngine)</code>: DPM mixture-of-linear-regressions model code
   (dCRP) with a conjugate Normal-Inverse-Gamma cluster prior and constant
   (CRP) gating.</p>
@@ -211,16 +221,16 @@ $$y_i \sim N(x_i^\top \beta_{\xi_i}, s^2_{\xi_i}), \quad
 with \(s^2_j \sim InvGamma(nu_0, s_0)\) and
 \(\beta_j \mid s^2_j \sim N_p(b_0, s^2_j B_0)\). The number of predictors
 \(p\) and the design matrix \(X\) are constants.</p></li>
-<li><p><code>buildModelCode(spec = PoissonRegSpec, engine = DPMEngine)</code>: Poisson GLM regression DPM code (log link).</p></li>
-<li><p><code>buildModelCode(spec = PoissonRegSpec, engine = FixedKEngine)</code>: Poisson GLM regression fixed-K code (log link).</p></li>
-<li><p><code>buildModelCode(spec = BinomialRegSpec, engine = DPMEngine)</code>: Binomial GLM regression DPM code (logit link).</p></li>
-<li><p><code>buildModelCode(spec = BinomialRegSpec, engine = FixedKEngine)</code>: Binomial GLM regression fixed-K code (logit link).</p></li>
 <li><p><code>buildModelCode(spec = StudentTRegSpec, engine = DPMEngine)</code>: Student-t regression DPM code (direct t density;
 the scale enters as precision <code>tau = 1 / s2</code>).</p></li>
 <li><p><code>buildModelCode(spec = StudentTRegSpec, engine = FixedKEngine)</code>: Student-t regression fixed-K code.</p></li>
 <li><p><code>buildModelCode(spec = NormalGammaRegSpec, engine = DPMEngine)</code>: Normal-Gamma regression DPM code (scale mixture;
 conjugate coefficients conditional on <code>omega</code>).</p></li>
 <li><p><code>buildModelCode(spec = NormalGammaRegSpec, engine = FixedKEngine)</code>: Normal-Gamma regression fixed-K code.</p></li>
+<li><p><code>buildModelCode(spec = MSNBurrUvSpec, engine = FixedKEngine)</code>: MSNBurr finite mixture (fixed K).</p></li>
+<li><p><code>buildModelCode(spec = MSNBurr2aUvSpec, engine = FixedKEngine)</code>: MSNBurr-IIa finite mixture (fixed K).</p></li>
+<li><p><code>buildModelCode(spec = MSNBurrUvSpec, engine = DPMEngine)</code>: MSNBurr DPM mixture.</p></li>
+<li><p><code>buildModelCode(spec = MSNBurr2aUvSpec, engine = DPMEngine)</code>: MSNBurr-IIa DPM mixture.</p></li>
 <li><p><code>buildModelCode(spec = NormalMvRegSpec, engine = DPMEngine)</code>: Multivariate-response Normal regression DPM code.</p></li>
 <li><p><code>buildModelCode(spec = NormalMvRegSpec, engine = FixedKEngine)</code>: Multivariate-response Normal regression fixed-K.</p></li>
 <li><p><code>buildModelCode(spec = StudentTMvRegSpec, engine = DPMEngine)</code>: Multivariate-response Student-t regression DPM code
@@ -230,17 +240,33 @@ conjugate coefficients conditional on <code>omega</code>).</p></li>
 code (scale mixture; conjugate cluster updates).</p></li>
 <li><p><code>buildModelCode(spec = NormalGammaMvRegSpec, engine = FixedKEngine)</code>: Multivariate-response Normal-Gamma regression
 fixed-K code.</p></li>
-<li><p><code>buildModelCode(spec = StudentTUvSpec, engine = DPMEngine)</code>: Univariate Student-t DPM model code (dCRP). The
-t density is evaluated directly; df is a constant.</p></li>
-<li><p><code>buildModelCode(spec = NormalGammaUvSpec, engine = DPMEngine)</code>: Normal-Gamma scale-mixture DPM model code (dCRP)
-with a per-observation latent precision multiplier <code>omega</code>.</p></li>
-<li><p><code>buildModelCode(spec = StudentTMvSpec, engine = DPMEngine)</code>: Multivariate Student-t DPM code using the
-user-defined <code>dmvt_nimix</code> kernel with a Normal-Inverse-Wishart cluster
-prior.</p></li>
+<li><p><code>buildModelCode(spec = NormalMvSpec, engine = DPMEngine)</code>: Multivariate Gaussian DPM model code (dCRP) with a
+  conjugate Normal-Inverse-Wishart cluster base measure.</p>
+<p>Builds NIMBLE code for
+$$y_i \sim N_d(\mu_{\xi_i}, \Sigma_{\xi_i}), \quad
+      \xi_{1:n} \sim CRP(\alpha, n),$$
+with \(\Sigma_j \sim InvWishart(S_0, df_0)\) and
+\(\mu_j \sim N_d(\mu_0, \Sigma_j / \kappa_0)\). The dimension \(d\) is a
+constant so the index ranges <code>1:d</code> expand at model-build time.</p></li>
 <li><p><code>buildModelCode(spec = NormalGammaMvSpec, engine = DPMEngine)</code>: Multivariate Normal-Gamma scale-mixture DPM code
+with a per-observation latent precision multiplier <code>omega</code>.</p></li>
+<li><p><code>buildModelCode(spec = NormalUvSpec, engine = DPMEngine)</code>: Univariate Gaussian DPM model code (dCRP).</p>
+<p>Builds the NIMBLE code for
+$$y_i \sim N(\mu_{\xi_i}, s^2_{\xi_i}), \quad
+      \xi_{1:n} \sim CRP(\alpha, n),$$
+with a conjugate Normal-Inverse-Gamma cluster prior and a Gamma hyperprior
+on \(\alpha\). Cluster-parameter vectors have length <code>L = K_max</code>
+(NIMBLE's exact truncation; the sampler stays proper as long as the number
+of occupied clusters is strictly below <code>L</code>).</p></li>
+<li><p><code>buildModelCode(spec = NormalGammaUvSpec, engine = DPMEngine)</code>: Normal-Gamma scale-mixture DPM model code (dCRP)
 with a per-observation latent precision multiplier <code>omega</code>.</p></li>
 <li><p><code>buildModelCode(spec = PoissonSpec, engine = DPMEngine)</code>: Poisson DPM model code (Gamma-Poisson conjugate).</p></li>
 <li><p><code>buildModelCode(spec = BinomialSpec, engine = DPMEngine)</code>: Binomial DPM model code (Beta-Binomial conjugate).</p></li>
+<li><p><code>buildModelCode(spec = StudentTMvSpec, engine = DPMEngine)</code>: Multivariate Student-t DPM code using the
+user-defined <code>dmvt_nimix</code> kernel with a Normal-Inverse-Wishart cluster
+prior.</p></li>
+<li><p><code>buildModelCode(spec = StudentTUvSpec, engine = DPMEngine)</code>: Univariate Student-t DPM model code (dCRP). The
+t density is evaluated directly; df is a constant.</p></li>
 <li><p><code>buildModelCode(spec = NormalUvSpec, engine = FixedKEngine)</code>: Univariate Gaussian finite-mixture code (fixed K).</p></li>
 <li><p><code>buildModelCode(spec = NormalMvSpec, engine = FixedKEngine)</code>: Multivariate Gaussian finite-mixture code (fixed K).</p></li>
 <li><p><code>buildModelCode(spec = NormalRegSpec, engine = FixedKEngine)</code>: Mixture-of-linear-regressions finite-mixture code
@@ -254,10 +280,13 @@ finite-mixture code (fixed K).</p></li>
 (fixed K) using the user-defined <code>dmvt_nimix</code> kernel.</p></li>
 <li><p><code>buildModelCode(spec = PoissonSpec, engine = FixedKEngine)</code>: Poisson finite-mixture code (fixed K).</p></li>
 <li><p><code>buildModelCode(spec = BinomialSpec, engine = FixedKEngine)</code>: Binomial finite-mixture code (fixed K).</p></li>
+<li><p><code>buildModelCode(spec = DistributionSpec, engine = MRFEngine)</code>: Default MRF kernel for any family: the family's
+fixed-K kernel with the Dirichlet-categorical label layer replaced by the
+joint Potts node (derived mechanically; see the spatial design notes).</p></li>
 </ul></div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
-    <p>Neal, R.M. (2000) <a href="https://doi.org/10.1080/10618600.2000.10474879" class="external-link">doi:10.1080/10618600.2000.10474879</a>
+    <p>Hurn et al. (2003) <a href="https://doi.org/10.1198/1061860031329" class="external-link">doi:10.1198/1061860031329</a>
 ;
 de Valpine et al. (2017) <a href="https://doi.org/10.1080/10618600.2016.1172487" class="external-link">doi:10.1080/10618600.2016.1172487</a>
 .</p>
@@ -265,7 +294,7 @@ de Valpine et al. (2017) <a href="https://doi.org/10.1080/10618600.2016.1172487"
 ;
 de Valpine et al. (2017) <a href="https://doi.org/10.1080/10618600.2016.1172487" class="external-link">doi:10.1080/10618600.2016.1172487</a>
 .</p>
-<p>Hurn et al. (2003) <a href="https://doi.org/10.1198/1061860031329" class="external-link">doi:10.1198/1061860031329</a>
+<p>Neal, R.M. (2000) <a href="https://doi.org/10.1080/10618600.2000.10474879" class="external-link">doi:10.1080/10618600.2000.10474879</a>
 ;
 de Valpine et al. (2017) <a href="https://doi.org/10.1080/10618600.2016.1172487" class="external-link">doi:10.1080/10618600.2016.1172487</a>
 .</p>

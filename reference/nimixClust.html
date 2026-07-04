@@ -19,7 +19,7 @@ distribution argument.'><meta property="og:image" content="https://madsyair.gith
 
     <a class="navbar-brand me-2" href="../index.html">nimix</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -30,10 +30,9 @@ distribution argument.'><meta property="og:image" content="https://madsyair.gith
       <ul class="navbar-nav me-auto"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/mixClust-multivariate.html">Multivariate mixture clustering with the DPM engine</a></li>
-    <li><a class="dropdown-item" href="../articles/mixClust-univariate.html">Univariate mixture clustering with the DPM engine</a></li>
-    <li><a class="dropdown-item" href="../articles/mixReg.html">Mixtures of linear regressions</a></li>
-    <li><a class="dropdown-item" href="../articles/normal-gamma-vs-studentt.html">Heavy-tailed components: Student-t vs Normal-Gamma</a></li>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/mixClust-univariate.html">Univariate mixture clustering with the DPM engine</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
   </ul></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
@@ -68,12 +67,13 @@ multivariate Gaussian) is chosen from the shape of <code>data</code> and the
 <span>  K <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  K_max <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  distribution <span class="op">=</span> <span class="st">"normal"</span>,</span>
-<span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"dpm"</span>, <span class="st">"fixedk"</span>, <span class="st">"rjmcmc"</span><span class="op">)</span>,</span>
+<span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"dpm"</span>, <span class="st">"fixedk"</span>, <span class="st">"mrf"</span><span class="op">)</span>,</span>
 <span>  prior <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  mcmcControl <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  initMethod <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"kmeans"</span>, <span class="st">"single"</span><span class="op">)</span>,</span>
 <span>  seed <span class="op">=</span> <span class="fl">1L</span>,</span>
-<span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  spatialWeights <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -113,7 +113,10 @@ Poisson / Binomial are planned for v0.4.0.</p></dd>
 <dt id="arg-method">method<a class="anchor" aria-label="anchor" href="#arg-method"></a></dt>
 <dd><p>Engine: <code>"dpm"</code> (default; estimate the number of
 components), <code>"fixedk"</code> (finite mixture with known <code>K</code>), or
-<code>"rjmcmc"</code> (planned for v0.5.0, currently errors).</p></dd>
+<code>"mrf"</code> (spatially constrained finite mixture: known <code>K</code>,
+Potts smoothing of the labels on a <code>spatialWeights</code> graph;
+univariate Gaussian components, fixed interaction <code>prior$beta</code>,
+default 0.8).</p></dd>
 
 
 <dt id="arg-prior">prior<a class="anchor" aria-label="anchor" href="#arg-prior"></a></dt>
@@ -125,8 +128,28 @@ mixture, <code>dirichletConc</code> for the Dirichlet weight prior.</p></dd>
 
 
 <dt id="arg-mcmccontrol">mcmcControl<a class="anchor" aria-label="anchor" href="#arg-mcmccontrol"></a></dt>
-<dd><p>A named list with <code>niter</code>, <code>nburnin</code>,
-<code>thin</code>.</p></dd>
+<dd><p>A named list of MCMC controls: <code>niter</code>,
+<code>nburnin</code>, <code>thin</code>, the optional <code>initRatio</code> – the
+fraction of the truncation / component cap (<code>K_max</code> or <code>K</code>)
+seeded by the dispersed cluster initialisation (default 0.8; must lie in
+(0, 1)). Lower it to leave more headroom below the truncation; raising it
+to 0.95 or above is allowed but warns, as it leaves little headroom –
+and <code>reuse</code> (default <code>TRUE</code>): reuse a compiled NIMBLE model when
+a later fit has an identical structure (same generated code, constants,
+monitors and component family), resetting only data and initial values.
+This skips recompilation for repeated fits (multiple seeds, multiple
+chains) and is bit-for-bit identical to a fresh compile. See
+<code><a href="nimixClearCache.html">nimixClearCache</a></code>. Also <code>nchains</code> (default 1): run this
+many chains from dispersed, separately seeded starts (reusing the compiled
+model, so only the first chain compiles) and report multi-chain split-Rhat
+and effective sample size for label-invariant quantities in
+<code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code>. Set <code>parallel = TRUE</code> (with <code>nchains &gt; 1</code>) to
+run the chains in parallel: each worker compiles its own model in a
+separate directory (the only fork-safe way to parallelise NIMBLE), using
+<code><a href="https://rdrr.io/r/parallel/mclapply.html" class="external-link">parallel::mclapply</a></code>. This requires a forking platform (Unix/macOS,
+not Windows, where it falls back to sequential) and trades the
+compile-once cache for one compile per worker; <code>ncores</code> caps the
+number of workers (default all detected cores).</p></dd>
 
 
 <dt id="arg-initmethod">initMethod<a class="anchor" aria-label="anchor" href="#arg-initmethod"></a></dt>
@@ -144,6 +167,12 @@ Defaults to <code>FALSE</code> (quiet): NIMBLE's compilation notes and the benig
 dCRP truncation note are silenced, while nimix's own diagnostics (e.g. a
 censored-posterior warning) and any error still surface. Set <code>TRUE</code> to
 see NIMBLE's configuration and a progress bar.</p></dd>
+
+
+<dt id="arg-spatialweights">spatialWeights<a class="anchor" aria-label="anchor" href="#arg-spatialweights"></a></dt>
+<dd><p>Optional <code><a href="SpatialWeightSpec-class.html">SpatialWeightSpec</a></code>
+describing a neighbourhood graph on the observations (one region per
+observation). Required by, and only used with, <code>method = "mrf"</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -185,12 +214,12 @@ mixture models. <em>JCGS</em>, 9(2), 249–265.
 <span class="r-out co"><span class="r-pr">#&gt;</span> 0.718 0.246 0.030 0.005 0.001 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Relabelled component estimates (posterior mean; CIs for univariate):</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  component weight mu_mean mu_lwr mu_upr s2_mean s2_lwr s2_upr</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>          1  0.501    2.94   2.73   3.17    1.28  0.986    1.7</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>          2  0.499   -2.89  -3.10  -2.68    1.15  0.867    1.5</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  component weight mu_mean mu_med mu_lwr mu_upr s2_mean s2_med s2_lwr s2_upr</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          1  0.501    2.95   2.95   2.73   3.17    1.28   1.26  0.986    1.7</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          2  0.499   -2.89  -2.89  -3.10  -2.68    1.15   1.14  0.867    1.5</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Mixing diagnostic (single chain): ESS(alpha) = 668, ESS(#clusters) = 432</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Note: cross-chain Rhat requires multiple chains (planned v0.9.0).</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Mixing diagnostic (single chain): ESS(#clusters) = 432, ESS(alpha) = 668</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Set mcmcControl$nchains &gt; 1 for cross-chain split-Rhat.</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span>, type <span class="op">=</span> <span class="st">"K"</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="nimixClust-1.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span></span></span>
@@ -211,12 +240,12 @@ mixture models. <em>JCGS</em>, 9(2), 249–265.
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Relabelled component estimates (posterior mean; CIs for univariate):</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  component weight mu_mean mu_lwr mu_upr s2_mean s2_lwr s2_upr</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>          1  0.499   -2.89  -3.10  -2.68    1.15  0.863   1.53</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>          2  0.501    2.95   2.73   3.18    1.28  0.958   1.69</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  component weight mu_mean mu_med mu_lwr mu_upr s2_mean s2_med s2_lwr s2_upr</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          1  0.499   -2.89  -2.88  -3.10  -2.68    1.15   1.14  0.863   1.53</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          2  0.501    2.95   2.95   2.73   3.18    1.28   1.26  0.958   1.69</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Mixing diagnostic (single chain): ESS(alpha) = NA, ESS(#clusters) = 0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Note: cross-chain Rhat requires multiple chains (planned v0.9.0).</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Mixing diagnostic (single chain): ESS(#clusters) = 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Set mcmcControl$nchains &gt; 1 for cross-chain split-Rhat.</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co">## Multivariate (2-D), DPM</span></span></span>
 <span class="r-in"><span><span class="va">Y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">200</span>, <span class="op">-</span><span class="fl">2</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>,</span></span>
@@ -228,21 +257,25 @@ mixture models. <em>JCGS</em>, 9(2), 249–265.
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Relabelling MCMC output before summarising (label switching)...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> nimix mixture summary (engine: dpm, distribution: normal-mv)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Observations: 200 (dimension d = 2)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Relabelling: ECR-ITERATIVE-1 conditioned on modal K = 3 (325 draws)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Relabelling: ECR-ITERATIVE-1 conditioned on modal K = 3 (303 draws)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Posterior of number of occupied clusters:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     2     3     4     5     6     7     8 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 0.215 0.325 0.243 0.125 0.063 0.023 0.006 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 0.096 0.303 0.298 0.174 0.093 0.024 0.012 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Relabelled component estimates (posterior mean; CIs for univariate):</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  component weight   mu_1   mu_2 var_1 var_2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>          1 0.0544  0.476 -0.169  2.15 1.557</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>          2 0.4783 -2.267 -2.113  1.02 1.087</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>          3 0.4673  2.109  2.005  1.07 0.942</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  component weight mu_1_mean mu_1_med mu_1_lwr mu_1_upr mu_2_mean mu_2_med</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          1 0.4705    2.1304   2.1200     1.90     2.45     1.974    1.956</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          2 0.0898    0.0287   0.0988    -3.03     2.34    -0.549   -0.258</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          3 0.4397   -2.3393  -2.3235    -2.79    -1.80    -2.047   -2.077</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  mu_2_lwr mu_2_upr var_1_mean var_1_med var_2_mean var_2_med</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      1.68     2.35      1.032     1.029      0.977     0.977</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     -3.23     2.33      1.906     1.353      1.627     1.349</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     -2.33    -1.59      0.944     0.936      1.001     0.996</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Mixing diagnostic (single chain): ESS(alpha) = 199, ESS(#clusters) = 64</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Note: cross-chain Rhat requires multiple chains (planned v0.9.0).</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Mixing diagnostic (single chain): ESS(#clusters) = 80, ESS(alpha) = 223</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Set mcmcControl$nchains &gt; 1 for cross-chain split-Rhat.</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fitMv</span>, type <span class="op">=</span> <span class="st">"cluster"</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="nimixClust-2.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="co"># }</span></span></span>

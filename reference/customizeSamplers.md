@@ -23,10 +23,10 @@ customizeSamplers(spec, conf, model, ...)
 # S4 method for class 'NormalGammaMvRegSpec'
 customizeSamplers(spec, conf, model, ...)
 
-# S4 method for class 'NormalGammaUvSpec'
+# S4 method for class 'NormalGammaMvSpec'
 customizeSamplers(spec, conf, model, ...)
 
-# S4 method for class 'NormalGammaMvSpec'
+# S4 method for class 'NormalGammaUvSpec'
 customizeSamplers(spec, conf, model, ...)
 ```
 
@@ -64,9 +64,9 @@ The (possibly modified) `conf`, invisibly.
 - `customizeSamplers(NormalGammaMvRegSpec)`: Slice-sample the latent
   precision multipliers.
 
+- `customizeSamplers(NormalGammaMvSpec)`: Slice-sample the latent
+  precision multipliers.
+
 - `customizeSamplers(NormalGammaUvSpec)`: Slice-sample the latent
   precision multipliers, which mixes the partition better than the
   default random walk.
-
-- `customizeSamplers(NormalGammaMvSpec)`: Slice-sample the latent
-  precision multipliers.

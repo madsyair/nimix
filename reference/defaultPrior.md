@@ -10,25 +10,28 @@ arbitrarily vague when `K_max` is large).
 ``` r
 defaultPrior(spec, data, control = list(), ...)
 
-# S4 method for class 'NormalUvSpec'
-defaultPrior(spec, data, control = list(), ...)
-
-# S4 method for class 'NormalMvSpec'
-defaultPrior(spec, data, control = list(), ...)
-
-# S4 method for class 'NormalRegSpec'
-defaultPrior(spec, data, control = list(), ...)
-
 # S4 method for class 'PoissonRegSpec'
 defaultPrior(spec, data, control = list(), ...)
 
 # S4 method for class 'BinomialRegSpec'
 defaultPrior(spec, data, control = list(), ...)
 
+# S4 method for class 'GMSNBurrUvSpec'
+defaultPrior(spec, data, control = list(), ...)
+
+# S4 method for class 'NormalRegSpec'
+defaultPrior(spec, data, control = list(), ...)
+
 # S4 method for class 'StudentTRegSpec'
 defaultPrior(spec, data, control = list(), ...)
 
 # S4 method for class 'NormalGammaRegSpec'
+defaultPrior(spec, data, control = list(), ...)
+
+# S4 method for class 'MSNBurrUvSpec'
+defaultPrior(spec, data, control = list(), ...)
+
+# S4 method for class 'MSNBurr2aUvSpec'
 defaultPrior(spec, data, control = list(), ...)
 
 # S4 method for class 'NormalMvRegSpec'
@@ -40,22 +43,28 @@ defaultPrior(spec, data, control = list(), ...)
 # S4 method for class 'NormalGammaMvRegSpec'
 defaultPrior(spec, data, control = list(), ...)
 
-# S4 method for class 'StudentTUvSpec'
-defaultPrior(spec, data, control = list(), ...)
-
-# S4 method for class 'NormalGammaUvSpec'
-defaultPrior(spec, data, control = list(), ...)
-
-# S4 method for class 'StudentTMvSpec'
+# S4 method for class 'NormalMvSpec'
 defaultPrior(spec, data, control = list(), ...)
 
 # S4 method for class 'NormalGammaMvSpec'
+defaultPrior(spec, data, control = list(), ...)
+
+# S4 method for class 'NormalUvSpec'
+defaultPrior(spec, data, control = list(), ...)
+
+# S4 method for class 'NormalGammaUvSpec'
 defaultPrior(spec, data, control = list(), ...)
 
 # S4 method for class 'PoissonSpec'
 defaultPrior(spec, data, control = list(), ...)
 
 # S4 method for class 'BinomialSpec'
+defaultPrior(spec, data, control = list(), ...)
+
+# S4 method for class 'StudentTMvSpec'
+defaultPrior(spec, data, control = list(), ...)
+
+# S4 method for class 'StudentTUvSpec'
 defaultPrior(spec, data, control = list(), ...)
 ```
 
@@ -84,20 +93,12 @@ A named list of prior hyperparameters.
 
 ## Functions
 
-- `defaultPrior(NormalUvSpec)`: Data-scaled Normal-Inverse-Gamma prior.
+- `defaultPrior(PoissonRegSpec)`: g-prior on the coefficients.
 
-  Control overrides: `cLoc` (location spread multiplier; prior sd of
-  `mu` ~ `cLoc * sd(data)`, default 2), `nu0` (InvGamma shape, default
-  3, must exceed 2 for a finite prior variance), and `concPrior`.
+- `defaultPrior(BinomialRegSpec)`: g-prior on the coefficients; needs
+  `size`.
 
-- `defaultPrior(NormalMvSpec)`: Data-scaled Normal-Inverse-Wishart prior
-  (multivariate).
-
-  Control overrides: `cLoc` (mean-dispersion multiplier; prior
-  covariance of `mu` is `Sigma / kappa0` with `kappa0 = 1 / cLoc^2`,
-  default `cLoc = 2`) and `df0` (inverse-Wishart degrees of freedom,
-  default `d + 2`, must exceed `d + 1` for a finite, non-singular prior
-  covariance on empty components).
+- `defaultPrior(GMSNBurrUvSpec)`: Data-scaled GMSNBurr prior.
 
 - `defaultPrior(NormalRegSpec)`: Data-scaled Normal-Inverse-Gamma
   g-prior for the regression component. Requires the design matrix in
@@ -108,16 +109,16 @@ A named list of prior hyperparameters.
   prior) and `nu0` (InvGamma shape, default 3, must exceed 2 for a
   finite prior variance).
 
-- `defaultPrior(PoissonRegSpec)`: g-prior on the coefficients.
-
-- `defaultPrior(BinomialRegSpec)`: g-prior on the coefficients; needs
-  `size`.
-
 - `defaultPrior(StudentTRegSpec)`: NIG g-prior plus a fixed `df`
   (default 4, \> 2).
 
 - `defaultPrior(NormalGammaRegSpec)`: NIG g-prior plus a fixed `df`
   (default 4, \> 2).
+
+- `defaultPrior(MSNBurrUvSpec)`: Data-scaled MSNBurr prior
+  (location/scale/shape).
+
+- `defaultPrior(MSNBurr2aUvSpec)`: Data-scaled MSNBurr-IIa prior.
 
 - `defaultPrior(NormalMvRegSpec)`: Inverse-Wishart on Sigma +
   matrix-normal coefficients.
@@ -128,27 +129,42 @@ A named list of prior hyperparameters.
 - `defaultPrior(NormalGammaMvRegSpec)`: Inverse-Wishart + matrix-normal
   plus a fixed `df`.
 
-- `defaultPrior(StudentTUvSpec)`: Data-scaled Normal location / Gamma
-  precision prior for the Student-t component.
+- `defaultPrior(NormalMvSpec)`: Data-scaled Normal-Inverse-Wishart prior
+  (multivariate).
 
-  Control overrides: `cLoc` (location spread multiplier, default 2),
-  `df` (degrees of freedom, a fixed hyperparameter, default 4, must
-  exceed 2 for a finite component variance).
-
-- `defaultPrior(NormalGammaUvSpec)`: Normal-Inverse-Gamma prior plus a
-  fixed `df` (degrees of freedom, default 4, must exceed 2 for a finite
-  component variance).
-
-- `defaultPrior(StudentTMvSpec)`: Normal-Inverse-Wishart prior plus a
-  fixed `df` (default 5, must exceed 2 for a finite component
-  covariance).
+  Control overrides: `cLoc` (mean-dispersion multiplier; prior
+  covariance of `mu` is `Sigma / kappa0` with `kappa0 = 1 / cLoc^2`,
+  default `cLoc = 2`) and `df0` (inverse-Wishart degrees of freedom,
+  default `d + 2`, must exceed `d + 1` for a finite, non-singular prior
+  covariance on empty components).
 
 - `defaultPrior(NormalGammaMvSpec)`: Normal-Inverse-Wishart prior plus a
   fixed `df` (default 5, must exceed 2 for a finite component
   covariance).
+
+- `defaultPrior(NormalUvSpec)`: Data-scaled Normal-Inverse-Gamma prior.
+
+  Control overrides: `cLoc` (location spread multiplier; prior sd of
+  `mu` ~ `cLoc * sd(data)`, default 2), `nu0` (InvGamma shape, default
+  3, must exceed 2 for a finite prior variance), and `concPrior`.
+
+- `defaultPrior(NormalGammaUvSpec)`: Normal-Inverse-Gamma prior plus a
+  fixed `df` (degrees of freedom, default 4, must exceed 2 for a finite
+  component variance).
 
 - `defaultPrior(PoissonSpec)`: Data-scaled Gamma prior on the Poisson
   rate (`E[lambda] ~= mean(y)`).
 
 - `defaultPrior(BinomialSpec)`: Data-scaled Beta prior on the success
   probability. Requires the number of trials in `control$size`.
+
+- `defaultPrior(StudentTMvSpec)`: Normal-Inverse-Wishart prior plus a
+  fixed `df` (default 5, must exceed 2 for a finite component
+  covariance).
+
+- `defaultPrior(StudentTUvSpec)`: Data-scaled Normal location / Gamma
+  precision prior for the Student-t component.
+
+  Control overrides: `cLoc` (location spread multiplier, default 2),
+  `df` (degrees of freedom, a fixed hyperparameter, default 4, must
+  exceed 2 for a finite component variance).

@@ -11,13 +11,13 @@ isRegressionSpec(spec, ...)
 # S4 method for class 'DistributionSpec'
 isRegressionSpec(spec, ...)
 
-# S4 method for class 'NormalRegSpec'
-isRegressionSpec(spec, ...)
-
 # S4 method for class 'PoissonRegSpec'
 isRegressionSpec(spec, ...)
 
 # S4 method for class 'BinomialRegSpec'
+isRegressionSpec(spec, ...)
+
+# S4 method for class 'NormalRegSpec'
 isRegressionSpec(spec, ...)
 
 # S4 method for class 'NormalMvRegSpec'
@@ -43,13 +43,13 @@ Logical scalar.
 
 - `isRegressionSpec(DistributionSpec)`: Default: not a regression spec.
 
-- `isRegressionSpec(NormalRegSpec)`: Normal-linear regression is a
-  regression spec.
-
 - `isRegressionSpec(PoissonRegSpec)`: Poisson regression is a regression
   spec.
 
 - `isRegressionSpec(BinomialRegSpec)`: Binomial regression is a
+  regression spec.
+
+- `isRegressionSpec(NormalRegSpec)`: Normal-linear regression is a
   regression spec.
 
 - `isRegressionSpec(NormalMvRegSpec)`: Multivariate-response regression
