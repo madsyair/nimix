@@ -29,4 +29,8 @@ mixture models. \emph{JCGS}, 9(2), 249--265.
 Ferguson, T.S. (1973). A Bayesian analysis of some nonparametric problems.
 \emph{The Annals of Statistics}, 1(2), 209--230.
 \doi{10.1214/aos/1176342360}
+
+Escobar, M.D., & West, M. (1995). Bayesian density estimation and inference
+using mixtures. \emph{JASA}, 90(430), 577--588.
+\doi{10.1080/01621459.1995.10476550}
 }

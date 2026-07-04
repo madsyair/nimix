@@ -10,13 +10,14 @@ nimixReg(
   K = NULL,
   K_max = NULL,
   distribution = "normal",
-  method = c("dpm", "fixedk", "rjmcmc"),
+  method = c("dpm", "fixedk", "mrf"),
   gating = c("constant", "covariate"),
   prior = list(),
   mcmcControl = list(),
   initMethod = c("kmeans", "single"),
   seed = 1L,
-  verbose = FALSE
+  verbose = FALSE,
+  spatialWeights = NULL
 )
 }
 \arguments{
@@ -36,7 +37,10 @@ A generous data-aware default (with headroom) is used when missing.}
 (Gaussian linear component). Other GLM families are planned.}
 
 \item{method}{Engine: \code{"dpm"} (default; estimate the number of
-components), \code{"fixedk"} (fixed \code{K}), or \code{"rjmcmc"} (planned).}
+components), \code{"fixedk"} (fixed \code{K}), or \code{"mrf"}
+(spatially constrained: fixed \code{K}, Potts smoothing of the labels on
+a \code{spatialWeights} graph; Gaussian response, fixed
+\code{prior$beta}, default 0.8).}
 
 \item{gating}{Mixing-weight model: \code{"constant"} (default; weights do not
 depend on covariates). \code{"covariate"} (concomitant gating) is a planned
@@ -48,8 +52,12 @@ opt-in and currently errors.}
 \code{concPrior = c(shape, rate)}, or, for the finite mixture,
 \code{dirichletConc}.}
 
-\item{mcmcControl}{A named list with \code{niter}, \code{nburnin},
-\code{thin}.}
+\item{mcmcControl}{A named list of MCMC controls: \code{niter},
+\code{nburnin}, \code{thin}, and the optional \code{initRatio} -- the
+fraction of the truncation / component cap (\code{K_max} or \code{K})
+seeded by the dispersed cluster initialisation (default 0.8; must lie in
+(0, 1)). Lower it to leave more headroom below the truncation; raising it
+to 0.95 or above is allowed but warns, as it leaves little headroom.}
 
 \item{initMethod}{Initialisation: \code{"kmeans"} (default) or
 \code{"single"}.}
@@ -61,6 +69,10 @@ Defaults to \code{FALSE} (quiet): NIMBLE's compilation notes and the benign
 dCRP truncation note are silenced, while nimix's own diagnostics (e.g. a
 censored-posterior warning) and any error still surface. Set \code{TRUE} to
 see NIMBLE's configuration and a progress bar.}
+
+\item{spatialWeights}{Optional \code{\linkS4class{SpatialWeightSpec}} (one
+region per observation). Required by, and only used with,
+\code{method = "mrf"}.}
 }
 \value{
 A \code{\linkS4class{FitResult}}. \code{summary()} reports relabelled

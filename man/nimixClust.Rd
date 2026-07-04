@@ -9,12 +9,13 @@ nimixClust(
   K = NULL,
   K_max = NULL,
   distribution = "normal",
-  method = c("dpm", "fixedk", "rjmcmc"),
+  method = c("dpm", "fixedk", "mrf"),
   prior = list(),
   mcmcControl = list(),
   initMethod = c("kmeans", "single"),
   seed = 1L,
-  verbose = FALSE
+  verbose = FALSE,
+  spatialWeights = NULL
 )
 }
 \arguments{
@@ -41,7 +42,10 @@ Poisson / Binomial are planned for v0.4.0.}
 
 \item{method}{Engine: \code{"dpm"} (default; estimate the number of
 components), \code{"fixedk"} (finite mixture with known \code{K}), or
-\code{"rjmcmc"} (planned for v0.5.0, currently errors).}
+\code{"mrf"} (spatially constrained finite mixture: known \code{K},
+Potts smoothing of the labels on a \code{spatialWeights} graph;
+univariate Gaussian components, fixed interaction \code{prior$beta},
+default 0.8).}
 
 \item{prior}{A named list of prior overrides passed to
 \code{\link{defaultPrior}} (univariate: \code{cLoc}, \code{nu0};
@@ -49,8 +53,22 @@ multivariate: \code{cLoc}, \code{df0}) plus, for the DPM, optional
 \code{concPrior = c(shape, rate)} for the concentration, or, for the finite
 mixture, \code{dirichletConc} for the Dirichlet weight prior.}
 
-\item{mcmcControl}{A named list with \code{niter}, \code{nburnin},
-\code{thin}.}
+\item{mcmcControl}{A named list of MCMC controls: \code{niter},
+\code{nburnin}, \code{thin}, the optional \code{initRatio} -- the
+fraction of the truncation / component cap (\code{K_max} or \code{K})
+seeded by the dispersed cluster initialisation (default 0.8; must lie in
+(0, 1)). Lower it to leave more headroom below the truncation; raising it
+to 0.95 or above is allowed but warns, as it leaves little headroom --
+and \code{reuse} (default \code{TRUE}): reuse a compiled NIMBLE model when
+a later fit has an identical structure (same generated code, constants,
+monitors and component family), resetting only data and initial values.
+This skips recompilation for repeated fits (multiple seeds, multiple
+chains) and is bit-for-bit identical to a fresh compile. See
+\code{\link{nimixClearCache}}. Also \code{nchains} (default 1): run this
+many chains from dispersed, separately seeded starts (reusing the compiled
+model, so only the first chain compiles) and report multi-chain split-Rhat
+and effective sample size for label-invariant quantities in
+\code{summary()}.}
 
 \item{initMethod}{Initialisation for the cluster allocation: \code{"kmeans"}
 (default, dispersed start) or \code{"single"}.}
@@ -62,6 +80,10 @@ Defaults to \code{FALSE} (quiet): NIMBLE's compilation notes and the benign
 dCRP truncation note are silenced, while nimix's own diagnostics (e.g. a
 censored-posterior warning) and any error still surface. Set \code{TRUE} to
 see NIMBLE's configuration and a progress bar.}
+
+\item{spatialWeights}{Optional \code{\linkS4class{SpatialWeightSpec}}
+describing a neighbourhood graph on the observations (one region per
+observation). Required by, and only used with, \code{method = "mrf"}.}
 }
 \value{
 A \code{\linkS4class{FitResult}}. Call \code{summary()} for

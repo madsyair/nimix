@@ -97,6 +97,9 @@ indicators \code{xi}.}
 
 \item{\code{mcmcControl}}{The MCMC control list actually used.}
 
+\item{\code{diagnostics}}{Multi-chain convergence diagnostics (Rhat, ESS) when more
+than one chain is run; otherwise a single-chain summary.}
+
 \item{\code{call}}{The matched call.}
 }}
 
