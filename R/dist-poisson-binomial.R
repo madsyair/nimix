@@ -1,3 +1,6 @@
+#' @include class-DistributionSpec.R
+NULL
+
 ## ---------------------------------------------------------------------------
 ## dist-poisson-binomial.R
 ##

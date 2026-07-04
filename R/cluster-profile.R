@@ -1,3 +1,6 @@
+#' @include class-FitResult.R
+NULL
+
 ## cluster-profile.R -------------------------------------------------------------
 ## Data-side cluster profiling: assign each observation to its MAP cluster and
 ## describe the observed data within each cluster. Complements summary(), which

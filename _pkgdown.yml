@@ -98,14 +98,14 @@ reference:
   contents:
   - MSNBurrUvSpec
   - MSNBurr2aUvSpec
-  - MSNBurrUvSpec-class
-  - MSNBurr2aUvSpec-class
+  - GMSNBurrUvSpec
 
 - title: Neo-normal distribution functions
   desc: Numerically stable density, distribution, quantile, and RNG.
   contents:
   - msnburr-distribution
   - msnburr2a-distribution
+  - gmsnburr-distribution
 
 - title: Spatial mixtures (MRF)
   desc: >
@@ -118,9 +118,7 @@ reference:
   - getAdjacency
   - neighborsOf
   - MRFEngine
-  - SpatialWeightSpec
   - SpatialWeightSpec-class
-  - MRFEngine-class
 
 - title: Model containers
   contents:

@@ -1,3 +1,6 @@
+#' @include registerDistribution.R
+NULL
+
 ## ---------------------------------------------------------------------------
 ## nimixClust.R
 ##
@@ -31,6 +34,10 @@
     return(getDistribution(if (isMv) "student-t-mv" else "student-t"))
   if (distribution %in% c("normalgamma", "normal-gamma"))
     return(getDistribution(if (isMv) "normal-gamma-mv" else "normal-gamma"))
+  if (distribution %in% c("gmsnburr", "generalized-msnburr")) {
+    if (isMv) stop("distribution = '", distribution, "' is univariate.", call. = FALSE)
+    return(getDistribution("gmsnburr"))
+  }
   if (distribution %in% c("msnburr", "msnburr2a", "msnburr-iia")) {
     if (isMv)
       stop("distribution = '", distribution, "' is univariate.", call. = FALSE)
@@ -109,7 +116,13 @@
 #'   many chains from dispersed, separately seeded starts (reusing the compiled
 #'   model, so only the first chain compiles) and report multi-chain split-Rhat
 #'   and effective sample size for label-invariant quantities in
-#'   \code{summary()}.
+#'   \code{summary()}. Set \code{parallel = TRUE} (with \code{nchains > 1}) to
+#'   run the chains in parallel: each worker compiles its own model in a
+#'   separate directory (the only fork-safe way to parallelise NIMBLE), using
+#'   \code{parallel::mclapply}. This requires a forking platform (Unix/macOS,
+#'   not Windows, where it falls back to sequential) and trades the
+#'   compile-once cache for one compile per worker; \code{ncores} caps the
+#'   number of workers (default all detected cores).
 #' @param initMethod Initialisation for the cluster allocation: \code{"kmeans"}
 #'   (default, dispersed start) or \code{"single"}.
 #' @param seed Integer RNG seed for reproducibility.

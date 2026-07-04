@@ -1,3 +1,8 @@
+#' @include class-EngineConfig.R
+#' @include dist-gmsnburr.R
+#' @include dist-msnburr.R
+NULL
+
 ## engine-mrf.R ----------------------------------------------------------------
 ## Spatially constrained finite mixture (v0.6.0): the latent labels z[1:n]
 ## follow a Potts Markov random field on a user-supplied neighbourhood graph
@@ -900,3 +905,36 @@ setMethod(".mrfSamplerFor", "MSNBurrUvSpec",
           function(spec) .pottsGibbsMSNBurrSampler)
 setMethod(".mrfSamplerFor", "MSNBurr2aUvSpec",
           function(spec) .pottsGibbsMSNBurr2aSampler)
+
+# --- GMSNBurr MRF sweep (neo-normal, two shape params) -------------------------
+
+#' @keywords internal
+.pottsGibbsGMSNBurrSampler <- nimble::nimbleFunction(
+  contains = nimble::sampler_BASE,
+  setup = function(model, mvSaved, target, control) {
+    K <- control$K; nbrs <- control$nbrs; nDeg <- control$nDeg; n <- control$n
+    calcNodes <- model$getDependencies(target)
+  },
+  run = function() {
+    z <- model[["z"]]; mu <- model[["muTilde"]]; sg <- model[["sigmaTilde"]]
+    al <- model[["alphaTilde"]]; th <- model[["thetaTilde"]]
+    y <- model[["y"]]; beta <- model[["beta"]]
+    for (i in 1:n) {
+      lp <- numeric(K)
+      for (k in 1:K) {
+        same <- 0
+        if (nDeg[i] > 0) for (m in 1:nDeg[i]) if (z[nbrs[i, m]] == k) same <- same + 1
+        lp[k] <- dGMSNBurr_k(y[i], mu[k], sg[k], al[k], th[k], log = 1) +
+          beta * same
+      }
+      mx <- max(lp); p <- exp(lp - mx); p <- p / sum(p)
+      z[i] <- rcat(1, p)
+    }
+    model[["z"]] <<- z
+    model$calculate(calcNodes)
+    copy(from = model, to = mvSaved, row = 1, nodes = calcNodes, logProb = TRUE)
+  },
+  methods = list(reset = function() {}))
+
+setMethod(".mrfSamplerFor", "GMSNBurrUvSpec",
+          function(spec) .pottsGibbsGMSNBurrSampler)

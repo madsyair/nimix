@@ -10,3 +10,4 @@
 ^CRAN-SUBMISSION$
 ^codecov\.yml$
 ^\.lintr$
+^vignettes/articles$

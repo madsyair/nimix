@@ -68,7 +68,13 @@ chains) and is bit-for-bit identical to a fresh compile. See
 many chains from dispersed, separately seeded starts (reusing the compiled
 model, so only the first chain compiles) and report multi-chain split-Rhat
 and effective sample size for label-invariant quantities in
-\code{summary()}.}
+\code{summary()}. Set \code{parallel = TRUE} (with \code{nchains > 1}) to
+run the chains in parallel: each worker compiles its own model in a
+separate directory (the only fork-safe way to parallelise NIMBLE), using
+\code{parallel::mclapply}. This requires a forking platform (Unix/macOS,
+not Windows, where it falls back to sequential) and trades the
+compile-once cache for one compile per worker; \code{ncores} caps the
+number of workers (default all detected cores).}
 
 \item{initMethod}{Initialisation for the cluster allocation: \code{"kmeans"}
 (default, dispersed start) or \code{"single"}.}

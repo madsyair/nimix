@@ -1,3 +1,7 @@
+#' @include class-DistributionSpec.R
+#' @include class-EngineConfig.R
+NULL
+
 ## ---------------------------------------------------------------------------
 ## class-MixtureModel.R
 ##

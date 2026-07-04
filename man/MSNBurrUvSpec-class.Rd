@@ -4,13 +4,9 @@
 \name{MSNBurrUvSpec-class}
 \alias{MSNBurrUvSpec-class}
 \alias{MSNBurrUvSpec}
-\alias{MSNBurr2aUvSpec-class}
-\alias{MSNBurr2aUvSpec}
 \title{MSNBurr mixture components (neo-normal, left-skew capable)}
 \usage{
 MSNBurrUvSpec()
-
-MSNBurr2aUvSpec()
 }
 \description{
 Univariate neo-normal component family with location \code{mu}, scale

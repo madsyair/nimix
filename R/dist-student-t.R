@@ -1,3 +1,6 @@
+#' @include class-DistributionSpec.R
+NULL
+
 ## ---------------------------------------------------------------------------
 ## dist-student-t.R
 ##

@@ -50,7 +50,7 @@
 # (a standard accommodation for packages that build NIMBLE model code).
 utils::globalVariables(c(
   "getNimbleOption", "nf_preProcessMemberDataObject", "nimNumeric",
-  "dMSNBurr_k", "rMSNBurr_k", "dMSNBurr2a_k", "rMSNBurr2a_k",
+  "dMSNBurr_k", "rMSNBurr_k", "dMSNBurr2a_k", "rMSNBurr2a_k", "dGMSNBurr_k", "rGMSNBurr_k",
   "n", "L", "d", "y", "xi", "alpha", "aAlpha", "bAlpha",
   "mu0", "kappa0", "nu0", "s0", "df0", "S0",
   "muTilde", "s2Tilde", "covTilde", "muObs", "covObs", "covMu",

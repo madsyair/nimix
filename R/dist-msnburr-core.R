@@ -1,3 +1,6 @@
+#' @include neonorm-utils.R
+NULL
+
 ## dist-msnburr-core.R ----------------------------------------------------------
 ## MSNBurr d/p/q/r -- reference implementation contributed by the package
 ## maintainer (A. S. Choir), adopted verbatim for numerical-stability

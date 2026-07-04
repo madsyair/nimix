@@ -1,3 +1,7 @@
+#' @include class-FitResult.R
+#' @include class-DistributionSpec.R
+NULL
+
 ## workflow-ppc.R ---------------------------------------------------------------
 ## Posterior predictive checking (Bayesian workflow; Gelman et al. 2020,
 ## "Bayesian workflow", Section 6; Gelman, Meng & Stern 1996 for posterior
@@ -203,4 +207,13 @@ setMethod(".ppcSimulate", "MSNBurr2aUvSpec",
     sg <- samples[draw, .ppcCols(samples, "sigmaTilde")]
     al <- samples[draw, .ppcCols(samples, "alphaTilde")]
     rmsnburr2a(length(alloc), mu[alloc], sg[alloc], al[alloc])
+  })
+
+setMethod(".ppcSimulate", "GMSNBurrUvSpec",
+  function(spec, samples, draw, alloc, prior) {
+    mu <- samples[draw, .ppcCols(samples, "muTilde")]
+    sg <- samples[draw, .ppcCols(samples, "sigmaTilde")]
+    al <- samples[draw, .ppcCols(samples, "alphaTilde")]
+    th <- samples[draw, .ppcCols(samples, "thetaTilde")]
+    rgmsnburr(length(alloc), mu[alloc], sg[alloc], al[alloc], th[alloc])
   })

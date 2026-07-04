@@ -1,3 +1,6 @@
+#' @include class-DistributionSpec.R
+NULL
+
 ## ---------------------------------------------------------------------------
 ## class-FitResult.R
 ##

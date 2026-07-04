@@ -1,3 +1,7 @@
+#' @include class-EngineConfig.R
+#' @include class-DistributionSpec.R
+NULL
+
 ## ---------------------------------------------------------------------------
 ## engine-dpm.R
 ##
@@ -132,10 +136,23 @@ nimixClearCache <- function() {
          nchains = 1L), mcmcControl)
   reuse   <- isTRUE(ctrl$reuse)
   nchains <- max(1L, as.integer(ctrl$nchains))
+  # Parallel chains (opt-in). Each worker builds and compiles its OWN model, so
+  # no compiled C++ objects are shared across processes -- the only NIMBLE-safe
+  # way to parallelise. Uses forking (parallel::mclapply), so it has no effect
+  # on Windows (which cannot fork) and falls back to sequential there.
+  parallel <- isTRUE(ctrl$parallel) && nchains > 1L
+  if (parallel && (.Platform$OS.type == "windows" ||
+                   !requireNamespace("parallel", quietly = TRUE))) {
+    warning("parallel = TRUE needs a forking platform (not Windows) and the ",
+            "'parallel' package; running chains sequentially.", call. = FALSE)
+    parallel <- FALSE
+  }
+  ncores <- if (!is.null(ctrl$ncores)) as.integer(ctrl$ncores) else
+    if (parallel) max(1L, parallel::detectCores()) else 1L
   buildInits <- initsFn(seed)          # inits used only to build the structure
 
   # Expensive, cacheable: build + compile the model and its MCMC.
-  buildCompiled <- function() {
+  buildCompiled <- function(dirName = NULL) {
     .nimixModelCache$builds <- .nimixModelCache$builds + 1L
     rmodel <- nimble::nimbleModel(code = mc$code, constants = constants,
                                   data = dataList, inits = buildInits,
@@ -146,7 +163,8 @@ nimixClearCache <- function() {
     # rather than inheriting a previous run's end state.
     stochNodes <- rmodel$getNodeNames(stochOnly = TRUE, includeData = FALSE)
     stochVars  <- unique(sub("\\[.*$", "", stochNodes))
-    cmodel <- nimble::compileNimble(rmodel, showCompilerOutput = FALSE)
+    cmodel <- nimble::compileNimble(rmodel, showCompilerOutput = FALSE,
+                                    dirName = dirName)
     conf <- nimble::configureMCMC(rmodel, monitors = mc$monitors,
                                   print = verbose)
     customizeSamplers(spec, conf, rmodel)
@@ -216,11 +234,39 @@ nimixClearCache <- function() {
   chainEntropy <- vector("list", nchains)
   hasAlpha <- FALSE
   hasBeta  <- FALSE
+  # Produce the raw samples matrix for one chain. In parallel mode each worker
+  # builds & compiles its own model (safe under forking); in sequential mode
+  # chains reuse the cached compiled model (compile-once-reuse).
+  chainSamplesFor <- function(ch) {
+    chainSeed <- seed + (ch - 1L)          # distinct seed + dispersed inits
+    if (parallel) {
+      # unique compile dir per worker so forked NIMBLE builds never collide
+      compiled <- buildCompiled(dirName = tempfile("nimix_chain_"))
+      as.matrix(runWith(compiled, initsFn(chainSeed), chainSeed))
+    } else {
+      runChain(initsFn(chainSeed), chainSeed)
+    }
+  }
+
+  if (parallel) {
+    chainSamples <- parallel::mclapply(
+      seq_len(nchains), chainSamplesFor,
+      mc.cores = min(ncores, nchains), mc.set.seed = FALSE)
+    bad <- which(vapply(chainSamples,
+                        function(x) inherits(x, "try-error") || is.null(x),
+                        logical(1)))
+    if (length(bad))
+      stop("Parallel chain ", bad[1], " failed: ",
+           conditionMessage(attr(chainSamples[[bad[1]]], "condition")),
+           call. = FALSE)
+  } else {
+    chainSamples <- lapply(seq_len(nchains), chainSamplesFor)
+  }
+
+  # Derived per-chain quantities (cheap; always sequential).
   for (ch in seq_len(nchains)) {
-    chainSeed <- seed + (ch - 1L)              # distinct seed + dispersed inits
-    S <- runChain(initsFn(chainSeed), chainSeed)
+    S <- chainSamples[[ch]]
     a <- parseAlloc(S)
-    chainSamples[[ch]] <- S
     chainAlloc[[ch]]   <- a
     chainK[[ch]]       <- .rowDistinct(a, count)
     chainEntropy[[ch]] <- .allocEntropy(a, count)

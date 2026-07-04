@@ -1,3 +1,6 @@
+#' @include utils-internal.R
+NULL
+
 ## ---------------------------------------------------------------------------
 ## class-DistributionSpec.R
 ##

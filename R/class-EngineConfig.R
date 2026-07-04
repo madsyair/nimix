@@ -1,3 +1,7 @@
+#' @include class-SpatialWeightSpec.R
+#' @include class-DistributionSpec.R
+NULL
+
 ## ---------------------------------------------------------------------------
 ## class-EngineConfig.R
 ##

@@ -1,3 +1,7 @@
+#' @include class-DistributionSpec.R
+#' @include dist-msnburr-core.R
+NULL
+
 ## dist-msnburr.R ----------------------------------------------------------------
 ## MSNBurr and MSNBurr-IIa neo-normal mixture components (Iriawan 2000;
 ## Choir 2020). alpha controls skewness: MSNBurr accommodates left skew,
@@ -36,7 +40,17 @@ setClass(
 #' @export
 MSNBurrUvSpec <- function() methods::new("MSNBurrUvSpec")
 
-#' @rdname MSNBurrUvSpec-class
+#' MSNBurr-IIa mixture components (neo-normal, right-skew capable)
+#'
+#' Mirror image of \code{\link{MSNBurrUvSpec}}: the MSNBurr-IIa family
+#' (Iriawan 2000; Choir 2020) accommodates right skew, with \code{alpha = 1}
+#' again the logistic distribution.
+#'
+#' @references
+#' Choir, A. S. (2020). The New Neo-Normal Distributions and their Properties.
+#' Dissertation. Institut Teknologi Sepuluh Nopember.
+#' @keywords internal
+#' @rdname MSNBurr2aUvSpec-class
 #' @export
 setClass(
   "MSNBurr2aUvSpec",
@@ -45,7 +59,7 @@ setClass(
                         paramNames = c("mu", "sigma", "alpha"), dataDim = 1L)
 )
 
-#' @rdname MSNBurrUvSpec-class
+#' @rdname MSNBurr2aUvSpec-class
 #' @export
 MSNBurr2aUvSpec <- function() methods::new("MSNBurr2aUvSpec")
 

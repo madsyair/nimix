@@ -13,32 +13,51 @@ Description: Bayesian finite and nonparametric mixture models for clustering and
     engine and a fixed-number-of-components engine, plus post-hoc label
     switching correction.
 License: GPL-3
-URL: https://github.com/madsyair/nimix,
-        https://madsyair.github.io/nimix/
+URL: https://github.com/madsyair/nimix, https://madsyair.github.io/nimix/
 BugReports: https://github.com/madsyair/nimix/issues
 Encoding: UTF-8
 LazyData: true
 Depends: R (>= 4.1.0), nimble (>= 1.0.0)
 Imports: label.switching, coda, methods, stats, graphics
-Suggests: testthat (>= 3.0.0), knitr, rmarkdown, loo
+Suggests: testthat (>= 3.0.0), knitr, rmarkdown,
+    loo
 VignetteBuilder: knitr
 Config/testthat/edition: 3
-Collate: 'utils-internal.R' 'class-SpatialWeightSpec.R'
-        'class-DistributionSpec.R' 'class-EngineConfig.R'
-        'class-MixtureModel.R' 'class-FitResult.R' 'dist-normal-uv.R'
-        'dist-normal-mv.R' 'dist-normal-reg.R' 'dist-glm-reg.R'
-        'dist-heavytail-reg.R' 'dist-mv-reg.R' 'neonorm-utils.R'
-        'dist-msnburr-core.R' 'dist-msnburr.R' 'dist-student-t.R'
-        'dist-normal-gamma.R' 'dist-student-t-mv.R'
-        'dist-normal-gamma-mv.R' 'dist-poisson-binomial.R'
-        'engine-dpm.R' 'engine-fixedk.R' 'engine-mrf.R'
-        'registerDistribution.R' 'utils-labelswitch.R'
-        'methods-summary-plot.R' 'workflow-ppc.R' 'cluster-profile.R'
-        'model-selection.R' 'nimixClust.R' 'nimixReg.R'
-        'nimix-package.R' 'data.R'
+Collate: 
+    'utils-internal.R'
+    'class-DistributionSpec.R'
+    'class-SpatialWeightSpec.R'
+    'class-EngineConfig.R'
+    'class-FitResult.R'
+    'class-MixtureModel.R'
+    'cluster-profile.R'
+    'data.R'
+    'dist-glm-reg.R'
+    'neonorm-utils.R'
+    'dist-gmsnburr-core.R'
+    'dist-gmsnburr.R'
+    'dist-normal-reg.R'
+    'dist-heavytail-reg.R'
+    'dist-msnburr-core.R'
+    'dist-msnburr.R'
+    'dist-mv-reg.R'
+    'dist-normal-mv.R'
+    'dist-normal-gamma-mv.R'
+    'dist-normal-uv.R'
+    'dist-normal-gamma.R'
+    'dist-poisson-binomial.R'
+    'dist-student-t-mv.R'
+    'dist-student-t.R'
+    'engine-dpm.R'
+    'engine-fixedk.R'
+    'engine-mrf.R'
+    'methods-summary-plot.R'
+    'model-selection.R'
+    'nimix-package.R'
+    'registerDistribution.R'
+    'nimixClust.R'
+    'nimixReg.R'
+    'utils-labelswitch.R'
+    'workflow-ppc.R'
 Config/roxygen2/version: 8.0.0
 NeedsCompilation: no
-Packaged: 2026-07-04 17:12:07 UTC; root
-Author: Achmad Syahrul Choir [aut, cre]
-    (<https://orcid.org/0000-0001-7088-0646>)
-Maintainer: Achmad Syahrul Choir <madsyair@stis.ac.id>

@@ -1,5 +1,34 @@
 # nimix 1.0.0 (in development)
 
+## New neo-normal family: GMSNBurr
+
+* `distribution = "gmsnburr"`: the generalized MSNBurr (Iriawan 2000; Choir
+  2020) with two shape parameters `alpha` and `theta`. `theta = 1` recovers
+  MSNBurr, `alpha = 1` recovers MSNBurr-IIa, `alpha = theta` is symmetric, and
+  `alpha = theta -> inf` converges to the Normal. Available under all three
+  engines (finite-K, DPM, MRF), numerically stable (NIMBLE density matches the
+  R reference to 1e-8; density integrates to one; exact reduction to MSNBurr /
+  MSNBurr-IIa verified). `d/p/q/r` functions and `ppCheck()` support included.
+
+## Parallel chains
+
+* `mcmcControl` gains `parallel = TRUE` (with `nchains > 1`) to run chains in
+  parallel via `parallel::mclapply`. Each worker builds and compiles its own
+  model in a separate directory -- the only fork-safe way to parallelise
+  NIMBLE, avoiding the shared-C++-object and temp-directory collisions that a
+  naive `mclapply` would hit. Forking only (Unix/macOS; Windows falls back to
+  sequential); `ncores` caps the worker count. Verified to recover the same
+  label-invariant summary as the sequential path.
+
+## Bug fix: robust source load order
+
+* Added `@include` directives across the S4 class and spec files so the
+  package's `Collate` order is derived topologically from the actual class
+  dependencies. This fixes a load failure (`undefined slot classes in
+  definition of "MRFEngine"` / `no definition found for superclass
+  "NormalRegSpec"`) that could occur whenever files were sourced in
+  alphabetical rather than `Collate` order.
+
 ## Cluster profiling, richer summaries, model selection and ensembling
 
 * `summary()` of a relabelled clustering fit now reports the posterior

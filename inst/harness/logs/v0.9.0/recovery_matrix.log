@@ -1,0 +1,102 @@
+
+### group: uvnorm ###
+-- normal-uv x dpm --
+  seed 7 : PASS
+  seed 8 : PASS
+  seed 9 : PASS
+-- normal-uv x fixedk --
+  seed 7 : PASS
+  seed 8 : PASS
+  seed 9 : PASS
+
+### group: uvt ###
+-- student-t x dpm --
+  seed 7 : PASS
+  seed 8 : PASS
+  seed 9 : PASS
+-- student-t x fixedk --
+  seed 7 : PASS
+  seed 8 : PASS
+  seed 9 : PASS
+
+== TALLY [uvnorm,uvt]: 4 combos PASS, 0 combos REVIEW ==
+
+### group: uvng ###
+-- normal-gamma x dpm --
+  seed 7 : PASS
+  seed 8 : PASS
+  seed 9 : PASS
+-- normal-gamma x fixedk --
+  seed 7 : PASS
+  seed 8 : PASS
+  seed 9 : PASS
+
+== TALLY [uvng]: 2 combos PASS, 0 combos REVIEW ==
+
+### group: mvnorm ###
+-- normal-mv x dpm --
+  seed 7 : PASS
+  seed 8 : PASS
+  seed 9 : PASS
+-- normal-mv x fixedk --
+  seed 7 : PASS
+  seed 8 : PASS
+  seed 9 : PASS
+
+== TALLY [mvnorm]: 2 combos PASS, 0 combos REVIEW ==
+
+### group: mvt ###
+-- student-t-mv x dpm --
+  seed 7 : PASS
+  seed 8 : PASS
+  seed 9 : PASS
+-- student-t-mv x fixedk --
+  seed 7 : PASS
+  seed 8 : PASS
+  seed 9 : PASS
+
+== TALLY [mvt]: 2 combos PASS, 0 combos REVIEW ==
+
+### group: mvng ###
+-- normal-gamma-mv x dpm --
+  seed 7 : PASS
+  seed 8 : PASS
+  seed 9 : PASS
+-- normal-gamma-mv x fixedk --
+  seed 7 : PASS
+  seed 8 : PASS
+  seed 9 : PASS
+
+== TALLY [mvng]: 2 combos PASS, 0 combos REVIEW ==
+
+### group: counts ###
+-- poisson x dpm --
+  seed 7 : PASS
+  seed 8 : PASS
+  seed 9 : PASS
+-- poisson x fixedk --
+  seed 7 : PASS
+  seed 8 : PASS
+  seed 9 : PASS
+-- binomial x dpm --
+  seed 7 : PASS
+  seed 8 : PASS
+  seed 9 : PASS
+-- binomial x fixedk --
+  seed 7 : PASS
+  seed 8 : PASS
+  seed 9 : PASS
+
+== TALLY [counts]: 4 combos PASS, 0 combos REVIEW ==
+
+### group: reg ###
+-- normal-reg x dpm (80/20) --
+  seed 7 : PASS
+  seed 8 : PASS
+  seed 9 : PASS
+-- normal-reg x fixedk (80/20) --
+  seed 7 : PASS
+  seed 8 : PASS
+  seed 9 : PASS
+
+== TALLY [reg]: 2 combos PASS, 0 combos REVIEW ==

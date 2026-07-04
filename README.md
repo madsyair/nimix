@@ -31,9 +31,6 @@ families plug into every inference engine without touching the engine code.
   [`label.switching`](https://CRAN.R-project.org/package=label.switching)
   package, with `summary()`, `plot()` and `predict()` methods.
 
-A reversible-jump MCMC engine (`method = "rjmcmc"`) is **planned and
-experimental**; it is gated behind validation and is not yet available.
-
 ## Installation
 
 `nimix` depends on `nimble`, which compiles model code, so you need a working

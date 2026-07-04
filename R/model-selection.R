@@ -1,3 +1,6 @@
+#' @include class-FitResult.R
+NULL
+
 ## model-selection.R -------------------------------------------------------------
 ## Predictive model selection and ensembling for fitted mixtures (Bayesian
 ## workflow, comparison layer). Everything is built on the pointwise

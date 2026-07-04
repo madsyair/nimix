@@ -1,3 +1,15 @@
+#' @include dist-msnburr.R
+#' @include dist-gmsnburr.R
+#' @include dist-poisson-binomial.R
+#' @include dist-mv-reg.R
+#' @include dist-heavytail-reg.R
+#' @include dist-glm-reg.R
+#' @include dist-normal-gamma.R
+#' @include dist-student-t.R
+#' @include dist-student-t-mv.R
+#' @include dist-normal-gamma-mv.R
+NULL
+
 ## ---------------------------------------------------------------------------
 ## registerDistribution.R
 ##
@@ -50,7 +62,7 @@ listDistributions <- function() sort(ls(envir = .distRegistry))
 
 #' @keywords internal
 .nimixDefineMSNBurr <- function() {
-  if (exists("dMSNBurr_k", envir = globalenv(), inherits = FALSE)) return(invisible())
+  if (exists("dGMSNBurr_k", envir = globalenv(), inherits = FALSE)) return(invisible())
   ge <- globalenv()
   softlomega <- quote(if (alpha < 1e-300) {
     lomega <- -(alpha + 1) * log(alpha) - 0.9189385332046727
@@ -103,6 +115,47 @@ listDistributions <- function() sort(ls(envir = .distRegistry))
         (alpha + 1) * sp
       if (log) return(lp) else return(exp(lp))
     }))), envir = ge)
+  assign("dGMSNBurr_k", makeIn(quote(nimble::nimbleFunction(
+    run = function(x = double(0), mu = double(0), sigma = double(0),
+                   alpha = double(0), theta = double(0),
+                   log = integer(0, default = 0)) {
+      returnType(double(0))
+      lbeta_at <- lgamma(alpha) + lgamma(theta) - lgamma(alpha + theta)
+      if (alpha < 1e-300) {
+        lomega <- -0.9189385332046727 + lbeta_at +
+          alpha * (log(theta) - log(alpha))
+      } else {
+        lomega <- -0.9189385332046727 + lbeta_at -
+          theta * (log(theta) - log(alpha)) +
+          (alpha + theta) * log1p(theta / alpha)
+      }
+      omega <- exp(lomega)
+      zo <- -omega * ((x - mu) / sigma)
+      zoa <- zo + log(theta) - log(alpha)
+      sp <- max(zoa, 0) + log1p(exp(-abs(zoa)))
+      lp <- lomega - log(sigma) + theta * (log(theta) - log(alpha)) +
+        theta * zo - (alpha + theta) * sp - lbeta_at
+      if (log) return(lp) else return(exp(lp))
+    }))), envir = ge)
+  assign("rGMSNBurr_k", makeIn(quote(nimble::nimbleFunction(
+    run = function(n = integer(0), mu = double(0), sigma = double(0),
+                   alpha = double(0), theta = double(0)) {
+      returnType(double(0))
+      lbeta_at <- lgamma(alpha) + lgamma(theta) - lgamma(alpha + theta)
+      if (alpha < 1e-300) {
+        lomega <- -0.9189385332046727 + lbeta_at +
+          alpha * (log(theta) - log(alpha))
+      } else {
+        lomega <- -0.9189385332046727 + lbeta_at -
+          theta * (log(theta) - log(alpha)) +
+          (alpha + theta) * log1p(theta / alpha)
+      }
+      omega <- exp(lomega)
+      Xg <- rgamma(1, shape = alpha, rate = 1)
+      Yg <- rgamma(1, shape = theta, rate = 1)
+      log_ratio <- log(Yg) - log(Xg) + log(alpha) - log(theta)
+      return(mu - (sigma / omega) * log_ratio)
+    }))), envir = ge)
   assign("rMSNBurr2a_k", makeIn(quote(nimble::nimbleFunction(
     run = function(n = integer(0), mu = double(0), sigma = double(0),
                    alpha = double(0)) {
@@ -148,6 +201,7 @@ listDistributions <- function() sort(ls(envir = .distRegistry))
   assign("normal-gamma-mv-reg", NormalGammaMvRegSpec(), envir = .distRegistry)
   assign("msnburr", MSNBurrUvSpec(), envir = .distRegistry)
   assign("msnburr2a", MSNBurr2aUvSpec(), envir = .distRegistry)
+  assign("gmsnburr", GMSNBurrUvSpec(), envir = .distRegistry)
   assign("normal", NormalUvSpec(), envir = .distRegistry)
   # Register the user-defined multivariate-t density with NIMBLE so the
   # StudentTMvSpec kernel resolves at model-build time.
@@ -190,6 +244,11 @@ listDistributions <- function() sort(ls(envir = .distRegistry))
       BUGSdist = "dMSNBurr2a_k(mu, sigma, alpha)",
       types = c("value = double(0)", "mu = double(0)",
                 "sigma = double(0)", "alpha = double(0)"),
+      discrete = FALSE),
+    dGMSNBurr_k = list(
+      BUGSdist = "dGMSNBurr_k(mu, sigma, alpha, theta)",
+      types = c("value = double(0)", "mu = double(0)", "sigma = double(0)",
+                "alpha = double(0)", "theta = double(0)"),
       discrete = FALSE))), silent = TRUE)))), envir = globalenv())
   .nimixState$msnburrRegistered <- TRUE
   invisible()

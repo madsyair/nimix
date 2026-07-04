@@ -1,0 +1,77 @@
+---
+title: "Heavy tails: Student-t vs Normal-Gamma components"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Heavy tails: Student-t vs Normal-Gamma components}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", eval = FALSE)
+```
+
+nimix offers two mathematically equivalent heavy-tailed component families:
+
+* `distribution = "studentt"` -- the Student-t density used **directly**
+  (non-conjugate; slice sampling on the component parameters);
+* `distribution = "normalgamma"` -- the same marginal Student-t obtained by
+  **data augmentation** (`y_i | omega_i ~ N(mu_k, sigma_k^2 / omega_i)`,
+  `omega_i ~ Gamma(df/2, df/2)`), which restores conjugacy at the price of one
+  latent scale per observation.
+
+The marginal model is identical; the *computational* behaviour is not, and
+that trade-off is the point of this vignette. We compare both on official
+statistics: log GDP per capita from `wdi2022` (`?wdi2022`), a skewed,
+heavy-tailed cross-country distribution.
+
+> MCMC chunks use `eval = FALSE` (CRAN time limits); printed results are from
+> an actual run on this data.
+
+## Data
+
+```{r data, eval = TRUE}
+library(nimix)
+data(wdi2022)
+ly <- log(wdi2022$gdp_pc)
+```
+
+## Both fits
+
+```{r fits}
+ctrl <- list(niter = 4000, nburnin = 1500)
+ft <- relabel(nimixClust(ly, K_max = 8, distribution = "studentt",
+                         mcmcControl = ctrl, seed = 1))
+fg <- relabel(nimixClust(ly, K_max = 8, distribution = "normalgamma",
+                         mcmcControl = ctrl, seed = 1))
+summary(ft); summary(fg)
+```
+
+Actual results on this dataset:
+
+```
+#> studentt     : modalK = 2, regimes at log-GDP 8.00 / 10.06,
+#>                ESS(#clusters) = 147, ~30 s
+#> normalgamma  : modalK = 3, dominant regimes 8.07 / 10.10 (+ small 10%
+#>                middle component), ESS(#clusters) = 116, ~38 s
+```
+
+Both agree on the two dominant income regimes. The augmented path found one
+extra small component and mixed somewhat more slowly on the partition.
+
+## Which one should you use?
+
+The augmentation restores conjugacy, but the per-observation `omega_i` couple
+tightly to the partition, which can slow the mixing of the *number of
+clusters* -- a penalty we found consistently in benchmarks and mitigate by
+replacing the default random-walk sampler on `omega` with slice sampling
+(done automatically via the spec's sampler hook). Practical guidance:
+
+* `"studentt"` is the sensible default for heavy-tailed clustering;
+* `"normalgamma"` is worth trying when its Gibbs updates are advantageous
+  (e.g. larger n per component), and its `omega_i` posteriors are themselves
+  useful: small values flag the observations the model treats as outliers
+  (a robustness-weight interpretation).
+
+Always compare `summary()` ESS diagnostics on your own data rather than
+assuming one is uniformly better.
