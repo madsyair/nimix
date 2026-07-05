@@ -40,6 +40,13 @@
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="1.0.0" id="nimix-100-in-development">nimix 1.0.0 (in development)<a class="anchor" aria-label="anchor" href="#nimix-100-in-development"></a></h2>
 <div class="section level3">
+<h3 id="bug-fixes-installed-package-correctness-1-0-0">Bug fixes (installed-package correctness)<a class="anchor" aria-label="anchor" href="#bug-fixes-installed-package-correctness-1-0-0"></a></h3>
+<ul><li>MRF engine: the Potts prior’s <code>dPottsNimix</code> / <code>rPottsNimix</code> are now built and registered in the global environment (like the scalar neo-normal densities). Registering them from the package namespace made NIMBLE fail to find <code>rPottsNimix</code> during code generation for the latent label node once the package was installed (<code><a href="https://github.com/madsyair/nimix" class="external-link">library(nimix)</a></code>), so every MRF fit errored under a normal install while working under <code>load_all()</code>. Fixed.</li>
+<li>
+<code><a href="../reference/ppCheck.html">ppCheck()</a></code> for MSNBurr / MSNBurr-IIa / GMSNBurr no longer emits recycling warnings: the quantile functions now recycle vector parameters to the sample length and index the interior subset consistently, so per-observation parameter vectors (as used by posterior predictive simulation) align.</li>
+<li>Multivariate cluster <code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code> columns are now <code>mu_&lt;j&gt;_mean</code> (with <code>_med</code> / <code>_lwr</code> / <code>_upr</code>) for consistency with the univariate summaries.</li>
+</ul></div>
+<div class="section level3">
 <h3 id="new-neo-normal-family-gmsnburr-1-0-0">New neo-normal family: GMSNBurr<a class="anchor" aria-label="anchor" href="#new-neo-normal-family-gmsnburr-1-0-0"></a></h3>
 <ul><li>
 <code>distribution = "gmsnburr"</code>: the generalized MSNBurr (Iriawan 2000; Choir

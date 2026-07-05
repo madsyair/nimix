@@ -2,6 +2,27 @@
 
 ## nimix 1.0.0 (in development)
 
+### Bug fixes (installed-package correctness)
+
+- MRF engine: the Potts prior’s `dPottsNimix` / `rPottsNimix` are now
+  built and registered in the global environment (like the scalar
+  neo-normal densities). Registering them from the package namespace
+  made NIMBLE fail to find `rPottsNimix` during code generation for the
+  latent label node once the package was installed
+  ([`library(nimix)`](https://github.com/madsyair/nimix)), so every MRF
+  fit errored under a normal install while working under `load_all()`.
+  Fixed.
+- [`ppCheck()`](https://madsyair.github.io/nimix/reference/ppCheck.md)
+  for MSNBurr / MSNBurr-IIa / GMSNBurr no longer emits recycling
+  warnings: the quantile functions now recycle vector parameters to the
+  sample length and index the interior subset consistently, so
+  per-observation parameter vectors (as used by posterior predictive
+  simulation) align.
+- Multivariate cluster
+  [`summary()`](https://rdrr.io/r/base/summary.html) columns are now
+  `mu_<j>_mean` (with `_med` / `_lwr` / `_upr`) for consistency with the
+  univariate summaries.
+
 ### New neo-normal family: GMSNBurr
 
 - `distribution = "gmsnburr"`: the generalized MSNBurr (Iriawan 2000;
