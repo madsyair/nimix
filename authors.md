@@ -8,7 +8,7 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/madsyair/nimix/blob/main/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/madsyair/nimix/blob/MRF/DESCRIPTION)
 
 Choir A (2026). *nimix: Bayesian Mixture Clustering and Regression with
 NIMBLE*. R package version 1.0.0, <https://github.com/madsyair/nimix>.
