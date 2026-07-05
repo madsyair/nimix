@@ -149,6 +149,11 @@ qgmsnburr <- function(p, mu = 0, sigma = 1, alpha = 1, theta = 1,
 
     omega <- exp(.log_omega_gmsnburr(alpha, theta))
 
+    np <- length(pp)
+    mu <- rep_len(mu, np); sigma <- rep_len(sigma, np)
+    alpha <- rep_len(alpha, np); theta <- rep_len(theta, np)
+    omega <- rep_len(omega, np)
+
     result <- numeric(length(pp))
     result[pp == 0] <- -Inf
     result[pp == 1] <- Inf
@@ -158,14 +163,14 @@ qgmsnburr <- function(p, mu = 0, sigma = 1, alpha = 1, theta = 1,
     if (any(interior)) {
         p_int <- pp[interior]
 
-        bp <- stats::qbeta(p_int, alpha, theta)
-        one_minus_bp <- stats::qbeta(1 - p_int, theta, alpha)
+        bp <- stats::qbeta(p_int, alpha[interior], theta[interior])
+        one_minus_bp <- stats::qbeta(1 - p_int, theta[interior], alpha[interior])
 
         log_1mbp <- ifelse(one_minus_bp > 0, log(one_minus_bp), -Inf)
         log_bp <- ifelse(bp > 0, log(bp), -Inf)
         log_ratio <- log_1mbp - log_bp + log(alpha) - log(theta)
 
-        result[interior] <- mu - (sigma / omega) * log_ratio
+        result[interior] <- mu[interior] - (sigma[interior] / omega[interior]) * log_ratio
     }
 
     result

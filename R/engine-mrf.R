@@ -23,32 +23,10 @@ NULL
 ## 2005, Section III).
 
 # --- Potts prior as a user-defined NIMBLE distribution -----------------------
-# Unnormalised on purpose (see header). The edge list (e1[m], e2[m]) is passed
-# as constants; registration happens in .onLoad alongside dmvt_nimix.
-
-#' @keywords internal
-dPottsNimix <- nimble::nimbleFunction(
-  run = function(x = double(1), beta = double(0),
-                 e1 = double(1), e2 = double(1),
-                 log = integer(0, default = 0)) {
-    returnType(double(0))
-    s <- 0
-    nE <- length(e1)
-    for (m in 1:nE) if (x[e1[m]] == x[e2[m]]) s <- s + 1
-    lp <- beta * s
-    if (log) return(lp) else return(exp(lp))
-  })
-
-#' @keywords internal
-rPottsNimix <- nimble::nimbleFunction(
-  run = function(n = integer(0), beta = double(0),
-                 e1 = double(1), e2 = double(1)) {
-    returnType(double(1))
-    ## Exact simulation of a Potts field is not required for inference; the
-    ## labels are always supplied as inits and updated by the Gibbs sampler.
-    out <- numeric(length = 1)
-    return(out)
-  })
+# Unnormalised on purpose (see header). dPottsNimix / rPottsNimix are built and
+# registered in the GLOBAL environment by .nimixDefinePotts() (registerDistrib-
+# ution.R); defining them here, in the namespace frame, makes NIMBLE fail to
+# find rPottsNimix during code generation for the latent label node z.
 
 # --- single-site Gibbs sweep for z under Potts x Normal emissions ------------
 # Reads muTilde / s2Tilde / y directly from the model (the node names of the

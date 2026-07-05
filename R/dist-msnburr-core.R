@@ -135,6 +135,10 @@ qmsnburr <- function(p, mu = 0, sigma = 1, alpha = 1,
     lomega <- .log_omega_msnburr(alpha)
     omega <- exp(lomega)
 
+    np <- length(pp)                 # recycle params so vector params align
+    mu <- rep_len(mu, np); sigma <- rep_len(sigma, np)
+    alpha <- rep_len(alpha, np); omega <- rep_len(omega, np)
+
     result <- numeric(length(pp))
     result[pp == 0] <- -Inf
     result[pp == 1] <- Inf
@@ -144,14 +148,14 @@ qmsnburr <- function(p, mu = 0, sigma = 1, alpha = 1,
     if (any(interior)) {
         p_int <- pp[interior]
         use_log1p <- p_int > 0.5
-        a_inv <- -1 / alpha
+        a_inv <- -1 / alpha[interior]
 
         log_term <- numeric(length(p_int))
-        log_term[use_log1p] <- log(expm1(a_inv * log(p_int[use_log1p])))
-        log_term[!use_log1p] <- log(exp(a_inv * log(p_int[!use_log1p])) - 1)
+        log_term[use_log1p] <- log(expm1(a_inv[use_log1p] * log(p_int[use_log1p])))
+        log_term[!use_log1p] <- log(exp(a_inv[!use_log1p] * log(p_int[!use_log1p])) - 1)
 
-        result[interior] <- mu - (sigma / omega) *
-            (log(alpha) + log_term)
+        result[interior] <- mu[interior] - (sigma[interior] / omega[interior]) *
+            (log(alpha[interior]) + log_term)
     }
 
     result
@@ -292,6 +296,10 @@ qmsnburr2a <- function(p, mu = 0, sigma = 1, alpha = 1,
     lomega <- .log_omega_msnburr(alpha)
     omega <- exp(lomega)
 
+    np <- length(pp)
+    mu <- rep_len(mu, np); sigma <- rep_len(sigma, np)
+    alpha <- rep_len(alpha, np); omega <- rep_len(omega, np)
+
     result <- numeric(length(pp))
     result[pp == 0] <- -Inf
     result[pp == 1] <- Inf
@@ -301,14 +309,14 @@ qmsnburr2a <- function(p, mu = 0, sigma = 1, alpha = 1,
     if (any(interior)) {
         p_int <- pp[interior]
         use_log1p <- p_int < 0.5
-        a_inv <- -1 / alpha
+        a_inv <- -1 / alpha[interior]
 
         log_term <- numeric(length(p_int))
-        log_term[use_log1p] <- log(exp(a_inv * log1p(-p_int[use_log1p])) - 1)
-        log_term[!use_log1p] <- log(expm1(a_inv * log1p(-p_int[!use_log1p])))
+        log_term[use_log1p] <- log(exp(a_inv[use_log1p] * log1p(-p_int[use_log1p])) - 1)
+        log_term[!use_log1p] <- log(expm1(a_inv[!use_log1p] * log1p(-p_int[!use_log1p])))
 
-        result[interior] <- mu + (sigma / omega) *
-            (log(alpha) + log_term)
+        result[interior] <- mu[interior] + (sigma[interior] / omega[interior]) *
+            (log(alpha[interior]) + log_term)
     }
 
     result

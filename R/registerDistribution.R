@@ -212,16 +212,9 @@ listDistributions <- function() sort(ls(envir = .distRegistry))
         types = c("value = double(1)", "mu = double(1)",
                   "cov = double(2)", "df = double(0)")))),
     silent = TRUE)))
-  # Register the unnormalised Potts prior for the MRF engine (valid for MCMC
-  # because beta is fixed; see engine-mrf.R header).
-  suppressMessages(suppressWarnings(try(
-    nimble::registerDistributions(list(
-      dPottsNimix = list(
-        BUGSdist = "dPottsNimix(beta, e1, e2)",
-        types = c("value = double(1)", "beta = double(0)",
-                  "e1 = double(1)", "e2 = double(1)"),
-        discrete = TRUE, mixedSizes = TRUE))),
-    silent = TRUE)))
+  # The unnormalised Potts prior for the MRF engine is built and registered
+  # lazily in globalenv by .nimixDefinePotts()/.nimixEnsureMSNBurr(); doing it
+  # here (namespace frame) makes NIMBLE fail to find rPottsNimix at code-gen.
   invisible(NULL)
 }
 
@@ -233,6 +226,7 @@ listDistributions <- function() sort(ls(envir = .distRegistry))
 # objects avoids that. Idempotent and cheap.
 .nimixEnsureMSNBurr <- function() {
   .nimixDefineMSNBurr()
+  .nimixDefinePotts()
   if (isTRUE(.nimixState$msnburrRegistered)) return(invisible())
   eval(quote(suppressMessages(suppressWarnings(try(nimble::registerDistributions(list(
     dMSNBurr_k = list(
@@ -249,8 +243,46 @@ listDistributions <- function() sort(ls(envir = .distRegistry))
       BUGSdist = "dGMSNBurr_k(mu, sigma, alpha, theta)",
       types = c("value = double(0)", "mu = double(0)", "sigma = double(0)",
                 "alpha = double(0)", "theta = double(0)"),
-      discrete = FALSE))), silent = TRUE)))), envir = globalenv())
+      discrete = FALSE),
+    dPottsNimix = list(
+      BUGSdist = "dPottsNimix(beta, e1, e2)",
+      types = c("value = double(1)", "beta = double(0)",
+                "e1 = double(1)", "e2 = double(1)"),
+      discrete = TRUE, mixedSizes = TRUE))), silent = TRUE)))),
+    envir = globalenv())
   .nimixState$msnburrRegistered <- TRUE
+  invisible()
+}
+
+# Build the Potts prior's d/r functions in the GLOBAL environment. Registering
+# them from a namespace frame makes NIMBLE fail to find rPottsNimix during code
+# generation for the latent label node (it is invoked to simulate z), the same
+# class of failure that affects the scalar neo-normal densities. Building here,
+# in globalenv, resolves it.
+.nimixDefinePotts <- function() {
+  if (exists("rPottsNimix", envir = globalenv(), inherits = FALSE))
+    return(invisible())
+  ge <- globalenv()
+  assign("dPottsNimix", eval(quote(nimble::nimbleFunction(
+    run = function(x = double(1), beta = double(0),
+                   e1 = double(1), e2 = double(1),
+                   log = integer(0, default = 0)) {
+      returnType(double(0))
+      s <- 0
+      nE <- length(e1)
+      for (m in 1:nE) if (x[e1[m]] == x[e2[m]]) s <- s + 1
+      lp <- beta * s
+      if (log) return(lp) else return(exp(lp))
+    })), envir = ge), envir = ge)
+  assign("rPottsNimix", eval(quote(nimble::nimbleFunction(
+    run = function(n = integer(0), beta = double(0),
+                   e1 = double(1), e2 = double(1)) {
+      returnType(double(1))
+      ## Labels are always supplied as inits and updated by the Gibbs sweep;
+      ## exact Potts simulation is not needed for inference.
+      out <- numeric(length = 1)
+      return(out)
+    })), envir = ge), envir = ge)
   invisible()
 }
 

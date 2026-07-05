@@ -27,7 +27,7 @@ test_that("multivariate Normal-Gamma clustering works under the fixed-K engine",
                             method = "fixedk",
                             mcmcControl = list(niter = 2500, nburnin = 1000),
                             seed = 7))
-  mu1 <- sort(fit@relabeled$summary$mu_1)
+  mu1 <- sort(fit@relabeled$summary$mu_1_mean)
   expect_equal(fit@relabeled$modalK, 2L)
   expect_lt(abs(mu1[1] - (-4)), 1.5)
   expect_lt(abs(mu1[2] - 4), 1.5)

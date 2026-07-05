@@ -78,7 +78,7 @@ test_that("mrf with multivariate Gaussian components recovers spatial blocks", {
   zM <- apply(fit@clusterAllocation, 2L,
               function(v) as.integer(names(which.max(table(v)))))
   acc <- max(mean(zM == zTrue), mean(zM == (3L - zTrue)))
-  mu1 <- sort(fit@relabeled$summary$mu_1)
+  mu1 <- sort(fit@relabeled$summary$mu_1_mean)
   expect_gt(acc, 0.9)
   expect_lt(abs(mu1[1] - (-1.5)), 0.8)
   expect_lt(abs(mu1[2] - 1.5), 0.8)
@@ -222,7 +222,7 @@ test_that("mrf batch-2 families: mv Student-t clustering and NG regression", {
                             distribution = "studentt",
                             mcmcControl = list(niter = 2000, nburnin = 800),
                             seed = 7))
-  mu <- sort(fMt@relabeled$summary$mu_1)
+  mu <- sort(fMt@relabeled$summary$mu_1_mean)
   expect_gt(accOf(fMt), 0.9)
   expect_lt(abs(mu[1] + 1.5), 0.9); expect_lt(abs(mu[2] - 1.5), 0.9)
 
