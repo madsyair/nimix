@@ -7,6 +7,7 @@
 nimixReg(
   formula,
   data,
+  random = NULL,
   K = NULL,
   K_max = NULL,
   distribution = "normal",
@@ -24,6 +25,15 @@ nimixReg(
 \item{formula}{A model formula, e.g. \code{y ~ x1 + x2}.}
 
 \item{data}{A data frame containing the formula variables.}
+
+\item{random}{Optional one-sided formula naming a single grouping factor
+for a random intercept, e.g. \code{random = ~ region}: the linear
+predictor of every component gains a shared group offset
+\eqn{b_{g(i)} \sim N(0, \tau^2)} with a sum-to-zero constraint (so the
+component intercepts absorb the group mean, and the reported \code{b}
+are centred -- the parameterisation that mixes well; see NEWS for the
+measured motivation). Currently supported with
+\code{method = "fixedk"} and \code{distribution = "normal"} only.}
 
 \item{K}{Integer number of components for the finite mixture
 (\code{method = "fixedk"}). Required for that method.}

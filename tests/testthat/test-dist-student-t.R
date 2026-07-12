@@ -13,7 +13,7 @@ test_that("Student-t defaultPrior is data-scaled and validates df", {
 })
 
 test_that("Student-t componentDensity is location-scale t", {
-  d <- componentDensity(StudentTUvSpec(), df = 5)
+  d <- nimix:::componentDensity(StudentTUvSpec(), df = 5)
   expect_equal(d(2, list(mu = 1, tau = 1 / 4, df = 5)),
                stats::dt((2 - 1) / 2, df = 5) / 2, tolerance = 1e-10)
 })

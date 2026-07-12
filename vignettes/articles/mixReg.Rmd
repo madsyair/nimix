@@ -93,3 +93,31 @@ predict(fit, newdata = newd)
 
 Heavy-tailed residuals (`distribution = "studentt"` / `"normalgamma"`) and
 multivariate responses (`cbind(y1, y2) ~ x`) use the same interface.
+
+## Grouped data: a random intercept
+
+When observations are nested in groups (regions, individuals, batches), a
+shared group offset $b_{g(i)} \sim N(0, \tau^2)$ can be added to every
+component's linear predictor with `random = ~ group`:
+
+```{r re, eval = FALSE}
+# grouped data with 12 groups; component slopes +2 / -2
+reg <- nimixReg(y ~ x, df, random = ~ g, K = 2, method = "fixedk",
+                mcmcControl = list(niter = 3000, nburnin = 1200), seed = 1)
+sort(relabel(reg)@relabeled$summary$x)
+#> [1] -1.93  1.97                    # slopes recovered with the offset present
+mean(reg@mcmcSamples[, "tauRE"])       # the between-group SD, tau
+```
+
+Two things are worth knowing. The offsets use a **sum-to-zero**
+parameterisation, because with free $b$ the component intercepts and the mean
+of $b$ form a translation ridge that mixes badly (a prototype measured
+`cor` = -0.979 and a minimum ESS of 25 in 2500 draws; the constraint restored
+it to ~205). So the reported `b` are centred, and the component intercepts
+absorb the group mean. And the exact conjugate coefficient sampler is
+extended to condition on the current offsets, which keeps the fit
+scale-equivariant in the predictors even with the random effect active.
+
+Current scope: `method = "fixedk"`, `distribution = "normal"`, one grouping
+factor, random intercept. Random slopes and further families follow the
+gated roadmap.

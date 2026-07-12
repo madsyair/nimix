@@ -22,6 +22,7 @@ reference:
   - DPMEngine-class
   - FixedKEngine-class
   - EngineConfig-class
+  - HMMEngine
 
 - title: Distribution registry
   desc: Register and look up component distributions by name.
@@ -62,6 +63,10 @@ reference:
   - validateParams
   - customizeSamplers
   - relabel
+  - psm
+  - binderPartition
+  - clusterValidity
+  - viterbiPath
   - isRegressionSpec
   - linkInv
 
@@ -99,6 +104,20 @@ reference:
   - MSNBurrUvSpec
   - MSNBurr2aUvSpec
   - GMSNBurrUvSpec
+  - SEPUvSpec
+  - LEPUvSpec
+  - FSSNUvSpec
+  - FOSSEPUvSpec
+  - FSSTUvSpec
+  - JFSTUvSpec
+  - SkewNormalMvSpec
+  - SkewIStudentMvSpec
+  - SkewNormalMvOSpec
+  - SkewIStudentMvOSpec
+  - SkewNormalMvOGenSpec
+  - SkewIStudentMvOGenSpec
+  - orthogonalFactor
+  - canonicaliseO
 
 - title: Neo-normal distribution functions
   desc: Numerically stable density, distribution, quantile, and RNG.
@@ -106,6 +125,16 @@ reference:
   - msnburr-distribution
   - msnburr2a-distribution
   - gmsnburr-distribution
+  - sep-distribution
+  - lep-distribution
+  - fssn-distribution
+  - fossep-distribution
+  - fsst-distribution
+  - jfst-distribution
+  - skewnormal-mv-distribution
+  - skewistudent-mv-distribution
+  - skewnormal-mv-o-distribution
+  - skewistudent-mv-o-distribution
 
 - title: Spatial mixtures (MRF)
   desc: >
@@ -129,6 +158,9 @@ reference:
   desc: Posterior predictive checks; convergence diagnostics print via summary().
   contents:
   - ppCheck
+  - posteriorPredict
+  - drawsArray
+  - ppcData
 
 - title: Extension API (engine-facing generics)
   desc: >
@@ -179,3 +211,6 @@ articles:
   - articles/mixReg
   - articles/normal-gamma-vs-studentt
   - articles/spatial-mixture
+  - articles/skew-multivariate
+  - articles/hmm-timeseries
+  - articles/diagnostics-interop

@@ -35,7 +35,7 @@ test_that("validateParams enforces the dimension and df0 invariants", {
 
 test_that("componentDensity matches a direct multivariate-normal computation", {
   spec <- NormalMvSpec()
-  f <- componentDensity(spec)
+  f <- nimix:::componentDensity(spec)
   mu <- c(1, -1); Sig <- matrix(c(2, 0.5, 0.5, 1), 2)
   x <- c(0.3, 0.2)
   # direct formula
@@ -49,7 +49,7 @@ test_that("simulateParams returns conformable mu and Sigma", {
   set.seed(2)
   spec <- NormalMvSpec()
   pr <- list(mu0 = c(0, 0), kappa0 = 0.25, df0 = 6, S0 = diag(2), d = 2L)
-  sp <- simulateParams(spec, pr, nClust = 3)
+  sp <- nimix:::simulateParams(spec, pr, nClust = 3)
   expect_equal(dim(sp$mu), c(3L, 2L))
   expect_equal(dim(sp$Sigma), c(2L, 2L, 3L))
   # each covariance is symmetric positive definite

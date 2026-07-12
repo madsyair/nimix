@@ -298,6 +298,12 @@ nimixClearCache <- function() {
   diagnostics <- .multiChainDiag(chainK, if (hasAlpha) chainAlpha else NULL,
                                  if (hasBeta) chainBeta else NULL,
                                  chainEntropy)
+  # Preserve chain identity for the pooled draws. Stacking chains without a
+  # marker makes per-chain diagnostics (post-hoc R-hat, per-chain traces, and
+  # bayesplot's iter x chain x param draws array) impossible to reconstruct.
+  # Stored in the diagnostics list, so the FitResult class is unchanged.
+  diagnostics$chainId <- rep(seq_len(nchains),
+                             vapply(chainSamples, nrow, integer(1)))
   paramTrace  <- extractParamTraces(spec, samples, count, d = paramDim,
                                     prior = prior)
 

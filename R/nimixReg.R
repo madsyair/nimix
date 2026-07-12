@@ -22,6 +22,14 @@ NULL
 #'
 #' @param formula A model formula, e.g. \code{y ~ x1 + x2}.
 #' @param data A data frame containing the formula variables.
+#' @param random Optional one-sided formula naming a single grouping factor
+#'   for a random intercept, e.g. \code{random = ~ region}: the linear
+#'   predictor of every component gains a shared group offset
+#'   \eqn{b_{g(i)} \sim N(0, \tau^2)} with a sum-to-zero constraint (so the
+#'   component intercepts absorb the group mean, and the reported \code{b}
+#'   are centred -- the parameterisation that mixes well; see NEWS for the
+#'   measured motivation). Currently supported with
+#'   \code{method = "fixedk"} and \code{distribution = "normal"} only.
 #' @param K Integer number of components for the finite mixture
 #'   (\code{method = "fixedk"}). Required for that method.
 #' @param K_max Integer truncation level for the DPM (\code{method = "dpm"});
@@ -96,6 +104,7 @@ NULL
 #' }
 #' @export
 nimixReg <- function(formula, data,
+                     random = NULL,
                      K = NULL,
                      K_max = NULL,
                      distribution = "normal",
@@ -203,6 +212,31 @@ nimixReg <- function(formula, data,
   # carry items needed for labelling and prediction
   priorList$coefNames <- colnames(X)
   priorList$terms     <- tt
+  if (!is.null(random)) {
+    if (!inherits(random, "formula") || length(random) != 2L)
+      stop("`random` must be a one-sided formula naming one grouping ",
+           "factor, e.g. random = ~ region.", call. = FALSE)
+    gv <- all.vars(random)
+    if (length(gv) != 1L)
+      stop("`random` currently supports exactly one grouping factor ",
+           "(random intercept).", call. = FALSE)
+    if (!gv %in% names(data))
+      stop("Grouping variable '", gv, "' not found in `data`.", call. = FALSE)
+    if (method != "fixedk" || !identical(distribution, "normal"))
+      stop("`random` is currently supported for method = 'fixedk' with ",
+           "distribution = 'normal' only; further paths follow the gated ",
+           "plan.", call. = FALSE)
+    grp <- as.integer(factor(data[[gv]]))
+    G <- max(grp)
+    if (G < 3L)
+      stop("Random intercepts need at least 3 groups; '", gv, "' has ", G,
+           ".", call. = FALSE)
+    priorList$hasRE  <- TRUE
+    priorList$reGrp  <- grp
+    priorList$reG    <- G
+    priorList$reVar  <- gv
+    if (is.null(priorList$tauMax)) priorList$tauMax <- 5
+  }
   priorList$formula   <- formula
   if (isMvResp && is.null(priorList$respNames))
     priorList$respNames <- colnames(y)

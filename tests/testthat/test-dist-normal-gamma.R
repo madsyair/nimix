@@ -11,7 +11,7 @@ test_that("Normal-Gamma marginal equals the analytic Student-t (numeric)", {
   expect_equal(vapply(ys, mix, numeric(1)), vapply(ys, tdn, numeric(1)),
                tolerance = 1e-6)
   # and the spec's componentDensity matches the analytic t
-  d <- componentDensity(NormalGammaUvSpec(), df = df)
+  d <- nimix:::componentDensity(NormalGammaUvSpec(), df = df)
   expect_equal(vapply(ys, function(y) d(y, list(mu = mu, s2 = s2, df = df)),
                       numeric(1)),
                vapply(ys, tdn, numeric(1)), tolerance = 1e-10)

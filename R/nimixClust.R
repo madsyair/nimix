@@ -18,6 +18,50 @@ NULL
 # and the observed data shape. Keeps nimixClust() free of inline class logic.
 .selectClusterSpec <- function(distribution, isMv, d) {
   distribution <- tolower(distribution)
+  if (distribution %in% c("skewistudent-mv-o", "skew-istudent-mv-o",
+                         "skew-mvt-o")) {
+    if (!isMv)
+      stop("distribution = '", distribution, "' needs multivariate data ",
+           "(a matrix with >= 2 columns).", call. = FALSE)
+    return(getDistribution(if (identical(as.integer(d), 2L))
+      "skewistudent-mv-o" else "skewistudent-mv-og"))
+  }
+  if (distribution %in% c("skewnormal-mv-o", "skew-normal-mv-o",
+                         "skew-mvnormal-o")) {
+    if (!isMv)
+      stop("distribution = '", distribution, "' needs multivariate data ",
+           "(a matrix with >= 2 columns).", call. = FALSE)
+    # m = 2 keeps its dedicated implementation: there the (8)-satisfying set is
+    # exactly theta in (-pi/8, pi/8), so the angle is sampled on it directly.
+    # For m > 2 the angles are sampled on the FS box and restriction (8) is
+    # applied as a post-hoc canonicalisation.
+    return(getDistribution(if (identical(as.integer(d), 2L))
+      "skewnormal-mv-o" else "skewnormal-mv-og"))
+  }
+  if (distribution %in% c("skewistudent-mv", "skew-istudent-mv", "skew-mvt")) {
+    if (!isMv)
+      stop("distribution = '", distribution, "' needs multivariate data ",
+           "(a matrix with >= 2 columns).", call. = FALSE)
+    return(getDistribution("skewistudent-mv"))
+  }
+  if (distribution %in% c("skewistudent-mv", "skew-istudent-mv", "skew-mvt")) {
+    if (!isMv)
+      stop("distribution = '", distribution, "' needs multivariate data ",
+           "(a matrix with >= 2 columns).", call. = FALSE)
+    return(getDistribution("skewistudent-mv"))
+  }
+  if (distribution %in% c("skewistudent-mv", "skew-istudent-mv", "skew-mvt")) {
+    if (!isMv)
+      stop("distribution = '", distribution, "' needs multivariate data ",
+           "(a matrix with >= 2 columns).", call. = FALSE)
+    return(getDistribution("skewistudent-mv"))
+  }
+  if (distribution %in% c("skewnormal-mv", "skew-normal-mv", "skew-mvnormal")) {
+    if (!isMv)
+      stop("distribution = '", distribution, "' needs multivariate data ",
+           "(a matrix with >= 2 columns).", call. = FALSE)
+    return(getDistribution("skewnormal-mv"))
+  }
   if (distribution %in% c("normal-mv", "mvnormal", "multivariate-normal")) {
     if (!isMv)
       stop("distribution = 'normal-mv' requires a numeric matrix with >= 2 ",
@@ -34,6 +78,30 @@ NULL
     return(getDistribution(if (isMv) "student-t-mv" else "student-t"))
   if (distribution %in% c("normalgamma", "normal-gamma"))
     return(getDistribution(if (isMv) "normal-gamma-mv" else "normal-gamma"))
+  if (distribution %in% c("fossep")) {
+    if (isMv) stop("distribution = 'fossep' is univariate.", call. = FALSE)
+    return(getDistribution("fossep"))
+  }
+  if (distribution %in% c("fsst")) {
+    if (isMv) stop("distribution = 'fsst' is univariate.", call. = FALSE)
+    return(getDistribution("fsst"))
+  }
+  if (distribution %in% c("jfst")) {
+    if (isMv) stop("distribution = 'jfst' is univariate.", call. = FALSE)
+    return(getDistribution("jfst"))
+  }
+  if (distribution %in% c("fssn")) {
+    if (isMv) stop("distribution = 'fssn' is univariate.", call. = FALSE)
+    return(getDistribution("fssn"))
+  }
+  if (distribution %in% c("sep")) {
+    if (isMv) stop("distribution = 'sep' is univariate.", call. = FALSE)
+    return(getDistribution("sep"))
+  }
+  if (distribution %in% c("lep")) {
+    if (isMv) stop("distribution = 'lep' is univariate.", call. = FALSE)
+    return(getDistribution("lep"))
+  }
   if (distribution %in% c("gmsnburr", "generalized-msnburr")) {
     if (isMv) stop("distribution = '", distribution, "' is univariate.", call. = FALSE)
     return(getDistribution("gmsnburr"))
@@ -182,7 +250,7 @@ nimixClust <- function(data,
                        K = NULL,
                        K_max = NULL,
                        distribution = "normal",
-                       method = c("dpm", "fixedk", "mrf"),
+                       method = c("dpm", "fixedk", "mrf", "hmm"),
                        prior = list(),
                        mcmcControl = list(),
                        initMethod = c("kmeans", "single"),
@@ -207,7 +275,7 @@ nimixClust <- function(data,
   # K is for the finite mixture (fixed, known number of components); K_max is
   # the truncation level for the DPM (K is estimated). Guard against swapping
   # them so the error is informative rather than a downstream surprise.
-  if (method %in% c("fixedk", "mrf")) {
+  if (method %in% c("fixedk", "mrf", "hmm")) {
     if (is.null(K))
       stop("method = '", method, "' needs the number of components K (a known/assumed ",
            "value), e.g. nimixClust(data, K = 3, method = 'fixedk').",
@@ -251,7 +319,7 @@ nimixClust <- function(data,
   }
 
   # Resolve the component count: fixed K, or a data-aware default truncation.
-  if (method %in% c("fixedk", "mrf")) {
+  if (method %in% c("fixedk", "mrf", "hmm")) {
     nComp <- as.integer(K)
     if (nComp < 1L) stop("K must be >= 1.", call. = FALSE)
   } else {
@@ -274,6 +342,9 @@ nimixClust <- function(data,
     engine <- MRFEngine(beta = mrfBeta, spatial = spatialWeights,
                         estimateBeta = isTRUE(prior$estimateBeta),
                         betaMax = if (!is.null(prior$betaMax)) prior$betaMax else 2)
+  } else if (method == "hmm") {
+    tc <- if (!is.null(prior$transConc)) prior$transConc else 1
+    engine <- HMMEngine(transConc = tc)
   } else {
     concPrior <- if (!is.null(prior$concPrior)) prior$concPrior else c(2, 4)
     engine <- DPMEngine(concPrior = concPrior)

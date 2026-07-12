@@ -1,4 +1,15 @@
 #' @include class-EngineConfig.R
+#' @include dist-skewistudent-mv-og.R
+#' @include dist-skewnormal-mv-og.R
+#' @include dist-skewistudent-mv-o.R
+#' @include dist-skewnormal-mv-o.R
+#' @include dist-skewistudent-mv.R
+#' @include dist-skewnormal-mv.R
+#' @include dist-jfst.R
+#' @include dist-fsst.R
+#' @include dist-fossep.R
+#' @include dist-fssn.R
+#' @include dist-lep.R
 #' @include dist-gmsnburr.R
 #' @include dist-msnburr.R
 NULL
@@ -916,3 +927,419 @@ setMethod(".mrfSamplerFor", "MSNBurr2aUvSpec",
 
 setMethod(".mrfSamplerFor", "GMSNBurrUvSpec",
           function(spec) .pottsGibbsGMSNBurrSampler)
+
+# --- SEP / LEP MRF sweeps (symmetric exponential power) ------------------------
+
+#' @keywords internal
+.pottsGibbsSEPSampler <- nimble::nimbleFunction(
+  contains = nimble::sampler_BASE,
+  setup = function(model, mvSaved, target, control) {
+    K <- control$K; nbrs <- control$nbrs; nDeg <- control$nDeg; n <- control$n
+    calcNodes <- model$getDependencies(target)
+  },
+  run = function() {
+    z <- model[["z"]]; mu <- model[["muTilde"]]; sg <- model[["sigmaTilde"]]
+    nu <- model[["nuTilde"]]; y <- model[["y"]]; beta <- model[["beta"]]
+    for (i in 1:n) {
+      lp <- numeric(K)
+      for (k in 1:K) {
+        same <- 0
+        if (nDeg[i] > 0) for (m in 1:nDeg[i]) if (z[nbrs[i, m]] == k) same <- same + 1
+        lp[k] <- dSEP_k(y[i], mu[k], sg[k], nu[k], log = 1) + beta * same
+      }
+      mx <- max(lp); p <- exp(lp - mx); p <- p / sum(p)
+      z[i] <- rcat(1, p)
+    }
+    model[["z"]] <<- z
+    model$calculate(calcNodes)
+    copy(from = model, to = mvSaved, row = 1, nodes = calcNodes, logProb = TRUE)
+  },
+  methods = list(reset = function() {}))
+
+#' @keywords internal
+.pottsGibbsLEPSampler <- nimble::nimbleFunction(
+  contains = nimble::sampler_BASE,
+  setup = function(model, mvSaved, target, control) {
+    K <- control$K; nbrs <- control$nbrs; nDeg <- control$nDeg; n <- control$n
+    calcNodes <- model$getDependencies(target)
+  },
+  run = function() {
+    z <- model[["z"]]; mu <- model[["muTilde"]]; sg <- model[["sigmaTilde"]]
+    nu <- model[["nuTilde"]]; y <- model[["y"]]; beta <- model[["beta"]]
+    for (i in 1:n) {
+      lp <- numeric(K)
+      for (k in 1:K) {
+        same <- 0
+        if (nDeg[i] > 0) for (m in 1:nDeg[i]) if (z[nbrs[i, m]] == k) same <- same + 1
+        lp[k] <- dLEP_k(y[i], mu[k], sg[k], nu[k], log = 1) + beta * same
+      }
+      mx <- max(lp); p <- exp(lp - mx); p <- p / sum(p)
+      z[i] <- rcat(1, p)
+    }
+    model[["z"]] <<- z
+    model$calculate(calcNodes)
+    copy(from = model, to = mvSaved, row = 1, nodes = calcNodes, logProb = TRUE)
+  },
+  methods = list(reset = function() {}))
+
+setMethod(".mrfSamplerFor", "SEPUvSpec", function(spec) .pottsGibbsSEPSampler)
+setMethod(".mrfSamplerFor", "LEPUvSpec", function(spec) .pottsGibbsLEPSampler)
+
+#' @keywords internal
+.pottsGibbsFSSNSampler <- nimble::nimbleFunction(
+  contains = nimble::sampler_BASE,
+  setup = function(model, mvSaved, target, control) {
+    K <- control$K; nbrs <- control$nbrs; nDeg <- control$nDeg; n <- control$n
+    calcNodes <- model$getDependencies(target)
+  },
+  run = function() {
+    z <- model[["z"]]; mu <- model[["muTilde"]]; sg <- model[["sigmaTilde"]]
+    al <- model[["alphaTilde"]]; y <- model[["y"]]; beta <- model[["beta"]]
+    for (i in 1:n) {
+      lp <- numeric(K)
+      for (k in 1:K) {
+        same <- 0
+        if (nDeg[i] > 0) for (m in 1:nDeg[i]) if (z[nbrs[i, m]] == k) same <- same + 1
+        lp[k] <- dFSSN_k(y[i], mu[k], sg[k], al[k], log = 1) + beta * same
+      }
+      mx <- max(lp); p <- exp(lp - mx); p <- p / sum(p)
+      z[i] <- rcat(1, p)
+    }
+    model[["z"]] <<- z
+    model$calculate(calcNodes)
+    copy(from = model, to = mvSaved, row = 1, nodes = calcNodes, logProb = TRUE)
+  },
+  methods = list(reset = function() {}))
+
+setMethod(".mrfSamplerFor", "FSSNUvSpec", function(spec) .pottsGibbsFSSNSampler)
+
+# --- FOSSEP / FSST / JFST MRF sweeps (4-parameter neo-normal emissions) --------
+
+#' @keywords internal
+.pottsGibbsFOSSEPSampler <- nimble::nimbleFunction(
+  contains = nimble::sampler_BASE,
+  setup = function(model, mvSaved, target, control) {
+    K <- control$K; nbrs <- control$nbrs; nDeg <- control$nDeg; n <- control$n
+    calcNodes <- model$getDependencies(target)
+  },
+  run = function() {
+    z <- model[["z"]]; mu <- model[["muTilde"]]; sg <- model[["sigmaTilde"]]
+    al <- model[["alphaTilde"]]; th <- model[["thetaTilde"]]
+    y <- model[["y"]]; beta <- model[["beta"]]
+    for (i in 1:n) {
+      lp <- numeric(K)
+      for (k in 1:K) {
+        same <- 0
+        if (nDeg[i] > 0) for (m in 1:nDeg[i]) if (z[nbrs[i, m]] == k) same <- same + 1
+        lp[k] <- dFOSSEP_k(y[i], mu[k], sg[k], al[k], th[k], log = 1) + beta * same
+      }
+      mx <- max(lp); p <- exp(lp - mx); p <- p / sum(p)
+      z[i] <- rcat(1, p)
+    }
+    model[["z"]] <<- z
+    model$calculate(calcNodes)
+    copy(from = model, to = mvSaved, row = 1, nodes = calcNodes, logProb = TRUE)
+  },
+  methods = list(reset = function() {}))
+
+#' @keywords internal
+.pottsGibbsFSSTSampler <- nimble::nimbleFunction(
+  contains = nimble::sampler_BASE,
+  setup = function(model, mvSaved, target, control) {
+    K <- control$K; nbrs <- control$nbrs; nDeg <- control$nDeg; n <- control$n
+    calcNodes <- model$getDependencies(target)
+  },
+  run = function() {
+    z <- model[["z"]]; mu <- model[["muTilde"]]; sg <- model[["sigmaTilde"]]
+    al <- model[["alphaTilde"]]; nu <- model[["nuTilde"]]
+    y <- model[["y"]]; beta <- model[["beta"]]
+    for (i in 1:n) {
+      lp <- numeric(K)
+      for (k in 1:K) {
+        same <- 0
+        if (nDeg[i] > 0) for (m in 1:nDeg[i]) if (z[nbrs[i, m]] == k) same <- same + 1
+        lp[k] <- dFSST_k(y[i], mu[k], sg[k], al[k], nu[k], log = 1) + beta * same
+      }
+      mx <- max(lp); p <- exp(lp - mx); p <- p / sum(p)
+      z[i] <- rcat(1, p)
+    }
+    model[["z"]] <<- z
+    model$calculate(calcNodes)
+    copy(from = model, to = mvSaved, row = 1, nodes = calcNodes, logProb = TRUE)
+  },
+  methods = list(reset = function() {}))
+
+#' @keywords internal
+.pottsGibbsJFSTSampler <- nimble::nimbleFunction(
+  contains = nimble::sampler_BASE,
+  setup = function(model, mvSaved, target, control) {
+    K <- control$K; nbrs <- control$nbrs; nDeg <- control$nDeg; n <- control$n
+    calcNodes <- model$getDependencies(target)
+  },
+  run = function() {
+    z <- model[["z"]]; mu <- model[["muTilde"]]; sg <- model[["sigmaTilde"]]
+    al <- model[["alphaTilde"]]; th <- model[["thetaTilde"]]
+    y <- model[["y"]]; beta <- model[["beta"]]
+    for (i in 1:n) {
+      lp <- numeric(K)
+      for (k in 1:K) {
+        same <- 0
+        if (nDeg[i] > 0) for (m in 1:nDeg[i]) if (z[nbrs[i, m]] == k) same <- same + 1
+        lp[k] <- dJFST_k(y[i], mu[k], sg[k], al[k], th[k], log = 1) + beta * same
+      }
+      mx <- max(lp); p <- exp(lp - mx); p <- p / sum(p)
+      z[i] <- rcat(1, p)
+    }
+    model[["z"]] <<- z
+    model$calculate(calcNodes)
+    copy(from = model, to = mvSaved, row = 1, nodes = calcNodes, logProb = TRUE)
+  },
+  methods = list(reset = function() {}))
+
+setMethod(".mrfSamplerFor", "FOSSEPUvSpec", function(spec) .pottsGibbsFOSSEPSampler)
+setMethod(".mrfSamplerFor", "FSSTUvSpec", function(spec) .pottsGibbsFSSTSampler)
+setMethod(".mrfSamplerFor", "JFSTUvSpec", function(spec) .pottsGibbsJFSTSampler)
+
+# --- Skew multivariate MRF sweeps (Ferreira-Steel families) --------------------
+# Same Potts x emission structure as .pottsGibbsMvNormalSampler, but the
+# emission is the compiled FS skew-mv kernel, which takes Sigma directly and
+# forms its own Cholesky factor internally.
+
+#' @keywords internal
+.pottsGibbsSkewMvNSampler <- nimble::nimbleFunction(
+  contains = nimble::sampler_BASE,
+  setup = function(model, mvSaved, target, control) {
+    K <- control$K; nbrs <- control$nbrs; nDeg <- control$nDeg
+    n <- control$n; d <- control$d
+    calcNodes <- model$getDependencies(target)
+  },
+  run = function() {
+    z    <- model[["z"]]
+    beta <- model[["beta"]]
+    mu   <- model[["muTilde"]]      # K x d
+    Sig  <- model[["SigTilde"]]     # K x d x d
+    gam  <- model[["gamTilde"]]     # K x d
+    y    <- model[["y"]]            # n x d
+    for (i in 1:n) {
+      lp <- numeric(K)
+      for (k in 1:K) {
+        same <- 0
+        if (nDeg[i] > 0) {
+          for (m in 1:nDeg[i]) if (z[nbrs[i, m]] == k) same <- same + 1
+        }
+        lp[k] <- dSkewMvN_k(y[i, 1:d], mu[k, 1:d], Sig[k, 1:d, 1:d],
+                            gam[k, 1:d], log = 1) + beta * same
+      }
+      mx <- max(lp); p <- exp(lp - mx); p <- p / sum(p)
+      z[i] <- rcat(1, p)
+    }
+    model[["z"]] <<- z
+    model$calculate(calcNodes)
+    copy(from = model, to = mvSaved, row = 1, nodes = calcNodes, logProb = TRUE)
+  },
+  methods = list(reset = function() {}))
+
+#' @keywords internal
+.pottsGibbsSkewMvITSampler <- nimble::nimbleFunction(
+  contains = nimble::sampler_BASE,
+  setup = function(model, mvSaved, target, control) {
+    K <- control$K; nbrs <- control$nbrs; nDeg <- control$nDeg
+    n <- control$n; d <- control$d
+    calcNodes <- model$getDependencies(target)
+  },
+  run = function() {
+    z    <- model[["z"]]
+    beta <- model[["beta"]]
+    mu   <- model[["muTilde"]]
+    Sig  <- model[["SigTilde"]]
+    gam  <- model[["gamTilde"]]
+    nu   <- model[["nuTilde"]]      # K x d
+    y    <- model[["y"]]
+    for (i in 1:n) {
+      lp <- numeric(K)
+      for (k in 1:K) {
+        same <- 0
+        if (nDeg[i] > 0) {
+          for (m in 1:nDeg[i]) if (z[nbrs[i, m]] == k) same <- same + 1
+        }
+        lp[k] <- dSkewMvIT_k(y[i, 1:d], mu[k, 1:d], Sig[k, 1:d, 1:d],
+                             gam[k, 1:d], nu[k, 1:d], log = 1) + beta * same
+      }
+      mx <- max(lp); p <- exp(lp - mx); p <- p / sum(p)
+      z[i] <- rcat(1, p)
+    }
+    model[["z"]] <<- z
+    model$calculate(calcNodes)
+    copy(from = model, to = mvSaved, row = 1, nodes = calcNodes, logProb = TRUE)
+  },
+  methods = list(reset = function() {}))
+
+setMethod(".mrfSamplerFor", "SkewNormalMvSpec",
+          function(spec) .pottsGibbsSkewMvNSampler)
+setMethod(".mrfSamplerFor", "SkewIStudentMvSpec",
+          function(spec) .pottsGibbsSkewMvITSampler)
+
+# --- Skew multivariate MRF sweeps, estimated-O variants -------------------------
+# Identical Potts x emission structure; the emission kernels additionally take
+# the per-component Householder angle theta.
+
+#' @keywords internal
+.pottsGibbsSkewMvNOSampler <- nimble::nimbleFunction(
+  contains = nimble::sampler_BASE,
+  setup = function(model, mvSaved, target, control) {
+    K <- control$K; nbrs <- control$nbrs; nDeg <- control$nDeg
+    n <- control$n; d <- control$d
+    calcNodes <- model$getDependencies(target)
+  },
+  run = function() {
+    z    <- model[["z"]]
+    beta <- model[["beta"]]
+    mu   <- model[["muTilde"]]
+    Sig  <- model[["SigTilde"]]
+    gam  <- model[["gamTilde"]]
+    th   <- model[["thetaTilde"]]     # K
+    y    <- model[["y"]]
+    for (i in 1:n) {
+      lp <- numeric(K)
+      for (k in 1:K) {
+        same <- 0
+        if (nDeg[i] > 0) {
+          for (m in 1:nDeg[i]) if (z[nbrs[i, m]] == k) same <- same + 1
+        }
+        lp[k] <- dSkewMvNO_k(y[i, 1:d], mu[k, 1:d], Sig[k, 1:d, 1:d],
+                             gam[k, 1:d], th[k], log = 1) + beta * same
+      }
+      mx <- max(lp); p <- exp(lp - mx); p <- p / sum(p)
+      z[i] <- rcat(1, p)
+    }
+    model[["z"]] <<- z
+    model$calculate(calcNodes)
+    copy(from = model, to = mvSaved, row = 1, nodes = calcNodes, logProb = TRUE)
+  },
+  methods = list(reset = function() {}))
+
+#' @keywords internal
+.pottsGibbsSkewMvITOSampler <- nimble::nimbleFunction(
+  contains = nimble::sampler_BASE,
+  setup = function(model, mvSaved, target, control) {
+    K <- control$K; nbrs <- control$nbrs; nDeg <- control$nDeg
+    n <- control$n; d <- control$d
+    calcNodes <- model$getDependencies(target)
+  },
+  run = function() {
+    z    <- model[["z"]]
+    beta <- model[["beta"]]
+    mu   <- model[["muTilde"]]
+    Sig  <- model[["SigTilde"]]
+    gam  <- model[["gamTilde"]]
+    nu   <- model[["nuTilde"]]
+    th   <- model[["thetaTilde"]]
+    y    <- model[["y"]]
+    for (i in 1:n) {
+      lp <- numeric(K)
+      for (k in 1:K) {
+        same <- 0
+        if (nDeg[i] > 0) {
+          for (m in 1:nDeg[i]) if (z[nbrs[i, m]] == k) same <- same + 1
+        }
+        lp[k] <- dSkewMvITO_k(y[i, 1:d], mu[k, 1:d], Sig[k, 1:d, 1:d],
+                              gam[k, 1:d], nu[k, 1:d], th[k], log = 1) +
+          beta * same
+      }
+      mx <- max(lp); p <- exp(lp - mx); p <- p / sum(p)
+      z[i] <- rcat(1, p)
+    }
+    model[["z"]] <<- z
+    model$calculate(calcNodes)
+    copy(from = model, to = mvSaved, row = 1, nodes = calcNodes, logProb = TRUE)
+  },
+  methods = list(reset = function() {}))
+
+setMethod(".mrfSamplerFor", "SkewNormalMvOSpec",
+          function(spec) .pottsGibbsSkewMvNOSampler)
+setMethod(".mrfSamplerFor", "SkewIStudentMvOSpec",
+          function(spec) .pottsGibbsSkewMvITOSampler)
+
+# --- Skew multivariate MRF sweeps, general-m estimated-O variants ---------------
+# Same Potts x emission structure. The number of Householder angles is a
+# function of the dimension, nAng = d(d-1)/2, so it is derived in setup rather
+# than passed through control.
+
+#' @keywords internal
+.pottsGibbsSkewMvNOGSampler <- nimble::nimbleFunction(
+  contains = nimble::sampler_BASE,
+  setup = function(model, mvSaved, target, control) {
+    K <- control$K; nbrs <- control$nbrs; nDeg <- control$nDeg
+    n <- control$n; d <- control$d
+    nAng <- as.integer(d * (d - 1) / 2)
+    calcNodes <- model$getDependencies(target)
+  },
+  run = function() {
+    z    <- model[["z"]]
+    beta <- model[["beta"]]
+    mu   <- model[["muTilde"]]
+    Sig  <- model[["SigTilde"]]
+    gam  <- model[["gamTilde"]]
+    th   <- model[["thetaTilde"]]      # K x nAng
+    y    <- model[["y"]]
+    for (i in 1:n) {
+      lp <- numeric(K)
+      for (k in 1:K) {
+        same <- 0
+        if (nDeg[i] > 0) {
+          for (m in 1:nDeg[i]) if (z[nbrs[i, m]] == k) same <- same + 1
+        }
+        lp[k] <- dSkewMvNOG_k(y[i, 1:d], mu[k, 1:d], Sig[k, 1:d, 1:d],
+                              gam[k, 1:d], th[k, 1:nAng], log = 1) + beta * same
+      }
+      mx <- max(lp); p <- exp(lp - mx); p <- p / sum(p)
+      z[i] <- rcat(1, p)
+    }
+    model[["z"]] <<- z
+    model$calculate(calcNodes)
+    copy(from = model, to = mvSaved, row = 1, nodes = calcNodes, logProb = TRUE)
+  },
+  methods = list(reset = function() {}))
+
+#' @keywords internal
+.pottsGibbsSkewMvITOGSampler <- nimble::nimbleFunction(
+  contains = nimble::sampler_BASE,
+  setup = function(model, mvSaved, target, control) {
+    K <- control$K; nbrs <- control$nbrs; nDeg <- control$nDeg
+    n <- control$n; d <- control$d
+    nAng <- as.integer(d * (d - 1) / 2)
+    calcNodes <- model$getDependencies(target)
+  },
+  run = function() {
+    z    <- model[["z"]]
+    beta <- model[["beta"]]
+    mu   <- model[["muTilde"]]
+    Sig  <- model[["SigTilde"]]
+    gam  <- model[["gamTilde"]]
+    nu   <- model[["nuTilde"]]
+    th   <- model[["thetaTilde"]]
+    y    <- model[["y"]]
+    for (i in 1:n) {
+      lp <- numeric(K)
+      for (k in 1:K) {
+        same <- 0
+        if (nDeg[i] > 0) {
+          for (m in 1:nDeg[i]) if (z[nbrs[i, m]] == k) same <- same + 1
+        }
+        lp[k] <- dSkewMvITOG_k(y[i, 1:d], mu[k, 1:d], Sig[k, 1:d, 1:d],
+                               gam[k, 1:d], nu[k, 1:d], th[k, 1:nAng],
+                               log = 1) + beta * same
+      }
+      mx <- max(lp); p <- exp(lp - mx); p <- p / sum(p)
+      z[i] <- rcat(1, p)
+    }
+    model[["z"]] <<- z
+    model$calculate(calcNodes)
+    copy(from = model, to = mvSaved, row = 1, nodes = calcNodes, logProb = TRUE)
+  },
+  methods = list(reset = function() {}))
+
+setMethod(".mrfSamplerFor", "SkewNormalMvOGenSpec",
+          function(spec) .pottsGibbsSkewMvNOGSampler)
+setMethod(".mrfSamplerFor", "SkewIStudentMvOGenSpec",
+          function(spec) .pottsGibbsSkewMvITOGSampler)

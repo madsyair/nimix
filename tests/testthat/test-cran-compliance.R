@@ -13,16 +13,16 @@ test_that("nimixReg scope guards: covariate gating, count response", {
 })
 
 test_that("multivariate data routes to NormalMvSpec, univariate to NormalUvSpec", {
-  expect_s4_class(.selectClusterSpec("normal", TRUE,  2L), "NormalMvSpec")
-  expect_s4_class(.selectClusterSpec("normal", FALSE, 1L), "NormalUvSpec")
+  expect_s4_class(nimix:::.selectClusterSpec("normal", TRUE,  2L), "NormalMvSpec")
+  expect_s4_class(nimix:::.selectClusterSpec("normal", FALSE, 1L), "NormalUvSpec")
   # forcing the wrong family for the data shape errors clearly
-  expect_error(.selectClusterSpec("normal-mv", FALSE, 1L), "matrix")
-  expect_error(.selectClusterSpec("normal-uv", TRUE,  2L), "vector")
+  expect_error(nimix:::.selectClusterSpec("normal-mv", FALSE, 1L), "matrix")
+  expect_error(nimix:::.selectClusterSpec("normal-uv", TRUE,  2L), "vector")
   # Student-t (v0.4.0) now routes to the univariate / multivariate spec.
-  expect_s4_class(.selectClusterSpec("student-t", FALSE, 1L), "StudentTUvSpec")
-  expect_s4_class(.selectClusterSpec("studentt",  TRUE,  2L), "StudentTMvSpec")
+  expect_s4_class(nimix:::.selectClusterSpec("student-t", FALSE, 1L), "StudentTUvSpec")
+  expect_s4_class(nimix:::.selectClusterSpec("studentt",  TRUE,  2L), "StudentTMvSpec")
   # a family that is genuinely not provided still errors clearly
-  expect_error(.selectClusterSpec("gamma", FALSE, 1L), "not available")
+  expect_error(nimix:::.selectClusterSpec("gamma", FALSE, 1L), "not available")
 })
 
 test_that("unsupported distributions error clearly", {

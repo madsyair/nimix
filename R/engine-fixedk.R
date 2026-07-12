@@ -70,8 +70,8 @@ setMethod("buildModelCode", signature("NormalMvSpec", "FixedKEngine"),
 #'   (fixed K).
 #' @export
 setMethod("buildModelCode", signature("NormalRegSpec", "FixedKEngine"),
-  function(spec, engine, n, L, ...) {
-    code <- nimble::nimbleCode({
+  function(spec, engine, n, L, re = FALSE, ...) {
+    code <- if (!re) nimble::nimbleCode({
       for (i in 1:n) {
         z[i] ~ dcat(weights[1:K])
         betaObs[i, 1:p] <- betaTilde[z[i], 1:p]
@@ -85,9 +85,32 @@ setMethod("buildModelCode", signature("NormalRegSpec", "FixedKEngine"),
         covBeta[j, 1:p, 1:p] <- s2Tilde[j] * B0[1:p, 1:p]
         betaTilde[j, 1:p] ~ dmnorm(b0[1:p], cov = covBeta[j, 1:p, 1:p])
       }
+    }) else nimble::nimbleCode({
+      # Random-intercept variant. Sum-to-zero parameterisation of b: the F4
+      # gate measured a pure translation ridge cor(beta0, mean(b)) = -0.979
+      # under free b (min ESS 25/2500); the constraint restored min ESS 205
+      # with recovery intact, and keeps user-facing traces healthy.
+      for (i in 1:n) {
+        z[i] ~ dcat(weights[1:K])
+        betaObs[i, 1:p] <- betaTilde[z[i], 1:p]
+        mu[i] <- inprod(X[i, 1:p], betaObs[i, 1:p]) + b[grp[i]]
+        s2Obs[i] <- s2Tilde[z[i]]
+        y[i] ~ dnorm(mu[i], var = s2Obs[i])
+      }
+      weights[1:K] ~ ddirch(alphaVec[1:K])
+      for (j in 1:K) {
+        s2Tilde[j] ~ dinvgamma(shape = nu0, scale = s0)
+        covBeta[j, 1:p, 1:p] <- s2Tilde[j] * B0[1:p, 1:p]
+        betaTilde[j, 1:p] ~ dmnorm(b0[1:p], cov = covBeta[j, 1:p, 1:p])
+      }
+      for (g in 1:(G - 1)) bf[g] ~ dnorm(0, sd = tauRE)
+      b[1:(G - 1)] <- bf[1:(G - 1)]
+      b[G] <- -sum(bf[1:(G - 1)])
+      tauRE ~ dunif(0.01, tauMax)
     })
     list(code = code,
-         monitors  = c("z", "betaTilde", "s2Tilde", "weights"),
+         monitors  = c("z", "betaTilde", "s2Tilde", "weights",
+                       if (re) c("b", "tauRE")),
          paramNodes = c(beta = "betaTilde", s2 = "s2Tilde"),
          allocNode  = "z")
   }
@@ -151,14 +174,17 @@ setMethod("runEngine", "FixedKEngine",
     n     <- .nObs(data)
     d     <- .dataDimOf(data)
 
-    mc <- buildModelCode(spec, engine, n = n, L = K, d = d)
+    hasRE <- isTRUE(prior$hasRE)
+    mc <- buildModelCode(spec, engine, n = n, L = K, d = d, re = hasRE)
     dataList <- buildDataList(spec, data)
     initRatio <- .resolveInitRatio(mcmcControl)
     initsFn <- function(s) {
       ci <- .withSeed(s, function() componentInits(spec, prior, data, K,
                       initMethod = initMethod, initRatio = initRatio))
-      if (K == 1L) ci$params
-      else c(list(z = ci$alloc, weights = rep(1 / K, K)), ci$params)
+      reInits <- if (hasRE) list(bf = rep(0, prior$reG - 1L), tauRE = 1)
+                 else NULL
+      if (K == 1L) c(reInits, ci$params)
+      else c(list(z = ci$alloc, weights = rep(1 / K, K)), reInits, ci$params)
     }
     baseConst <- buildConstants(spec, prior, n)
 

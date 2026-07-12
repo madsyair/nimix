@@ -4,7 +4,13 @@
 \alias{ppCheck}
 \title{Posterior predictive check}
 \usage{
-ppCheck(fit, nrep = 200, statistics = c("mean", "sd", "min", "max"), seed = 1L)
+ppCheck(
+  fit,
+  nrep = 200,
+  statistics = c("mean", "sd", "min", "max"),
+  seed = 1L,
+  store_yrep = FALSE
+)
 }
 \arguments{
 \item{fit}{A \code{\linkS4class{FitResult}} from \code{\link{nimixClust}}.}
@@ -18,6 +24,10 @@ vector naming built-ins from \code{mean}, \code{sd}, \code{min},
 column-wise and reports per-column results.}
 
 \item{seed}{RNG seed for the replicate simulation.}
+
+\item{store_yrep}{If \code{TRUE}, attach the simulated replicates as
+attribute \code{"yrep"} (with \code{"y"} and \code{"draws"}) on the
+result -- the inputs graphical PPC functions consume.}
 }
 \value{
 An object of class \code{nimixPPC}: a data frame of observed value,

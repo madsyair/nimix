@@ -39,7 +39,7 @@ test_that("validateParams enforces dimension and nu0 invariants", {
 test_that("simulateParams returns conformable beta and s2", {
   set.seed(2)
   pr <- list(b0 = c(0, 0), B0 = diag(2), nu0 = 5, s0 = 2, p = 2L)
-  sp <- simulateParams(NormalRegSpec(), pr, nClust = 4)
+  sp <- nimix:::simulateParams(NormalRegSpec(), pr, nClust = 4)
   expect_equal(dim(sp$beta), c(4L, 2L))
   expect_length(sp$s2, 4L)
   expect_true(all(sp$s2 > 0))
@@ -66,4 +66,56 @@ test_that("end-to-end DPM mixture of regressions recovers two slopes (80/20)", {
   # the two recovered slopes (column "x") should bracket 0 (one +, one -)
   slopes <- sort(fit@relabeled$summary[["x"]])
   expect_true(slopes[1] < 0 && slopes[length(slopes)] > 0)
+})
+
+test_that("FixedK regression is scale-equivariant in the predictors", {
+  # Regression guarantee for the conjugate NIG Gibbs sampler. Before it,
+  # betaTilde/s2Tilde fell back to RW_block in raw units (dynamic indexing
+  # hides the linear-Gaussian structure from checkConjugacy), and rescaling a
+  # predictor by 1000 shifted the recovered slope systematically (2.50 vs 2.01,
+  # persisting at 6000 iterations). With the exact conditional the fit must be
+  # invariant: slopes agree after undoing the rescale, up to MC noise.
+  skip_on_cran()
+  set.seed(3); n <- 200
+  x <- runif(n, 0, 10); zc <- rbinom(n, 1, 0.5)
+  y <- ifelse(zc == 1, 2 + 2 * x, -2 - 2 * x) + rnorm(n, 0, 1)
+  run <- function(xx) {
+    f <- relabel(nimixReg(y ~ x, data = data.frame(y = y, x = xx), K = 2,
+                          method = "fixedk",
+                          mcmcControl = list(niter = 1500, nburnin = 600),
+                          seed = 1))
+    s <- f@relabeled$summary; o <- order(s$x)
+    list(sl = s$x[o], ic = s$`(Intercept)`[o])
+  }
+  a <- run(x); b <- run(x * 1000)
+  expect_lt(max(abs(a$sl - b$sl * 1000)), 0.1)
+  expect_lt(max(abs(a$ic - b$ic)), 0.3)
+  # and the answer itself is right
+  expect_lt(max(abs(sort(a$sl) - c(-2, 2))), 0.25)
+})
+
+test_that("conjugate NIG sampler replaces RW on the FixedK regression path", {
+  skip_on_cran()
+  set.seed(3); n <- 120
+  x <- runif(n, 0, 10); zc <- rbinom(n, 1, 0.5)
+  y <- ifelse(zc == 1, 2 + 2 * x, -2 - 2 * x) + rnorm(n, 0, 1)
+  X <- cbind(1, x)
+  sp <- getDistribution("normal-reg")
+  pr <- defaultPrior(sp, y, control = list(X = X))
+  mc <- buildModelCode(sp, new("FixedKEngine", dirichletConc = 1), n = n, L = 2)
+  cn <- nimix:::buildConstants(sp, pr, n)
+  cn$K <- 2; cn$alphaVec <- rep(1, 2); cn$p <- ncol(X); cn$X <- X
+  ini <- nimix:::componentInits(sp, pr, y, 2)
+  m <- suppressMessages(nimble::nimbleModel(
+    mc$code, constants = cn, data = list(y = y),
+    inits = c(list(z = ini$alloc, weights = c(.5, .5)), ini$params),
+    calculate = FALSE))
+  conf <- suppressMessages(nimble::configureMCMC(m, print = FALSE))
+  customizeSamplers(sp, conf, m)
+  nm <- vapply(conf$getSamplers(), function(s) s$name, character(1))
+  tg <- vapply(conf$getSamplers(), function(s) s$target[1], character(1))
+  onBeta <- nm[grepl("betaTilde", tg)]
+  expect_true(length(onBeta) > 0)
+  expect_false(any(grepl("^RW", onBeta)))          # no RW left on beta
+  expect_false(any(grepl("s2Tilde", tg) & grepl("^RW", nm)))  # nor on s2
 })

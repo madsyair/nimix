@@ -5,34 +5,34 @@
 test_that("split-Rhat is ~1 for agreeing chains and flags disagreeing chains", {
   set.seed(1)
   agree <- lapply(1:4, function(i) rnorm(500))
-  expect_lt(abs(.splitRhat(agree) - 1), 0.05)
+  expect_lt(abs(nimix:::.splitRhat(agree) - 1), 0.05)
 
   # chains centred far apart do not mix -> large Rhat
   disagree <- list(rnorm(500, -5), rnorm(500, 5), rnorm(500, -5), rnorm(500, 5))
-  expect_gt(.splitRhat(disagree), 1.1)
+  expect_gt(nimix:::.splitRhat(disagree), 1.1)
 })
 
 test_that("split-Rhat returns NA when undefined (one chain, or constant)", {
-  expect_true(is.na(.splitRhat(list(rnorm(500)))))          # single chain
-  expect_true(is.na(.splitRhat(list(rep(2, 500), rep(2, 500)))))  # constant
+  expect_true(is.na(nimix:::.splitRhat(list(rnorm(500)))))          # single chain
+  expect_true(is.na(nimix:::.splitRhat(list(rep(2, 500), rep(2, 500)))))  # constant
 })
 
 test_that(".sumESS adds per-chain effective sizes and ignores degenerate chains", {
   set.seed(2)
   chains <- lapply(1:3, function(i) rnorm(400))
-  s <- .sumESS(chains)
+  s <- nimix:::.sumESS(chains)
   expect_true(is.finite(s) && s > 0)
-  expect_equal(.sumESS(list(rep(1, 100))), 0)               # constant -> 0
+  expect_equal(nimix:::.sumESS(list(rep(1, 100))), 0)               # constant -> 0
 })
 
 test_that(".multiChainDiag assembles K (and optional alpha) diagnostics", {
   set.seed(3)
   K <- lapply(1:3, function(i) sample(2:3, 400, replace = TRUE))
-  d <- .multiChainDiag(K)
+  d <- nimix:::.multiChainDiag(K)
   expect_equal(d$nchains, 3L)
   expect_true(all(c("RhatK", "essK") %in% names(d)))
   expect_false("RhatAlpha" %in% names(d))
-  d2 <- .multiChainDiag(K, lapply(1:3, function(i) rgamma(400, 2, 2)))
+  d2 <- nimix:::.multiChainDiag(K, lapply(1:3, function(i) rgamma(400, 2, 2)))
   expect_true(all(c("RhatAlpha", "essAlpha") %in% names(d2)))
 })
 

@@ -91,6 +91,9 @@ setGeneric("defaultPrior", function(spec, data, control = list(), ...) {
 #' @param engine An \code{\linkS4class{EngineConfig}}.
 #' @param n Integer, number of observations.
 #' @param L Integer, cluster-parameter truncation length (\code{= K_max}).
+#' @param re Logical; regression + FixedK method only -- when \code{TRUE},
+#'   emit the random-intercept variant of the model code (sum-to-zero
+#'   \code{b} offsets plus \code{tauRE}).
 #' @param ... Reserved for methods.
 #' @return A list with elements \code{code} (a \code{nimbleCode} object),
 #'   \code{monitors} (character vector), and \code{paramNodes}

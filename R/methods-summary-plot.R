@@ -112,6 +112,11 @@ setMethod("summary", "FitResult", function(object, ...) {
 #'   coloured by MAP cluster), or \code{"fitted"} (regression only: observed
 #'   response vs posterior predictive mean).
 #' @export
+#' @return Invisibly, a tidy data frame of exactly what was drawn (e.g.
+#'   \code{iteration}/\code{component}/\code{value} for traces,
+#'   \code{x}/\code{density} for the predictive density), so the plot can be
+#'   reproduced with ggplot2 or any other system without nimix depending on
+#'   them.
 setMethod("plot", signature(x = "FitResult", y = "missing"),
   function(x, y, type = c("K", "trace_raw", "trace_relabeled", "density",
                           "cluster", "fitted"), ...) {
@@ -128,26 +133,42 @@ setMethod("plot", signature(x = "FitResult", y = "missing"),
       stop("no location trace available.", call. = FALSE)
     }
 
+    # Every branch draws with base graphics AND returns (invisibly) the tidy
+    # data frame it plotted. That keeps `graphics` as the only plotting
+    # dependency while letting users replot with ggplot2/lattice/plotly from
+    # the returned data -- no need for nimix to carry those packages.
+    out <- NULL
     if (type == "K") {
-      graphics::barplot(prop.table(table(x@Kposterior)),
+      tab <- prop.table(table(x@Kposterior))
+      graphics::barplot(tab,
                         xlab = "number of occupied clusters",
                         ylab = "posterior probability",
                         main = "Posterior of K")
+      out <- data.frame(K = as.integer(names(tab)),
+                        probability = as.numeric(tab))
 
     } else if (type == "trace_raw") {
       lab <- if (isReg) "first coefficient (raw)" else
         if (d == 1L) "muTilde (raw)" else "muTilde[, , dim 1] (raw)"
-      graphics::matplot(.locTrace(x@paramTrace), type = "l", lty = 1,
+      tr <- .locTrace(x@paramTrace)
+      graphics::matplot(tr, type = "l", lty = 1,
                         xlab = "iteration", ylab = lab,
                         main = "Raw cluster-parameter traces (look for switching)")
+      out <- data.frame(iteration = rep(seq_len(nrow(tr)), ncol(tr)),
+                        component = rep(seq_len(ncol(tr)), each = nrow(tr)),
+                        value = as.numeric(tr))
 
     } else if (type == "trace_relabeled") {
       if (length(x@relabeled) == 0L) x <- relabel(x)
       lab <- if (isReg) "first coefficient (relabelled)" else
         if (d == 1L) "mu (relabelled)" else "mu[, , dim 1] (relabelled)"
-      graphics::matplot(.locTrace(x@paramTrace, relabeled = TRUE), type = "l",
+      tr <- .locTrace(x@paramTrace, relabeled = TRUE)
+      graphics::matplot(tr, type = "l",
                         lty = 1, xlab = "iteration (modal-K draws)", ylab = lab,
                         main = "Relabelled component traces")
+      out <- data.frame(iteration = rep(seq_len(nrow(tr)), ncol(tr)),
+                        component = rep(seq_len(ncol(tr)), each = nrow(tr)),
+                        value = as.numeric(tr))
 
     } else if (type == "density") {
       if (isReg)
@@ -162,6 +183,7 @@ setMethod("plot", signature(x = "FitResult", y = "missing"),
                      border = "grey60", main = "Posterior predictive density",
                      xlab = "y")
       graphics::lines(pp$x, pp$density, lwd = 2)
+      out <- data.frame(x = pp$x, density = pp$density)
 
     } else if (type == "cluster") {
       if (isReg || d < 2L)
@@ -178,6 +200,8 @@ setMethod("plot", signature(x = "FitResult", y = "missing"),
       graphics::plot.default(X[, 1L], X[, 2L], col = grp, pch = 19,
                      xlab = "dimension 1", ylab = "dimension 2",
                      main = "Data coloured by MAP cluster (dims 1-2)")
+      out <- data.frame(X, cluster = grp)
+      names(out) <- c(paste0("dim", seq_len(ncol(X))), "cluster")
 
     } else if (type == "fitted") {
       if (!isReg)
@@ -188,8 +212,9 @@ setMethod("plot", signature(x = "FitResult", y = "missing"),
                      xlab = "posterior predictive mean", ylab = "observed y",
                      main = "Observed vs fitted (mixture of regressions)")
       graphics::abline(0, 1, lty = 2)
+      out <- data.frame(fitted = pr$.fitted, observed = as.numeric(x@data))
     }
-    invisible(x)
+    invisible(out)
   }
 )
 

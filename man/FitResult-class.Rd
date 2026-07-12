@@ -46,6 +46,13 @@ data frame of predictors (regression). Defaults to the training data.}
 \item{maxDraws}{Integer cap on the number of posterior draws used (default
 500); draws are thinned uniformly if exceeded.}
 }
+\value{
+Invisibly, a tidy data frame of exactly what was drawn (e.g.
+  \code{iteration}/\code{component}/\code{value} for traces,
+  \code{x}/\code{density} for the predictive density), so the plot can be
+  reproduced with ggplot2 or any other system without nimix depending on
+  them.
+}
 \description{
 Fitted nimix mixture result
 }

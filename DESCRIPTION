@@ -1,26 +1,18 @@
 Package: nimix
 Type: Package
 Title: Bayesian Mixture Clustering and Regression with NIMBLE
-Version: 1.0.0
+Version: 1.3.0
 Authors@R: 
     person("Achmad Syahrul", "Choir", email = "madsyair@stis.ac.id",
            role = c("aut", "cre"),
            comment = c(ORCID = "0000-0001-7088-0646"))
-Description: A high-level extensible framework for fitting Bayesian mixture 
-    and mixture-of-regressions models for clustering and regression, built 
-    on top of the 'nimble' package ecosystem by de Valpine et al. (2017) 
-    <doi:10.1080/10618600.2016.1172487>. It provides a unified S4 
-    orchestration to seamlessly pair univariate and multivariate component 
-    families, ranging from standard Gaussian and heavy-tailed distributions 
-    to specialized neo-normal distributions. Supported paradigms include 
-    infinite clustering via Dirichlet Process Mixture (DPM) models employing 
-    the Chinese Restaurant Process, classic finite mixtures with a fixed 
-    number of components, and spatially constrained mixtures governed by 
-    Markov Random Field (MRF) Potts models on custom or lattice neighborhood 
-    structures. The package automates data-scaled prior assignment, NIMBLE 
-    model code generation, post-MCMC label switching correction using the 
-    'label.switching' package, and efficient compile-once-reuse caching 
-    mechanisms to minimize C++ compilation overhead.
+Description: A 'nimble'-based framework for Bayesian mixture clustering and
+    regression models (de Valpine dkk, 2017 <doi:10.1080/10618600.2016.1172487>).
+    It supports diverse univariate and multivariate distributions across four
+    inference paradigms: finite, infinite (Dirichlet process), spatial
+    (Markov random field), and hidden-Markov mixtures. Features include
+    tuned MCMC samplers and comprehensive post-processing tools for
+    label-switching correction and cluster validation.
 License: GPL-3
 URL: https://github.com/madsyair/nimix, https://madsyair.github.io/nimix/
 BugReports: https://github.com/madsyair/nimix/issues
@@ -28,26 +20,39 @@ Encoding: UTF-8
 LazyData: true
 Depends: R (>= 4.1.0), nimble (>= 1.0.0)
 Imports: label.switching, coda, methods, stats, graphics
-Suggests:
-    spelling, testthat (>= 3.0.0), knitr, rmarkdown,
-    loo
+Suggests: testthat (>= 3.0.0), knitr, rmarkdown, bayesplot,
+    loo, cluster, fpc
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 Collate: 
     'utils-internal.R'
     'class-DistributionSpec.R'
+    'class-FitResult.R'
+    'bayesplot-adaptors.R'
     'class-SpatialWeightSpec.R'
     'class-EngineConfig.R'
-    'class-FitResult.R'
     'class-MixtureModel.R'
     'cluster-profile.R'
+    'cluster-validity.R'
     'data.R'
-    'dist-glm-reg.R'
     'neonorm-utils.R'
+    'dist-fossep-core.R'
+    'dist-fssn-core.R'
+    'dist-fssn.R'
+    'dist-fossep.R'
+    'dist-fsst-core.R'
+    'dist-fsst.R'
+    'dist-glm-reg.R'
     'dist-gmsnburr-core.R'
     'dist-gmsnburr.R'
     'dist-normal-reg.R'
     'dist-heavytail-reg.R'
+    'dist-jfst-core.R'
+    'dist-jfst.R'
+    'dist-lep-core.R'
+    'dist-sep-core.R'
+    'dist-sep.R'
+    'dist-lep.R'
     'dist-msnburr-core.R'
     'dist-msnburr.R'
     'dist-mv-reg.R'
@@ -56,10 +61,18 @@ Collate:
     'dist-normal-uv.R'
     'dist-normal-gamma.R'
     'dist-poisson-binomial.R'
+    'dist-skewnormal-mv.R'
+    'dist-skewnormal-mv-o.R'
+    'dist-skewistudent-mv.R'
+    'dist-skewistudent-mv-o.R'
+    'skew-mv-o-general.R'
+    'dist-skewnormal-mv-og.R'
+    'dist-skewistudent-mv-og.R'
     'dist-student-t-mv.R'
     'dist-student-t.R'
     'engine-dpm.R'
     'engine-fixedk.R'
+    'engine-hmm.R'
     'engine-mrf.R'
     'methods-summary-plot.R'
     'model-selection.R'
@@ -67,8 +80,9 @@ Collate:
     'registerDistribution.R'
     'nimixClust.R'
     'nimixReg.R'
+    'partition-summary.R'
+    'samplers-afslice.R'
     'utils-labelswitch.R'
     'workflow-ppc.R'
 Config/roxygen2/version: 8.0.0
 NeedsCompilation: no
-Language: en-US

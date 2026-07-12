@@ -39,13 +39,13 @@ test_that("initRatio scales the number of seeded clusters", {
   sp <- nimix:::NormalMvSpec()
   pr <- defaultPrior(sp, Y)
   seed_k <- function(ir)
-    length(unique(componentInits(sp, pr, Y, 20, initRatio = ir)$alloc))
+    length(unique(nimix:::componentInits(sp, pr, Y, 20, initRatio = ir)$alloc))
 
   # n = 300 -> ceil(sqrt(n)) = 18 caps the high end; floor(ir * 20) drives the rest
   expect_equal(seed_k(0.5), 10L)               # floor(0.5 * 20)
   expect_equal(seed_k(0.8), 16L)               # default ratio
   expect_lt(seed_k(0.5), seed_k(0.8))          # lower ratio -> fewer seeds
-  expect_equal(componentInits(sp, pr, Y, 20)$alloc |>
+  expect_equal(nimix:::componentInits(sp, pr, Y, 20)$alloc |>
                  unique() |> length(), 16L)    # default when arg omitted
 })
 

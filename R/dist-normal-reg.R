@@ -216,8 +216,14 @@ setMethod("buildModelCode", signature("NormalRegSpec", "DPMEngine"),
 #'   number of predictors \code{p}, and the NIG hyperparameters).
 setMethod("buildConstants", "NormalRegSpec",
   function(spec, prior, n, ...) {
-    list(n = n, p = prior$p, X = prior$X,
-         b0 = prior$b0, B0 = prior$B0, nu0 = prior$nu0, s0 = prior$s0)
+    out <- list(n = n, p = prior$p, X = prior$X,
+                b0 = prior$b0, B0 = prior$B0, nu0 = prior$nu0, s0 = prior$s0)
+    if (isTRUE(prior$hasRE)) {
+      out$grp    <- prior$reGrp
+      out$G      <- prior$reG
+      out$tauMax <- prior$tauMax
+    }
+    out
   }
 )
 
@@ -344,3 +350,180 @@ setMethod("relabelComponents", "NormalRegSpec",
 #' @describeIn isRegressionSpec Normal-linear regression is a regression spec.
 #' @export
 setMethod("isRegressionSpec", "NormalRegSpec", function(spec, ...) TRUE)
+
+# --- Conjugate Gibbs for the FixedK regression path ------------------------------
+# Under the FixedK engine, NIMBLE's checkConjugacy() detects only the mixture
+# weights: the dynamic indexing betaObs[i, ] <- betaTilde[z[i], ] hides the
+# linear-Gaussian structure from the conjugacy checker (the same class of
+# platform constraint as the multivariate Cholesky-lifting issue), so beta and
+# s2 fall back to RW_block / RW in raw units. That is not merely slow: it makes
+# the fit visibly non-equivariant to predictor rescaling, because a single
+# adaptive block proposal cannot serve an intercept of O(1) and a slope of
+# O(1e-3) at once. (The DPM path is unaffected: dCRP assigns its own conjugate
+# CRP_cluster_wrapper to betaTilde and s2Tilde.)
+#
+# This sampler restores the exact closed-form conditionals of the
+# Normal-Inverse-Gamma model (Bernardo & Smith 1994, Sec. 5.2; O'Hagan &
+# Forster 2004, Ch. 11). Conditional on allocations z, for cluster j with
+# members M_j = {i : z_i = j}:
+#   Vn = (B0^{-1} + X_j' X_j)^{-1},  bn = Vn (B0^{-1} b0 + X_j' y_j)
+#   beta_j | s2_j, z, y ~ N(bn, s2_j * Vn)
+#   s2_j | z, y ~ InvGamma(nu0 + n_j / 2,
+#                          s0 + (y_j' y_j + b0' B0^{-1} b0 - bn' Vn^{-1} bn) / 2)
+# Empty clusters draw from the prior. Both updates are joint (beta, s2), so the
+# sampler replaces BOTH default samplers for cluster j.
+
+#' @keywords internal
+.betaS2ConjSampler <- nimble::nimbleFunction(
+  contains = nimble::sampler_BASE,
+  setup = function(model, mvSaved, target, control) {
+    j     <- control$j                 # cluster index this instance updates
+    X     <- control$X                 # n x p design (constant)
+    yv    <- control$y                 # response (constant)
+    b0    <- control$b0
+    B0inv <- control$B0inv             # p x p prior precision of beta (unscaled)
+    nu0   <- control$nu0
+    s0    <- control$s0
+    p     <- ncol(X)
+    n     <- nrow(X)
+    betaNode <- paste0("betaTilde[", j, ", 1:", p, "]")
+    s2Node   <- paste0("s2Tilde[", j, "]")
+    calcNodes <- model$getDependencies(c(betaNode, s2Node))
+    B0invb0 <- (B0inv %*% asCol(b0))[, 1]
+    b0Qb0 <- inprod(b0, B0invb0)
+  },
+  run = function() {
+    z <- model[["z"]]
+    # accumulate X_j'X_j, X_j'y_j, y_j'y_j, n_j over members of cluster j
+    XtX <- matrix(0, p, p)
+    Xty <- numeric(p)
+    yty <- 0
+    nj  <- 0
+    for (i in 1:n) {
+      if (z[i] == j) {
+        nj <- nj + 1
+        yty <- yty + yv[i] * yv[i]
+        for (r in 1:p) {
+          Xty[r] <- Xty[r] + X[i, r] * yv[i]
+          for (c in 1:p) XtX[r, c] <- XtX[r, c] + X[i, r] * X[i, c]
+        }
+      }
+    }
+    Vninv <- B0inv + XtX
+    Uv <- chol(Vninv)
+    Vn <- inverse(Vninv)
+    rhs <- B0invb0 + Xty
+    bn <- (Vn %*% asCol(rhs))[, 1]
+    # posterior InvGamma(shape = nu0 + nj/2, scale = s0 + quad/2)
+    quad <- yty + b0Qb0 - inprod(bn, rhs)
+    if (quad < 0) quad <- 0            # numeric guard, exact value is >= 0
+    shape <- nu0 + nj / 2
+    scale <- s0 + quad / 2
+    s2new <- 1 / rgamma(1, shape = shape, rate = scale)
+    # beta | s2 ~ N(bn, s2 * Vn): draw via z ~ N(0, I), beta = bn + sqrt(s2) L' z
+    zdraw <- numeric(p)
+    for (r in 1:p) zdraw[r] <- rnorm(1, 0, 1)
+    UvVn <- chol(Vn)
+    bnew <- bn + sqrt(s2new) * (t(UvVn) %*% asCol(zdraw))[, 1]
+    values(model, s2Node) <<- c(s2new)
+    values(model, betaNode) <<- bnew
+    model$calculate(calcNodes)
+    copy(from = model, to = mvSaved, row = 1, nodes = calcNodes, logProb = TRUE)
+  },
+  methods = list(reset = function() {})
+)
+
+# Random-effect variant of the NIG block sampler. A separate nimbleFunction
+# (not a branch inside the plain one) because NIMBLE compiles every branch of
+# run(): a reference to model[["b"]] would fail to compile against models
+# that have no b node. Gate F4 measured why the offset is needed at all --
+# conjugacy detection handles the additive *scalar* form but not the
+# production inprod form, so the exact conditional must subtract the current
+# random intercepts itself.
+.betaS2ConjSamplerRE <- nimble::nimbleFunction(
+  contains = nimble::sampler_BASE,
+  setup = function(model, mvSaved, target, control) {
+    j     <- control$j
+    X     <- control$X
+    yv    <- control$y
+    grp   <- control$grp
+    b0    <- control$b0
+    B0inv <- control$B0inv
+    nu0   <- control$nu0
+    s0    <- control$s0
+    p     <- ncol(X)
+    n     <- nrow(X)
+    betaNode <- paste0("betaTilde[", j, ", 1:", p, "]")
+    s2Node   <- paste0("s2Tilde[", j, "]")
+    calcNodes <- model$getDependencies(c(betaNode, s2Node))
+    B0invb0 <- (B0inv %*% asCol(b0))[, 1]
+    b0Qb0 <- inprod(b0, B0invb0)
+  },
+  run = function() {
+    z <- model[["z"]]
+    bcur <- model[["b"]]
+    XtX <- matrix(0, p, p)
+    Xty <- numeric(p)
+    yty <- 0
+    nj  <- 0
+    for (i in 1:n) {
+      if (z[i] == j) {
+        nj <- nj + 1
+        ri <- yv[i] - bcur[grp[i]]
+        yty <- yty + ri * ri
+        for (r in 1:p) {
+          Xty[r] <- Xty[r] + X[i, r] * ri
+          for (c in 1:p) XtX[r, c] <- XtX[r, c] + X[i, r] * X[i, c]
+        }
+      }
+    }
+    Vninv <- B0inv + XtX
+    Vn <- inverse(Vninv)
+    rhs <- B0invb0 + Xty
+    bn <- (Vn %*% asCol(rhs))[, 1]
+    quad <- yty + b0Qb0 - inprod(bn, rhs)
+    if (quad < 0) quad <- 0
+    shape <- nu0 + nj / 2
+    scale <- s0 + quad / 2
+    s2new <- 1 / rgamma(1, shape = shape, rate = scale)
+    zdraw <- numeric(p)
+    for (r in 1:p) zdraw[r] <- rnorm(1, 0, 1)
+    UvVn <- chol(Vn)
+    bnew <- bn + sqrt(s2new) * (t(UvVn) %*% asCol(zdraw))[, 1]
+    values(model, s2Node) <<- c(s2new)
+    values(model, betaNode) <<- bnew
+    model$calculate(calcNodes)
+    copy(from = model, to = mvSaved, row = 1, nodes = calcNodes,
+         logProb = TRUE)
+  },
+  methods = list(reset = function() {})
+)
+
+#' @describeIn customizeSamplers Replace RW samplers on \code{betaTilde} and
+#'   \code{s2Tilde} with the exact Normal-Inverse-Gamma conditional (FixedK
+#'   path only; the DPM path already receives the conjugate CRP wrapper).
+#' @export
+setMethod("customizeSamplers", "NormalRegSpec",
+  function(spec, conf, model, ...) {
+    # only relevant when the allocation node is z (FixedK); DPM uses xi
+    if (!("z" %in% model$getVarNames())) return(invisible(conf))
+    if (!all(c("betaTilde", "s2Tilde") %in% model$getVarNames()))
+      return(invisible(conf))
+    K <- dim(model[["betaTilde"]])[1]
+    X <- model$getConstants()$X
+    yv <- model[["y"]]
+    cn <- model$getConstants()
+    B0inv <- solve(cn$B0)
+    hasRE <- "b" %in% model$getVarNames()
+    conf$removeSamplers("betaTilde")
+    conf$removeSamplers("s2Tilde")
+    for (j in seq_len(K))
+      conf$addSampler(target = paste0("betaTilde[", j, ", 1:", ncol(X), "]"),
+                      type = if (hasRE) .betaS2ConjSamplerRE
+                             else .betaS2ConjSampler,
+                      control = c(list(j = j, X = X, y = yv, b0 = cn$b0,
+                                       B0inv = B0inv, nu0 = cn$nu0,
+                                       s0 = cn$s0),
+                                  if (hasRE) list(grp = cn$grp)))
+    invisible(conf)
+  })

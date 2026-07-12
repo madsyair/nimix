@@ -31,7 +31,7 @@ test_that("simulateParams returns finite (mu, s2) of correct length", {
   spec <- NormalUvSpec()
   pr <- defaultPrior(spec, rnorm(200))
   set.seed(7)
-  sp <- simulateParams(spec, pr, nClust = 5)
+  sp <- nimix:::simulateParams(spec, pr, nClust = 5)
   expect_length(sp$mu, 5)
   expect_length(sp$s2, 5)
   expect_true(all(is.finite(sp$mu)))
@@ -47,6 +47,6 @@ test_that("buildModelCode returns code + monitors for NormalUv x DPM", {
 })
 
 test_that("componentDensity evaluates a Gaussian", {
-  f <- componentDensity(NormalUvSpec())
+  f <- nimix:::componentDensity(NormalUvSpec())
   expect_equal(f(0, list(mu = 0, s2 = 1)), dnorm(0, 0, 1))
 })
