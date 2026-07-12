@@ -13,6 +13,7 @@ do not depend on the covariates.
 nimixReg(
   formula,
   data,
+  random = NULL,
   K = NULL,
   K_max = NULL,
   distribution = "normal",
@@ -36,6 +37,17 @@ nimixReg(
 - data:
 
   A data frame containing the formula variables.
+
+- random:
+
+  Optional one-sided formula naming a single grouping factor for a
+  random intercept, e.g. `random = ~ region`: the linear predictor of
+  every component gains a shared group offset \\b\_{g(i)} \sim N(0,
+  \tau^2)\\ with a sum-to-zero constraint (so the component intercepts
+  absorb the group mean, and the reported `b` are centred – the
+  parameterisation that mixes well; see NEWS for the measured
+  motivation). Currently supported with `method = "fixedk"` and
+  `distribution = "normal"` only.
 
 - K:
 
@@ -181,8 +193,8 @@ summary(fit2)
 #> 
 #> Relabelled component estimates (posterior mean; CIs for univariate):
 #>  component weight (Intercept)     x s2_mean s2_med s2_lwr s2_upr
-#>          1  0.497    -0.06728  1.97   0.972  0.962  0.745   1.26
-#>          2  0.503     0.00823 -1.97   1.069  1.039  0.786   1.45
+#>          1  0.496    -0.07053  1.98    1.00  0.988  0.753   1.32
+#>          2  0.504    -0.00105 -1.96    1.06  1.055  0.789   1.43
 #> 
 #> Mixing diagnostic (single chain): ESS(#clusters) = 0
 #>   Set mcmcControl$nchains > 1 for cross-chain split-Rhat.

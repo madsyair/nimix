@@ -1,13 +1,16 @@
 pandoc: 3.8.3
-pkgdown: 2.2.0
+pkgdown: 2.2.1
 pkgdown_sha: ~
 articles:
+  articles/diagnostics-interop: diagnostics-interop.html
+  articles/hmm-timeseries: hmm-timeseries.html
   articles/mixClust-multivariate: mixClust-multivariate.html
   mixClust-univariate: mixClust-univariate.html
   articles/mixReg: mixReg.html
   articles/normal-gamma-vs-studentt: normal-gamma-vs-studentt.html
+  articles/skew-multivariate: skew-multivariate.html
   articles/spatial-mixture: spatial-mixture.html
-last_built: 2026-07-05T08:33Z
+last_built: 2026-07-12T19:53Z
 urls:
   reference: https://madsyair.github.io/nimix/reference
   article: https://madsyair.github.io/nimix/articles

@@ -7,6 +7,15 @@ Parse raw cluster-parameter traces from the MCMC sample matrix
 ``` r
 extractParamTraces(spec, samples, L, ...)
 
+# S4 method for class 'FSSNUvSpec'
+extractParamTraces(spec, samples, L, ...)
+
+# S4 method for class 'FOSSEPUvSpec'
+extractParamTraces(spec, samples, L, ...)
+
+# S4 method for class 'FSSTUvSpec'
+extractParamTraces(spec, samples, L, ...)
+
 # S4 method for class 'PoissonRegSpec'
 extractParamTraces(spec, samples, L, d = NULL, prior = NULL, ...)
 
@@ -18,6 +27,15 @@ extractParamTraces(spec, samples, L, ...)
 
 # S4 method for class 'NormalRegSpec'
 extractParamTraces(spec, samples, L, d = NULL, prior = NULL, ...)
+
+# S4 method for class 'JFSTUvSpec'
+extractParamTraces(spec, samples, L, ...)
+
+# S4 method for class 'SEPUvSpec'
+extractParamTraces(spec, samples, L, ...)
+
+# S4 method for class 'LEPUvSpec'
+extractParamTraces(spec, samples, L, ...)
 
 # S4 method for class 'MSNBurrUvSpec'
 extractParamTraces(spec, samples, L, ...)
@@ -39,6 +57,24 @@ extractParamTraces(spec, samples, L, ...)
 
 # S4 method for class 'BinomialSpec'
 extractParamTraces(spec, samples, L, ...)
+
+# S4 method for class 'SkewNormalMvSpec'
+extractParamTraces(spec, samples, L, d = NULL, ...)
+
+# S4 method for class 'SkewNormalMvOSpec'
+extractParamTraces(spec, samples, L, d = NULL, ...)
+
+# S4 method for class 'SkewIStudentMvSpec'
+extractParamTraces(spec, samples, L, d = NULL, ...)
+
+# S4 method for class 'SkewIStudentMvOSpec'
+extractParamTraces(spec, samples, L, d = NULL, ...)
+
+# S4 method for class 'SkewNormalMvOGenSpec'
+extractParamTraces(spec, samples, L, d = NULL, ...)
+
+# S4 method for class 'SkewIStudentMvOGenSpec'
+extractParamTraces(spec, samples, L, d = NULL, ...)
 
 # S4 method for class 'StudentTUvSpec'
 extractParamTraces(spec, samples, L, ...)
@@ -70,6 +106,14 @@ logical parameter names of the distribution.
 
 ## Functions
 
+- `extractParamTraces(FSSNUvSpec)`: Parse mu / sigma / alpha traces.
+
+- `extractParamTraces(FOSSEPUvSpec)`: Parse mu / sigma / alpha / theta
+  traces.
+
+- `extractParamTraces(FSSTUvSpec)`: Parse mu / sigma / alpha / nu
+  traces.
+
 - `extractParamTraces(PoissonRegSpec)`: Parse coefficient traces.
 
 - `extractParamTraces(BinomialRegSpec)`: Parse coefficient traces.
@@ -80,6 +124,13 @@ logical parameter names of the distribution.
 - `extractParamTraces(NormalRegSpec)`: Parse betaTilde (L x p) and
   s2Tilde (L) traces; `prior$coefNames` (if present) labels the
   coefficients.
+
+- `extractParamTraces(JFSTUvSpec)`: Parse mu / sigma / alpha / theta
+  traces.
+
+- `extractParamTraces(SEPUvSpec)`: Parse mu / sigma / nu traces.
+
+- `extractParamTraces(LEPUvSpec)`: Parse mu / sigma / nu traces.
 
 - `extractParamTraces(MSNBurrUvSpec)`: Parse mu / sigma / alpha traces.
 
@@ -97,5 +148,23 @@ logical parameter names of the distribution.
 - `extractParamTraces(PoissonSpec)`: Parse lambda traces.
 
 - `extractParamTraces(BinomialSpec)`: Parse prob traces.
+
+- `extractParamTraces(SkewNormalMvSpec)`: Parse mu / Sigma / gamma
+  traces.
+
+- `extractParamTraces(SkewNormalMvOSpec)`: Parse mu / Sigma / gamma /
+  theta traces.
+
+- `extractParamTraces(SkewIStudentMvSpec)`: Parse mu / Sigma / gamma /
+  nu traces.
+
+- `extractParamTraces(SkewIStudentMvOSpec)`: Parse mu / Sigma / gamma /
+  nu / theta traces.
+
+- `extractParamTraces(SkewNormalMvOGenSpec)`: Parse mu / Sigma / gamma /
+  angle traces.
+
+- `extractParamTraces(SkewIStudentMvOGenSpec)`: Parse mu / Sigma / gamma
+  / nu / angle traces.
 
 - `extractParamTraces(StudentTUvSpec)`: Parse muTilde / tauTilde traces.

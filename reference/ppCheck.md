@@ -12,7 +12,13 @@ of misfit for that statistic.
 ## Usage
 
 ``` r
-ppCheck(fit, nrep = 200, statistics = c("mean", "sd", "min", "max"), seed = 1L)
+ppCheck(
+  fit,
+  nrep = 200,
+  statistics = c("mean", "sd", "min", "max"),
+  seed = 1L,
+  store_yrep = FALSE
+)
 ```
 
 ## Arguments
@@ -38,6 +44,12 @@ ppCheck(fit, nrep = 200, statistics = c("mean", "sd", "min", "max"), seed = 1L)
 - seed:
 
   RNG seed for the replicate simulation.
+
+- store_yrep:
+
+  If `TRUE`, attach the simulated replicates as attribute `"yrep"` (with
+  `"y"` and `"draws"`) on the result – the inputs graphical PPC
+  functions consume.
 
 ## Value
 

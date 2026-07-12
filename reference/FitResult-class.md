@@ -64,6 +64,13 @@ predict(object, newdata, maxDraws = 500L, ...)
   Integer cap on the number of posterior draws used (default 500); draws
   are thinned uniformly if exceeded.
 
+## Value
+
+Invisibly, a tidy data frame of exactly what was drawn (e.g.
+`iteration`/`component`/`value` for traces, `x`/`density` for the
+predictive density), so the plot can be reproduced with ggplot2 or any
+other system without nimix depending on them.
+
 ## Methods (by generic)
 
 - `show(FitResult)`: Compact display of a fitted result.

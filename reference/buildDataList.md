@@ -7,6 +7,15 @@ Shape the observed data into the NIMBLE `data` list
 ``` r
 buildDataList(spec, data, ...)
 
+# S4 method for class 'FSSNUvSpec'
+buildDataList(spec, data, ...)
+
+# S4 method for class 'FOSSEPUvSpec'
+buildDataList(spec, data, ...)
+
+# S4 method for class 'FSSTUvSpec'
+buildDataList(spec, data, ...)
+
 # S4 method for class 'PoissonRegSpec'
 buildDataList(spec, data, ...)
 
@@ -17,6 +26,15 @@ buildDataList(spec, data, ...)
 buildDataList(spec, data, ...)
 
 # S4 method for class 'NormalRegSpec'
+buildDataList(spec, data, ...)
+
+# S4 method for class 'JFSTUvSpec'
+buildDataList(spec, data, ...)
+
+# S4 method for class 'SEPUvSpec'
+buildDataList(spec, data, ...)
+
+# S4 method for class 'LEPUvSpec'
 buildDataList(spec, data, ...)
 
 # S4 method for class 'MSNBurrUvSpec'
@@ -38,6 +56,12 @@ buildDataList(spec, data, ...)
 buildDataList(spec, data, ...)
 
 # S4 method for class 'BinomialSpec'
+buildDataList(spec, data, ...)
+
+# S4 method for class 'SkewNormalMvSpec'
+buildDataList(spec, data, ...)
+
+# S4 method for class 'SkewIStudentMvSpec'
 buildDataList(spec, data, ...)
 
 # S4 method for class 'StudentTUvSpec'
@@ -65,6 +89,12 @@ A named list, typically `list(y = ...)`.
 
 ## Functions
 
+- `buildDataList(FSSNUvSpec)`: Univariate response.
+
+- `buildDataList(FOSSEPUvSpec)`: Univariate response.
+
+- `buildDataList(FSSTUvSpec)`: Univariate response.
+
 - `buildDataList(PoissonRegSpec)`: Response and design matrix.
 
 - `buildDataList(BinomialRegSpec)`: Response and design matrix.
@@ -73,6 +103,12 @@ A named list, typically `list(y = ...)`.
 
 - `buildDataList(NormalRegSpec)`: Response vector for the regression
   mixture.
+
+- `buildDataList(JFSTUvSpec)`: Univariate response.
+
+- `buildDataList(SEPUvSpec)`: Univariate response.
+
+- `buildDataList(LEPUvSpec)`: Univariate response.
 
 - `buildDataList(MSNBurrUvSpec)`: Univariate response.
 
@@ -88,5 +124,9 @@ A named list, typically `list(y = ...)`.
 - `buildDataList(PoissonSpec)`: Count data vector.
 
 - `buildDataList(BinomialSpec)`: Count data vector.
+
+- `buildDataList(SkewNormalMvSpec)`: Multivariate response matrix.
+
+- `buildDataList(SkewIStudentMvSpec)`: Multivariate response matrix.
 
 - `buildDataList(StudentTUvSpec)`: Univariate data vector.

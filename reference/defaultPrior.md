@@ -10,6 +10,15 @@ arbitrarily vague when `K_max` is large).
 ``` r
 defaultPrior(spec, data, control = list(), ...)
 
+# S4 method for class 'FSSNUvSpec'
+defaultPrior(spec, data, control = list(), ...)
+
+# S4 method for class 'FOSSEPUvSpec'
+defaultPrior(spec, data, control = list(), ...)
+
+# S4 method for class 'FSSTUvSpec'
+defaultPrior(spec, data, control = list(), ...)
+
 # S4 method for class 'PoissonRegSpec'
 defaultPrior(spec, data, control = list(), ...)
 
@@ -26,6 +35,15 @@ defaultPrior(spec, data, control = list(), ...)
 defaultPrior(spec, data, control = list(), ...)
 
 # S4 method for class 'NormalGammaRegSpec'
+defaultPrior(spec, data, control = list(), ...)
+
+# S4 method for class 'JFSTUvSpec'
+defaultPrior(spec, data, control = list(), ...)
+
+# S4 method for class 'SEPUvSpec'
+defaultPrior(spec, data, control = list(), ...)
+
+# S4 method for class 'LEPUvSpec'
 defaultPrior(spec, data, control = list(), ...)
 
 # S4 method for class 'MSNBurrUvSpec'
@@ -61,6 +79,24 @@ defaultPrior(spec, data, control = list(), ...)
 # S4 method for class 'BinomialSpec'
 defaultPrior(spec, data, control = list(), ...)
 
+# S4 method for class 'SkewNormalMvSpec'
+defaultPrior(spec, data, control = list(), ...)
+
+# S4 method for class 'SkewNormalMvOSpec'
+defaultPrior(spec, data, control = list(), ...)
+
+# S4 method for class 'SkewIStudentMvSpec'
+defaultPrior(spec, data, control = list(), ...)
+
+# S4 method for class 'SkewIStudentMvOSpec'
+defaultPrior(spec, data, control = list(), ...)
+
+# S4 method for class 'SkewNormalMvOGenSpec'
+defaultPrior(spec, data, control = list(), ...)
+
+# S4 method for class 'SkewIStudentMvOGenSpec'
+defaultPrior(spec, data, control = list(), ...)
+
 # S4 method for class 'StudentTMvSpec'
 defaultPrior(spec, data, control = list(), ...)
 
@@ -93,6 +129,13 @@ A named list of prior hyperparameters.
 
 ## Functions
 
+- `defaultPrior(FSSNUvSpec)`: Data-scaled FSSN prior (log-normal
+  skewness).
+
+- `defaultPrior(FOSSEPUvSpec)`: Data-scaled FOSSEP prior.
+
+- `defaultPrior(FSSTUvSpec)`: Data-scaled FSST prior.
+
 - `defaultPrior(PoissonRegSpec)`: g-prior on the coefficients.
 
 - `defaultPrior(BinomialRegSpec)`: g-prior on the coefficients; needs
@@ -114,6 +157,13 @@ A named list of prior hyperparameters.
 
 - `defaultPrior(NormalGammaRegSpec)`: NIG g-prior plus a fixed `df`
   (default 4, \> 2).
+
+- `defaultPrior(JFSTUvSpec)`: Data-scaled JFST prior (symmetric in
+  alpha/theta).
+
+- `defaultPrior(SEPUvSpec)`: Data-scaled SEP prior.
+
+- `defaultPrior(LEPUvSpec)`: Data-scaled LEP prior.
 
 - `defaultPrior(MSNBurrUvSpec)`: Data-scaled MSNBurr prior
   (location/scale/shape).
@@ -157,6 +207,21 @@ A named list of prior hyperparameters.
 
 - `defaultPrior(BinomialSpec)`: Data-scaled Beta prior on the success
   probability. Requires the number of trials in `control$size`.
+
+- `defaultPrior(SkewNormalMvSpec)`: Data-scaled skew-mv-Normal prior.
+
+- `defaultPrior(SkewNormalMvOSpec)`: Adds the Householder angle bound to
+  the mv prior.
+
+- `defaultPrior(SkewIStudentMvSpec)`: Data-scaled skew-mv-IStudent
+  prior.
+
+- `defaultPrior(SkewIStudentMvOSpec)`: Adds the Householder angle bound.
+
+- `defaultPrior(SkewNormalMvOGenSpec)`: Adds the Householder angle box.
+
+- `defaultPrior(SkewIStudentMvOGenSpec)`: Adds the Householder angle
+  box.
 
 - `defaultPrior(StudentTMvSpec)`: Normal-Inverse-Wishart prior plus a
   fixed `df` (default 5, must exceed 2 for a finite component

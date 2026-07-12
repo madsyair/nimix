@@ -12,6 +12,15 @@ matrix.
 ``` r
 componentDensity(spec, ...)
 
+# S4 method for class 'FSSNUvSpec'
+componentDensity(spec, ...)
+
+# S4 method for class 'FOSSEPUvSpec'
+componentDensity(spec, ...)
+
+# S4 method for class 'FSSTUvSpec'
+componentDensity(spec, ...)
+
 # S4 method for class 'PoissonRegSpec'
 componentDensity(spec, ...)
 
@@ -22,6 +31,15 @@ componentDensity(spec, size = NULL, ...)
 componentDensity(spec, ...)
 
 # S4 method for class 'NormalRegSpec'
+componentDensity(spec, ...)
+
+# S4 method for class 'JFSTUvSpec'
+componentDensity(spec, ...)
+
+# S4 method for class 'SEPUvSpec'
+componentDensity(spec, ...)
+
+# S4 method for class 'LEPUvSpec'
 componentDensity(spec, ...)
 
 # S4 method for class 'MSNBurrUvSpec'
@@ -51,6 +69,24 @@ componentDensity(spec, ...)
 # S4 method for class 'BinomialSpec'
 componentDensity(spec, size = NULL, ...)
 
+# S4 method for class 'SkewNormalMvSpec'
+componentDensity(spec, ...)
+
+# S4 method for class 'SkewNormalMvOSpec'
+componentDensity(spec, ...)
+
+# S4 method for class 'SkewIStudentMvSpec'
+componentDensity(spec, ...)
+
+# S4 method for class 'SkewIStudentMvOSpec'
+componentDensity(spec, ...)
+
+# S4 method for class 'SkewNormalMvOGenSpec'
+componentDensity(spec, ...)
+
+# S4 method for class 'SkewIStudentMvOGenSpec'
+componentDensity(spec, ...)
+
 # S4 method for class 'StudentTMvSpec'
 componentDensity(spec, df = 5, ...)
 
@@ -75,6 +111,15 @@ A function of `(x, params)`.
 
 ## Functions
 
+- `componentDensity(FSSNUvSpec)`: FSSN density closure (stable reference
+  form).
+
+- `componentDensity(FOSSEPUvSpec)`: FOSSEP density closure (stable
+  reference form).
+
+- `componentDensity(FSSTUvSpec)`: FSST density closure (stable reference
+  form).
+
 - `componentDensity(PoissonRegSpec)`: Poisson pmf at the fitted rate.
 
 - `componentDensity(BinomialRegSpec)`: Binomial pmf at the fitted
@@ -86,6 +131,15 @@ A function of `(x, params)`.
 - `componentDensity(NormalRegSpec)`: Gaussian density of a response
   given its linear predictor. `params` must carry `mu` (the fitted mean)
   and `s2`.
+
+- `componentDensity(JFSTUvSpec)`: JFST density closure (stable reference
+  form).
+
+- `componentDensity(SEPUvSpec)`: SEP density closure (stable reference
+  form).
+
+- `componentDensity(LEPUvSpec)`: LEP density closure (stable reference
+  form).
 
 - `componentDensity(MSNBurrUvSpec)`: MSNBurr density closure (stable
   reference form).
@@ -111,6 +165,23 @@ A function of `(x, params)`.
 - `componentDensity(PoissonSpec)`: Poisson pmf.
 
 - `componentDensity(BinomialSpec)`: Binomial pmf.
+
+- `componentDensity(SkewNormalMvSpec)`: Skew-mv-Normal density closure.
+
+- `componentDensity(SkewNormalMvOSpec)`: Density closure with the
+  Householder angle.
+
+- `componentDensity(SkewIStudentMvSpec)`: Skew-mv-IStudent density
+  closure.
+
+- `componentDensity(SkewIStudentMvOSpec)`: Density closure with nu and
+  the angle.
+
+- `componentDensity(SkewNormalMvOGenSpec)`: Density closure with a
+  general orthogonal factor.
+
+- `componentDensity(SkewIStudentMvOGenSpec)`: Density closure, general O
+  and per-margin nu.
 
 - `componentDensity(StudentTMvSpec)`: Multivariate Student-t density.
 

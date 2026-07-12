@@ -1,0 +1,162 @@
+# Regime switching in time series: the hidden-Markov engine
+
+An ordinary mixture assumes each observation picks its component
+independently. Time series usually violate that: a market sits in a
+low-volatility regime for months, then switches; a physiological signal
+alternates between states. `method = "hmm"` replaces the independent
+allocation prior with a first-order Markov chain,
+$`z_t \mid z_{t-1} \sim \mathrm{Cat}(P[z_{t-1},\,])`$, so *persistence
+itself* is estimated – the diagonal of the transition matrix $`P`$.
+
+Two implementation facts shape everything downstream:
+
+1.  **The state path is marginalised out of the likelihood** by the
+    forward algorithm, so the MCMC samples only the continuous
+    parameters. Measured on the gate prototype: 4000 iterations in about
+    a second at $`T = 300`$, with min ESS/sec 456 against 144 for the
+    equivalent model that samples the latent states directly.
+2.  **Allocation draws are recovered afterwards, exactly**, by
+    forward-filter backward-sampling (FFBS) per retained draw. That is
+    why everything you already know –
+    [`relabel()`](https://madsyair.github.io/nimix/reference/relabel.md),
+    [`psm()`](https://madsyair.github.io/nimix/reference/psm.md),
+    [`binderPartition()`](https://madsyair.github.io/nimix/reference/binderPartition.md),
+    the plots, the bayesplot adaptors – works on an HMM fit unchanged.
+
+> MCMC chunks use `eval = FALSE` (CRAN time limits); printed results are
+> from an actual run.
+
+## Simulate two persistent regimes
+
+``` r
+
+library(nimix)
+
+set.seed(11)
+P  <- rbind(c(0.95, 0.05),    # regime 1: very persistent
+            c(0.10, 0.90))    # regime 2: persistent
+mu <- c(-2, 2); sg <- c(0.6, 0.8)
+z  <- integer(300); z[1] <- 1
+for (t in 2:300) z[t] <- sample(1:2, 1, prob = P[z[t - 1], ])
+y  <- rnorm(300, mu[z], sg[z])
+```
+
+The data order **is** the time order – that is what the Markov prior
+binds to.
+
+## Fit
+
+`K` is the number of states (fixed, like `method = "fixedk"`); current
+emission families are univariate Gaussian, Student-t (heavy-tailed
+regimes such as financial returns), Poisson (regime-switching counts),
+and the neo-normal skewed families MSNBurr, MSNBurr-IIa and GMSNBurr,
+with further families following the gated roadmap.
+
+``` r
+
+fit <- nimixClust(y, K = 2, method = "hmm",
+                  mcmcControl = list(niter = 4000, nburnin = 1500,
+                                     nchains = 2),
+                  seed = 1)
+
+fit <- relabel(fit)
+fit@relabeled$summary[, c("mu_mean", "s2_mean")]
+#>   mu_mean s2_mean
+#> 1   -1.99   0.432
+#> 2    2.12   0.868      # truth: mu -2, 2; s2 0.36, 0.64
+```
+
+The estimated persistence is read straight off the transition draws:
+
+``` r
+
+mean(fit@mcmcSamples[, "P[1, 1]"])
+#> [1] 0.965                          # truth 0.95; 95% CI [0.936, 0.985]
+mean(fit@mcmcSamples[, "P[2, 2]"])
+#> [1] 0.896                          # truth 0.90
+```
+
+## Two decodings, one distinction worth knowing
+
+[`viterbiPath()`](https://madsyair.github.io/nimix/reference/viterbiPath.md)
+returns the single *jointly* most probable state sequence under the
+Markov prior; the FFBS allocation draws give the *marginal* posterior of
+each $`z_t`$, which
+[`binderPartition()`](https://madsyair.github.io/nimix/reference/binderPartition.md)
+and per-time MAP summarise. On well-separated regimes they agree; they
+part exactly where the state is genuinely ambiguous.
+
+``` r
+
+zv <- viterbiPath(fit)
+sum(diff(zv) != 0) + 1
+#> [1] 15                             # 15 regime runs -- matches the truth
+
+zmap <- apply(fit@clusterAllocation, 2,
+              function(v) as.integer(names(which.max(table(v)))))
+mean(zv == zmap)
+#> [1] 1                              # full agreement here
+```
+
+Because the FFBS draws populate `clusterAllocation`, the label-free
+partition tools need no adaptation:
+
+``` r
+
+bp <- binderPartition(fit)
+bp$K
+#> [1] 2
+S <- psm(fit)                        # 300 x 300 posterior similarity
+```
+
+Plotting `image(S)` is a useful regime diagnostic: block structure along
+the diagonal is persistence made visible.
+
+## Diagnostics and predictive checks
+
+The invariant draws array works as for any engine (the concentration
+parameter `alpha` does not exist here and is dropped automatically):
+
+``` r
+
+da <- drawsArray(fit)                # 2500 x 2 chains x {K, entropy}
+# bayesplot::mcmc_trace(da)
+```
+
+[`ppCheck()`](https://madsyair.github.io/nimix/reference/ppCheck.md) and
+[`ppcData()`](https://madsyair.github.io/nimix/reference/ppcData.md)
+also work, with one honest nuance: replicated series are drawn
+**conditionally on each draw’s sampled state path**, not by
+re-simulating the Markov chain. That is the right check for “do the
+emissions fit, given the regimes”; it does not test the transition
+structure itself, for which the run-length comparison above is the more
+direct probe.
+
+``` r
+
+pd <- ppcData(fit, ndraws = 20)      # list(y, yrep), yrep 20 x 300
+# bayesplot::ppc_dens_overlay(pd$y, pd$yrep)
+```
+
+## What to watch out for
+
+- **Order matters.** The Markov prior binds to the data order; shuffled
+  data silently means an i.i.d. mixture fitted expensively.
+- **State labels can switch**, like any mixture.
+  [`relabel()`](https://madsyair.github.io/nimix/reference/relabel.md)
+  handles the component summaries;
+  [`viterbiPath()`](https://madsyair.github.io/nimix/reference/viterbiPath.md)
+  and the partition tools are label-free by construction.
+- **Over-specifying `K` is safe but diluting.** Extra states go (nearly)
+  empty – the engine’s tests assert no corruption occurs – but
+  transitions into barely-used states are poorly informed; keep `K` at
+  the number of regimes you can defend.
+
+## References
+
+Rabiner, L. R. (1989). A tutorial on hidden Markov models and selected
+applications in speech recognition. *Proceedings of the IEEE* 77,
+257–286.
+
+Frühwirth-Schnatter, S. (2006). *Finite Mixture and Markov Switching
+Models*. Springer.

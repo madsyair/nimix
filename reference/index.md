@@ -29,6 +29,8 @@ Inference engines selected via the `method` argument.
   : Finite-mixture engine with fixed, known K
 - [`EngineConfig-class`](https://madsyair.github.io/nimix/reference/EngineConfig-class.md)
   : Virtual base class for mixture sampling engines
+- [`HMMEngine()`](https://madsyair.github.io/nimix/reference/HMMEngine.md)
+  : Construct a hidden-Markov mixture engine configuration
 
 ## Distribution registry
 
@@ -94,6 +96,14 @@ into every engine without engine edits.
   : Customise MCMC samplers for a component spec
 - [`relabel()`](https://madsyair.github.io/nimix/reference/relabel.md) :
   Correct label switching in a fitted mixture
+- [`psm()`](https://madsyair.github.io/nimix/reference/psm.md) :
+  Posterior similarity matrix
+- [`binderPartition()`](https://madsyair.github.io/nimix/reference/binderPartition.md)
+  : Binder-loss point partition (Dahl's least-squares criterion)
+- [`clusterValidity()`](https://madsyair.github.io/nimix/reference/clusterValidity.md)
+  : Internal validity indices for a fitted clustering
+- [`viterbiPath()`](https://madsyair.github.io/nimix/reference/viterbiPath.md)
+  : Most probable state path of a hidden-Markov mixture fit
 - [`isRegressionSpec()`](https://madsyair.github.io/nimix/reference/isRegressionSpec.md)
   : Is this a regression component spec?
 - [`linkInv()`](https://madsyair.github.io/nimix/reference/linkInv.md) :
@@ -163,6 +173,39 @@ Skew-capable MSNBurr families (Iriawan 2000; Choir 2020).
   : MSNBurr-IIa mixture components (neo-normal, right-skew capable)
 - [`GMSNBurrUvSpec()`](https://madsyair.github.io/nimix/reference/GMSNBurrUvSpec-class.md)
   : GMSNBurr mixture components (generalized neo-normal)
+- [`SEPUvSpec()`](https://madsyair.github.io/nimix/reference/SEPUvSpec-class.md)
+  : SEP mixture components (symmetric exponential power)
+- [`LEPUvSpec()`](https://madsyair.github.io/nimix/reference/LEPUvSpec-class.md)
+  : LEP mixture components (exponential power, alternative
+  parameterisation)
+- [`FSSNUvSpec()`](https://madsyair.github.io/nimix/reference/FSSNUvSpec-class.md)
+  : FSSN mixture components (Fernandez-Steel skew Normal)
+- [`FOSSEPUvSpec()`](https://madsyair.github.io/nimix/reference/FOSSEPUvSpec-class.md)
+  : FOSSEP mixture components (Fernandez-Steel skew exponential power)
+- [`FSSTUvSpec()`](https://madsyair.github.io/nimix/reference/FSSTUvSpec-class.md)
+  : FSST mixture components (Fernandez-Steel skew Student-t)
+- [`JFSTUvSpec()`](https://madsyair.github.io/nimix/reference/JFSTUvSpec-class.md)
+  : JFST mixture components (Jones-Faddy skew-t)
+- [`SkewNormalMvSpec()`](https://madsyair.github.io/nimix/reference/SkewNormalMvSpec-class.md)
+  : Skew multivariate Normal mixture components (Ferreira-Steel)
+- [`SkewIStudentMvSpec()`](https://madsyair.github.io/nimix/reference/SkewIStudentMvSpec-class.md)
+  : Skew multivariate independent-Student mixture components
+  (Ferreira-Steel)
+- [`SkewNormalMvOSpec()`](https://madsyair.github.io/nimix/reference/SkewNormalMvOSpec-class.md)
+  : Skew multivariate Normal components with estimated orthogonal factor
+- [`SkewIStudentMvOSpec()`](https://madsyair.github.io/nimix/reference/SkewIStudentMvOSpec-class.md)
+  : Skew mv independent-Student components with estimated orthogonal
+  factor
+- [`SkewNormalMvOGenSpec()`](https://madsyair.github.io/nimix/reference/SkewNormalMvOGenSpec-class.md)
+  : Skew multivariate Normal components with estimated O, general
+  dimension
+- [`SkewIStudentMvOGenSpec()`](https://madsyair.github.io/nimix/reference/SkewIStudentMvOGenSpec-class.md)
+  : Skew mv independent-Student components with estimated O, general
+  dimension
+- [`orthogonalFactor()`](https://madsyair.github.io/nimix/reference/orthogonalFactor.md)
+  : Orthogonal factor from Householder angles
+- [`canonicaliseO()`](https://madsyair.github.io/nimix/reference/canonicaliseO.md)
+  : Canonical representative of an FS orthogonal factor
 
 ## Neo-normal distribution functions
 
@@ -183,6 +226,50 @@ Numerically stable density, distribution, quantile, and RNG.
   [`qgmsnburr()`](https://madsyair.github.io/nimix/reference/gmsnburr-distribution.md)
   [`rgmsnburr()`](https://madsyair.github.io/nimix/reference/gmsnburr-distribution.md)
   : GMSNBurr Distribution
+- [`dsep()`](https://madsyair.github.io/nimix/reference/sep-distribution.md)
+  [`psep()`](https://madsyair.github.io/nimix/reference/sep-distribution.md)
+  [`qsep()`](https://madsyair.github.io/nimix/reference/sep-distribution.md)
+  [`rsep()`](https://madsyair.github.io/nimix/reference/sep-distribution.md)
+  : Subbotin Exponential Power (SEP) Distribution
+- [`dlep()`](https://madsyair.github.io/nimix/reference/lep-distribution.md)
+  [`plep()`](https://madsyair.github.io/nimix/reference/lep-distribution.md)
+  [`qlep()`](https://madsyair.github.io/nimix/reference/lep-distribution.md)
+  [`rlep()`](https://madsyair.github.io/nimix/reference/lep-distribution.md)
+  : Lunetta Exponential Power Distribution
+- [`dfssn()`](https://madsyair.github.io/nimix/reference/fssn-distribution.md)
+  [`pfssn()`](https://madsyair.github.io/nimix/reference/fssn-distribution.md)
+  [`qfssn()`](https://madsyair.github.io/nimix/reference/fssn-distribution.md)
+  [`rfssn()`](https://madsyair.github.io/nimix/reference/fssn-distribution.md)
+  : Fernandez-Steel Skew Normal Distribution
+- [`dfossep()`](https://madsyair.github.io/nimix/reference/fossep-distribution.md)
+  [`pfossep()`](https://madsyair.github.io/nimix/reference/fossep-distribution.md)
+  [`qfossep()`](https://madsyair.github.io/nimix/reference/fossep-distribution.md)
+  [`rfossep()`](https://madsyair.github.io/nimix/reference/fossep-distribution.md)
+  : Fernandez-Osiewalski-Steel Skew Exponential Power Distribution
+- [`dfsst()`](https://madsyair.github.io/nimix/reference/fsst-distribution.md)
+  [`pfsst()`](https://madsyair.github.io/nimix/reference/fsst-distribution.md)
+  [`qfsst()`](https://madsyair.github.io/nimix/reference/fsst-distribution.md)
+  [`rfsst()`](https://madsyair.github.io/nimix/reference/fsst-distribution.md)
+  : Fernandez-Steel Skew t Distribution
+- [`djfst()`](https://madsyair.github.io/nimix/reference/jfst-distribution.md)
+  [`pjfst()`](https://madsyair.github.io/nimix/reference/jfst-distribution.md)
+  [`qjfst()`](https://madsyair.github.io/nimix/reference/jfst-distribution.md)
+  [`rjfst()`](https://madsyair.github.io/nimix/reference/jfst-distribution.md)
+  : Jones-Faddy Skew-t Distribution
+- [`dskewmvn()`](https://madsyair.github.io/nimix/reference/skewnormal-mv-distribution.md)
+  [`rskewmvn()`](https://madsyair.github.io/nimix/reference/skewnormal-mv-distribution.md)
+  : Ferreira-Steel skew multivariate Normal
+- [`dskewmvit()`](https://madsyair.github.io/nimix/reference/skewistudent-mv-distribution.md)
+  [`rskewmvit()`](https://madsyair.github.io/nimix/reference/skewistudent-mv-distribution.md)
+  : Ferreira-Steel skew multivariate independent-Student
+- [`dskewmvno()`](https://madsyair.github.io/nimix/reference/skewnormal-mv-o-distribution.md)
+  [`rskewmvno()`](https://madsyair.github.io/nimix/reference/skewnormal-mv-o-distribution.md)
+  : Ferreira-Steel skew multivariate Normal with estimated orthogonal
+  factor
+- [`dskewmvito()`](https://madsyair.github.io/nimix/reference/skewistudent-mv-o-distribution.md)
+  [`rskewmvito()`](https://madsyair.github.io/nimix/reference/skewistudent-mv-o-distribution.md)
+  : Ferreira-Steel skew multivariate independent-Student with estimated
+  O
 
 ## Spatial mixtures (MRF)
 
@@ -218,6 +305,12 @@ summary().
 
 - [`ppCheck()`](https://madsyair.github.io/nimix/reference/ppCheck.md) :
   Posterior predictive check
+- [`posteriorPredict()`](https://madsyair.github.io/nimix/reference/posteriorPredict.md)
+  : Posterior predictive replicates
+- [`drawsArray()`](https://madsyair.github.io/nimix/reference/drawsArray.md)
+  : Posterior draws as an iterations x chains x parameters array
+- [`ppcData()`](https://madsyair.github.io/nimix/reference/ppcData.md) :
+  Observed data and posterior predictive replicates for graphical PPC
 
 ## Extension API (engine-facing generics)
 

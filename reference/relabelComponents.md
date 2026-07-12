@@ -13,6 +13,15 @@ summary, so multivariate covariance handling stays inside
 ``` r
 relabelComponents(spec, paramTrace, idx, occList, perms, modalK, weights, ...)
 
+# S4 method for class 'FSSNUvSpec'
+relabelComponents(spec, paramTrace, idx, occList, perms, modalK, weights, ...)
+
+# S4 method for class 'FOSSEPUvSpec'
+relabelComponents(spec, paramTrace, idx, occList, perms, modalK, weights, ...)
+
+# S4 method for class 'FSSTUvSpec'
+relabelComponents(spec, paramTrace, idx, occList, perms, modalK, weights, ...)
+
 # S4 method for class 'PoissonRegSpec'
 relabelComponents(spec, paramTrace, idx, occList, perms, modalK, weights, ...)
 
@@ -23,6 +32,15 @@ relabelComponents(spec, paramTrace, idx, occList, perms, modalK, weights, ...)
 relabelComponents(spec, paramTrace, idx, occList, perms, modalK, weights, ...)
 
 # S4 method for class 'NormalRegSpec'
+relabelComponents(spec, paramTrace, idx, occList, perms, modalK, weights, ...)
+
+# S4 method for class 'JFSTUvSpec'
+relabelComponents(spec, paramTrace, idx, occList, perms, modalK, weights, ...)
+
+# S4 method for class 'SEPUvSpec'
+relabelComponents(spec, paramTrace, idx, occList, perms, modalK, weights, ...)
+
+# S4 method for class 'LEPUvSpec'
 relabelComponents(spec, paramTrace, idx, occList, perms, modalK, weights, ...)
 
 # S4 method for class 'MSNBurrUvSpec'
@@ -44,6 +62,24 @@ relabelComponents(spec, paramTrace, idx, occList, perms, modalK, weights, ...)
 relabelComponents(spec, paramTrace, idx, occList, perms, modalK, weights, ...)
 
 # S4 method for class 'BinomialSpec'
+relabelComponents(spec, paramTrace, idx, occList, perms, modalK, weights, ...)
+
+# S4 method for class 'SkewNormalMvSpec'
+relabelComponents(spec, paramTrace, idx, occList, perms, modalK, weights, ...)
+
+# S4 method for class 'SkewNormalMvOSpec'
+relabelComponents(spec, paramTrace, idx, occList, perms, modalK, weights, ...)
+
+# S4 method for class 'SkewIStudentMvSpec'
+relabelComponents(spec, paramTrace, idx, occList, perms, modalK, weights, ...)
+
+# S4 method for class 'SkewIStudentMvOSpec'
+relabelComponents(spec, paramTrace, idx, occList, perms, modalK, weights, ...)
+
+# S4 method for class 'SkewNormalMvOGenSpec'
+relabelComponents(spec, paramTrace, idx, occList, perms, modalK, weights, ...)
+
+# S4 method for class 'SkewIStudentMvOGenSpec'
 relabelComponents(spec, paramTrace, idx, occList, perms, modalK, weights, ...)
 
 # S4 method for class 'StudentTUvSpec'
@@ -94,6 +130,15 @@ parameter arrays cached on the `FitResult`.
 
 ## Functions
 
+- `relabelComponents(FSSNUvSpec)`: Permute mu / sigma / alpha,
+  summarise.
+
+- `relabelComponents(FOSSEPUvSpec)`: Permute mu / sigma / alpha / theta,
+  summarise.
+
+- `relabelComponents(FSSTUvSpec)`: Permute mu / sigma / alpha / nu,
+  summarise.
+
 - `relabelComponents(PoissonRegSpec)`: Permute coefficients and
   summarise.
 
@@ -105,6 +150,13 @@ parameter arrays cached on the `FitResult`.
 
 - `relabelComponents(NormalRegSpec)`: Permute (beta, s2) and summarise
   the regression components (one coefficient column per predictor).
+
+- `relabelComponents(JFSTUvSpec)`: Permute mu / sigma / alpha / theta,
+  summarise.
+
+- `relabelComponents(SEPUvSpec)`: Permute mu / sigma / nu, summarise.
+
+- `relabelComponents(LEPUvSpec)`: Permute mu / sigma / nu, summarise.
 
 - `relabelComponents(MSNBurrUvSpec)`: Permute mu / sigma / alpha and
   summarise.
@@ -124,6 +176,26 @@ parameter arrays cached on the `FitResult`.
 - `relabelComponents(PoissonSpec)`: Permute lambda and summarise.
 
 - `relabelComponents(BinomialSpec)`: Permute prob and summarise.
+
+- `relabelComponents(SkewNormalMvSpec)`: Permute mv (mu, Sigma, gamma)
+  and summarise.
+
+- `relabelComponents(SkewNormalMvOSpec)`: Permute mv params plus theta,
+  summarise.
+
+- `relabelComponents(SkewIStudentMvSpec)`: Permute mv (mu, Sigma, gamma,
+  nu), summarise.
+
+- `relabelComponents(SkewIStudentMvOSpec)`: Permute mv params plus nu
+  and theta.
+
+- `relabelComponents(SkewNormalMvOGenSpec)`: Permute components, then
+  canonicalise each draw's orthogonal factor via FS restriction (8),
+  adjusting gamma with it.
+
+- `relabelComponents(SkewIStudentMvOGenSpec)`: Permute components, then
+  canonicalise each draw's orthogonal factor, carrying gamma and nu with
+  the permutation.
 
 - `relabelComponents(StudentTUvSpec)`: Permute (mu, tau) and summarise;
   the reported scale is \\\sigma = \tau^{-1/2}\\.

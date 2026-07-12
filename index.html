@@ -16,8 +16,8 @@
 <script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Bayesian Mixture Clustering and Regression with NIMBLE">
-<meta name="description" content="Bayesian finite and nonparametric mixture models for clustering and regression, built on the nimble package (de Valpine et al. 2017 &lt;doi:10.1080/10618600.2016.1172487&gt;). Provides univariate and multivariate mixture components with a Dirichlet process (Chinese restaurant process) engine and a fixed-number-of-components engine, plus post-hoc label switching correction.">
-<meta property="og:description" content="Bayesian finite and nonparametric mixture models for clustering and regression, built on the nimble package (de Valpine et al. 2017 &lt;doi:10.1080/10618600.2016.1172487&gt;). Provides univariate and multivariate mixture components with a Dirichlet process (Chinese restaurant process) engine and a fixed-number-of-components engine, plus post-hoc label switching correction.">
+<meta name="description" content="A nimble-based framework for Bayesian mixture clustering and regression models (de Valpine dkk, 2017 &lt;doi:10.1080/10618600.2016.1172487&gt;). It supports diverse univariate and multivariate distributions across four inference paradigms: finite, infinite (Dirichlet process), spatial (Markov random field), and hidden-Markov mixtures. Features include tuned MCMC samplers and comprehensive post-processing tools for label-switching correction and cluster validation.">
+<meta property="og:description" content="A nimble-based framework for Bayesian mixture clustering and regression models (de Valpine dkk, 2017 &lt;doi:10.1080/10618600.2016.1172487&gt;). It supports diverse univariate and multivariate distributions across four inference paradigms: finite, infinite (Dirichlet process), spatial (Markov random field), and hidden-Markov mixtures. Features include tuned MCMC samplers and comprehensive post-processing tools for label-switching correction and cluster validation.">
 <meta property="og:image" content="https://madsyair.github.io/nimix/logo.png">
 </head>
 <body>
@@ -28,7 +28,7 @@
 
     <a class="navbar-brand me-2" href="index.html">nimix</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -67,25 +67,58 @@
 </div>
 <!-- badges: start -->
 
-<p><strong>nimix</strong> is a Bayesian mixture-modelling package built on top of <a href="https://r-nimble.org/" class="external-link">NIMBLE</a>. It provides mixture <em>clustering</em> (univariate and multivariate) and mixtures <em>of regressions</em> (univariate and multivariate response) through an extensible S4 <code>DistributionSpec</code> contract, so new component families plug into every inference engine without touching the engine code.</p>
+<p><strong>nimix</strong> is a Bayesian mixture-modelling package built on top of <a href="https://r-nimble.org/" class="external-link">NIMBLE</a>. It provides mixture <em>clustering</em> (univariate and multivariate), mixtures <em>of regressions</em> (univariate and multivariate response), and <em>spatially coupled</em> mixtures, through an extensible S4 <code>DistributionSpec</code> contract: new component families plug into every inference engine without touching the engine code. The registry currently holds <strong>32 component distributions</strong>.</p>
 <div class="section level2">
-<h2 id="features">Features<a class="anchor" aria-label="anchor" href="#features"></a>
+<h2 id="component-families">Component families<a class="anchor" aria-label="anchor" href="#component-families"></a>
 </h2>
 <ul>
 <li>
-<strong>Clustering</strong> — univariate and multivariate Gaussian, plus Student-t, Normal-Gamma (heavy-tailed), Poisson and Binomial components.</li>
+<strong>Classical</strong> — Normal (univariate and multivariate), Student-t (both), Normal-Gamma heavy-tailed (both), Poisson, Binomial.</li>
 <li>
-<strong>Mixture of regressions</strong> (<code>nimixReg</code>) — Gaussian linear, Student-t and Normal-Gamma residuals, Poisson/Binomial GLM components, and a multivariate (matrix) response via <code>cbind(y1, y2) ~ x</code>.</li>
+<strong>Neo-normal univariate</strong> — MSNBurr, MSNBurr-IIa, GMSNBurr, the exponential power pair <code>sep</code>/<code>lep</code>, and the Fernandez–Steel / Jones–Faddy skew families <code>fssn</code>, <code>fossep</code>, <code>fsst</code>, <code>jfst</code>. All follow one skewness convention: <code>alpha</code> <em>is</em> the FS <code>gamma</code>, so <code>alpha &gt; 1</code> skews right and <code>P(X &gt; mu) = alpha^2 / (1 + alpha^2)</code>, uniformly across families.</li>
 <li>
-<strong>Two inference engines</strong>, selected with <code>method</code>:
+<strong>Ferreira–Steel skew multivariate</strong> — skew-Normal and skew-independent- Student components (<code>"skewnormal-mv"</code>, <code>"skewistudent-mv"</code>), with the orthogonal factor of <code>A = OU</code> either fixed or <em>estimated</em> (<code>"skewnormal-mv-o"</code>, <code>"skewistudent-mv-o"</code>). The estimated-O families accept any dimension <code>m &gt;= 2</code>: <code>m = 2</code> uses a dedicated implementation, <code>m &gt; 2</code> a general Householder parameterisation with <code>m(m-1)/2</code> angles and FS’s identifiability restriction applied as a post-hoc canonicalisation. The general-<code>m</code> variants are <strong>experimental</strong> — partition and location recovery are robust, but individual angles are large-sample quantities and the reported <code>gamma</code>/<code>O</code> are canonicalised (compare against canonicalised truth; see <code><a href="reference/canonicaliseO.html">?canonicaliseO</a></code>).</li>
+</ul>
+</div>
+<div class="section level2">
+<h2 id="inference-engines">Inference engines<a class="anchor" aria-label="anchor" href="#inference-engines"></a>
+</h2>
+<p>Selected with <code>method</code>:</p>
 <ul>
 <li>
-<code>"dpm"</code> — a Dirichlet Process Mixture that <em>infers</em> the number of components (NIMBLE’s Chinese Restaurant Process), using <code>K_max</code>.</li>
+<code>"dpm"</code> — Dirichlet Process Mixture that <em>infers</em> the number of components (NIMBLE’s CRP), bounded by <code>K_max</code>.</li>
 <li>
-<code>"fixedk"</code> — a finite mixture with a fixed, known <code>K</code> (including the single-component <code>K = 1</code> baseline for model comparison).</li>
+<code>"fixedk"</code> — finite mixture with known <code>K</code> (including the <code>K = 1</code> baseline for model comparison).</li>
+<li>
+<code>"mrf"</code> — spatially coupled allocations via a Potts prior over a user-supplied adjacency (<code>spatialWeights</code>; <code><a href="reference/gridAdjacency.html">gridAdjacency()</a></code> builds regular grids).</li>
+<li>
+<code>"hmm"</code> — regime switching in time: labels follow a first-order Markov chain, the state path is marginalised out by the forward algorithm (measured: min ESS/sec 456 vs 144 for naive latent-state sampling), and exact allocation draws are recovered post hoc by FFBS – so <code><a href="reference/relabel.html">relabel()</a></code>, <code><a href="reference/psm.html">psm()</a></code>, <code><a href="reference/binderPartition.html">binderPartition()</a></code> and the plots work unchanged. <code>viterbiPath(fit)</code> decodes the jointly most probable state sequence. Current emissions (univariate): Gaussian, Student-t (heavy tails), Poisson (count regimes), and the neo-normal skewed families MSNBurr, MSNBurr-IIa and GMSNBurr; further families follow the gated roadmap.</li>
 </ul>
-</li>
-<li>Post-hoc label-switching correction via the <a href="https://CRAN.R-project.org/package=label.switching" class="external-link"><code>label.switching</code></a> package, with <code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code>, <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> and <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code> methods.</li>
+<p>All 32 families run under the dpm, fixedk and mrf engines.</p>
+</div>
+<div class="section level2">
+<h2 id="sampler-defaults-that-were-measured-not-assumed">Sampler defaults that were measured, not assumed<a class="anchor" aria-label="anchor" href="#sampler-defaults-that-were-measured-not-assumed"></a>
+</h2>
+<ul>
+<li>FixedK mixture regression uses an <strong>exact Normal-Inverse-Gamma Gibbs</strong> update for coefficients and residual variances (NIMBLE’s conjugacy checker cannot see through the mixture’s dynamic indexing). This makes the fit scale-equivariant in the predictors — measured slope discrepancy under a 1000× rescale fell from 0.48 to 0.004 — and raised coefficient ESS/second ~35×. The DPM path was already conjugate via NIMBLE’s CRP machinery.</li>
+<li>The nine 3–4 parameter univariate families sample each component’s parameters as an <strong>automated-factor-slice block</strong> (<code>AF_slice</code>; Tibbits et al. 2014). On <code>fssn</code>, where <code>cor(mu, alpha)</code> reaches −0.94, minimum ESS went from 12 to 622 per 1500 draws; a naive <code>RW_block</code> made it <em>worse</em>.</li>
+</ul>
+</div>
+<div class="section level2">
+<h2 id="post-processing-and-interoperability">Post-processing and interoperability<a class="anchor" aria-label="anchor" href="#post-processing-and-interoperability"></a>
+</h2>
+<ul>
+<li>
+<strong>Component parameters:</strong> <code><a href="reference/relabel.html">relabel()</a></code> (post-hoc label-switching correction via the <a href="https://CRAN.R-project.org/package=label.switching" class="external-link"><code>label.switching</code></a> package, conditioning on the modal number of clusters), then <code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code>, <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code>, <code><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict()</a></code>.</li>
+<li>
+<strong>Partitions, label-free:</strong> <code><a href="reference/psm.html">psm()</a></code> (posterior similarity matrix) and <code><a href="reference/binderPartition.html">binderPartition()</a></code> (Dahl’s least-squares / expected-Binder-loss point partition) use <em>every</em> draw — no relabelling, no fixed <code>K</code> required. They complement <code><a href="reference/relabel.html">relabel()</a></code>: it answers “what are the component parameters”, these answer “which observations belong together”.</li>
+<li>
+<strong>Internal validity, with an honest caveat:</strong> <code>clusterValidity(fit)</code> computes silhouette, Dunn and Calinski-Harabasz on the Binder partition (via <code>cluster</code>/<code>fpc</code>, Suggests-only). These indices reward <em>geometric</em> separation while mixtures are <em>density</em>-based: overlapping components can be exactly the right model and still score low – use them to compare partitions, not to judge model adequacy.</li>
+<li>
+<strong>Predictive checking:</strong> <code><a href="reference/ppCheck.html">ppCheck()</a></code> for tail-probability summaries; <code><a href="reference/posteriorPredict.html">posteriorPredict()</a></code> (or <code>ppCheck(..., store_yrep = TRUE)</code>) for the replicates themselves.</li>
+<li>
+<strong>bayesplot, without the dependency:</strong> <code>drawsArray(fit)</code> returns a plain <code>iterations × chains × parameters</code> array that <code>bayesplot::mcmc_*</code> accept natively, and <code>ppcData(fit)</code> returns <code>list(y, yrep)</code> for <code><a href="https://mc-stan.org/bayesplot/reference/PPC-distributions.html" class="external-link">bayesplot::ppc_dens_overlay()</a></code> and friends. bayesplot sits in <code>Suggests</code> only. The adaptors enforce one statistical guard: per-component draws are refused before <code><a href="reference/relabel.html">relabel()</a></code>, because under label switching an R-hat on a raw <code>muTilde</code> trace looks valid and means nothing — the default <code>"invariant"</code> view (cluster count, allocation entropy, <code>alpha</code>) is what is safe on raw draws.</li>
+<li>Every <code>plot(fit, type = ...)</code> invisibly returns the tidy data frame it drew, so you can replot with ggplot2/lattice/plotly without nimix carrying those packages.</li>
 </ul>
 </div>
 <div class="section level2">
@@ -115,6 +148,23 @@
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">fit</span>, type <span class="op">=</span> <span class="st">"K"</span><span class="op">)</span></span>
 <span></span>
+<span><span class="co">## Label-free partition summary using every draw</span></span>
+<span><span class="va">bp</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/binderPartition.html">binderPartition</a></span><span class="op">(</span><span class="va">fit</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">bp</span><span class="op">$</span><span class="va">partition</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co">## Skew multivariate clustering with an estimated orthogonal factor (m = 3)</span></span>
+<span><span class="va">Y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">300</span>, <span class="op">-</span><span class="fl">4</span><span class="op">)</span>, <span class="fl">100</span>, <span class="fl">3</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">300</span>, <span class="fl">4</span><span class="op">)</span>, <span class="fl">100</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">sk</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/relabel.html">relabel</a></span><span class="op">(</span><span class="fu"><a href="reference/nimixClust.html">nimixClust</a></span><span class="op">(</span><span class="va">Y</span>, K <span class="op">=</span> <span class="fl">2</span>, method <span class="op">=</span> <span class="st">"fixedk"</span>,</span>
+<span>                         distribution <span class="op">=</span> <span class="st">"skewnormal-mv-o"</span>,</span>
+<span>                         mcmcControl <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>niter <span class="op">=</span> <span class="fl">2500</span>, nburnin <span class="op">=</span> <span class="fl">1000</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co">## Regime-switching time series (hidden-Markov engine); data order = time order</span></span>
+<span><span class="va">zt</span>  <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cumsum.html" class="external-link">cumsum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fl">299</span><span class="op">)</span> <span class="op">&lt;</span> <span class="fl">0.07</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/Arithmetic.html" class="external-link">%%</a></span> <span class="fl">2</span> <span class="op">+</span> <span class="fl">1</span>     <span class="co"># two persistent regimes</span></span>
+<span><span class="va">yts</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">300</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">2</span>, <span class="fl">2</span><span class="op">)</span><span class="op">[</span><span class="va">zt</span><span class="op">]</span>, <span class="fl">0.7</span><span class="op">)</span></span>
+<span><span class="va">hm</span>  <span class="op">&lt;-</span> <span class="fu"><a href="reference/nimixClust.html">nimixClust</a></span><span class="op">(</span><span class="va">yts</span>, K <span class="op">=</span> <span class="fl">2</span>, method <span class="op">=</span> <span class="st">"hmm"</span>,</span>
+<span>                  mcmcControl <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>niter <span class="op">=</span> <span class="fl">4000</span>, nburnin <span class="op">=</span> <span class="fl">1500</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/viterbiPath.html">viterbiPath</a></span><span class="op">(</span><span class="va">hm</span><span class="op">)</span>                        <span class="co"># decoded regime per time point</span></span>
+<span></span>
 <span><span class="co">## Mixture of linear regressions, fixed number of regimes (finite mixture)</span></span>
 <span><span class="va">x</span>  <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fl">200</span>, <span class="op">-</span><span class="fl">3</span>, <span class="fl">3</span><span class="op">)</span></span>
 <span><span class="va">g</span>  <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">2</span>, each <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span>
@@ -122,12 +172,19 @@
 <span><span class="va">reg</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/nimixReg.html">nimixReg</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x</span>, <span class="va">df</span>, K <span class="op">=</span> <span class="fl">2</span>, method <span class="op">=</span> <span class="st">"fixedk"</span>,</span>
 <span>                mcmcControl <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>niter <span class="op">=</span> <span class="fl">2000</span>, nburnin <span class="op">=</span> <span class="fl">1000</span><span class="op">)</span>,</span>
 <span>                verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">reg</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">reg</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co">## ... with a random intercept for grouped data (fixedk + normal)</span></span>
+<span><span class="co"># nimixReg(y ~ x, df, random = ~ region, K = 2, method = "fixedk")</span></span>
+<span></span>
+<span><span class="co">## Hand the fit to bayesplot (if installed)</span></span>
+<span><span class="co"># bayesplot::mcmc_trace(drawsArray(fit))               # invariant functionals</span></span>
+<span><span class="co"># pd &lt;- ppcData(fit); bayesplot::ppc_dens_overlay(pd$y, pd$yrep)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="documentation">Documentation<a class="anchor" aria-label="anchor" href="#documentation"></a>
 </h2>
-<p>Function reference and vignettes are published at <a href="https://madsyair.github.io/nimix/" class="uri">https://madsyair.github.io/nimix/</a>.</p>
+<p>Function reference and vignettes are published at <a href="https://madsyair.github.io/nimix/" class="uri">https://madsyair.github.io/nimix/</a>. <code>NEWS.md</code> documents each release, including the measured numbers behind sampler-default decisions and two breaking-change notes (the v1.1.0 skewness-convention harmonisation, with its reciprocal-<code>alpha</code> migration).</p>
 </div>
 <div class="section level2">
 <h2 id="license">License<a class="anchor" aria-label="anchor" href="#license"></a>
@@ -183,7 +240,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

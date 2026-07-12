@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">nimix</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -119,6 +119,13 @@
 
         </dt>
         <dd>Virtual base class for mixture sampling engines</dd>
+
+        <dt>
+
+          <code><a href="HMMEngine.html">HMMEngine()</a></code>
+
+        </dt>
+        <dd>Construct a hidden-Markov mixture engine configuration</dd>
       </dl></div><div class="section level2">
       <h2 id="distribution-registry">Distribution registry<a class="anchor" aria-label="anchor" href="#distribution-registry"></a></h2>
 
@@ -326,6 +333,34 @@
 
         <dt>
 
+          <code><a href="psm.html">psm()</a></code>
+
+        </dt>
+        <dd>Posterior similarity matrix</dd>
+
+        <dt>
+
+          <code><a href="binderPartition.html">binderPartition()</a></code>
+
+        </dt>
+        <dd>Binder-loss point partition (Dahl's least-squares criterion)</dd>
+
+        <dt>
+
+          <code><a href="clusterValidity.html">clusterValidity()</a></code>
+
+        </dt>
+        <dd>Internal validity indices for a fitted clustering</dd>
+
+        <dt>
+
+          <code><a href="viterbiPath.html">viterbiPath()</a></code>
+
+        </dt>
+        <dd>Most probable state path of a hidden-Markov mixture fit</dd>
+
+        <dt>
+
           <code><a href="isRegressionSpec.html">isRegressionSpec()</a></code>
 
         </dt>
@@ -523,6 +558,104 @@
 
         </dt>
         <dd>GMSNBurr mixture components (generalized neo-normal)</dd>
+
+        <dt>
+
+          <code><a href="SEPUvSpec-class.html">SEPUvSpec()</a></code>
+
+        </dt>
+        <dd>SEP mixture components (symmetric exponential power)</dd>
+
+        <dt>
+
+          <code><a href="LEPUvSpec-class.html">LEPUvSpec()</a></code>
+
+        </dt>
+        <dd>LEP mixture components (exponential power, alternative parameterisation)</dd>
+
+        <dt>
+
+          <code><a href="FSSNUvSpec-class.html">FSSNUvSpec()</a></code>
+
+        </dt>
+        <dd>FSSN mixture components (Fernandez-Steel skew Normal)</dd>
+
+        <dt>
+
+          <code><a href="FOSSEPUvSpec-class.html">FOSSEPUvSpec()</a></code>
+
+        </dt>
+        <dd>FOSSEP mixture components (Fernandez-Steel skew exponential power)</dd>
+
+        <dt>
+
+          <code><a href="FSSTUvSpec-class.html">FSSTUvSpec()</a></code>
+
+        </dt>
+        <dd>FSST mixture components (Fernandez-Steel skew Student-t)</dd>
+
+        <dt>
+
+          <code><a href="JFSTUvSpec-class.html">JFSTUvSpec()</a></code>
+
+        </dt>
+        <dd>JFST mixture components (Jones-Faddy skew-t)</dd>
+
+        <dt>
+
+          <code><a href="SkewNormalMvSpec-class.html">SkewNormalMvSpec()</a></code>
+
+        </dt>
+        <dd>Skew multivariate Normal mixture components (Ferreira-Steel)</dd>
+
+        <dt>
+
+          <code><a href="SkewIStudentMvSpec-class.html">SkewIStudentMvSpec()</a></code>
+
+        </dt>
+        <dd>Skew multivariate independent-Student mixture components (Ferreira-Steel)</dd>
+
+        <dt>
+
+          <code><a href="SkewNormalMvOSpec-class.html">SkewNormalMvOSpec()</a></code>
+
+        </dt>
+        <dd>Skew multivariate Normal components with estimated orthogonal factor</dd>
+
+        <dt>
+
+          <code><a href="SkewIStudentMvOSpec-class.html">SkewIStudentMvOSpec()</a></code>
+
+        </dt>
+        <dd>Skew mv independent-Student components with estimated orthogonal factor</dd>
+
+        <dt>
+
+          <code><a href="SkewNormalMvOGenSpec-class.html">SkewNormalMvOGenSpec()</a></code>
+
+        </dt>
+        <dd>Skew multivariate Normal components with estimated O, general dimension</dd>
+
+        <dt>
+
+          <code><a href="SkewIStudentMvOGenSpec-class.html">SkewIStudentMvOGenSpec()</a></code>
+
+        </dt>
+        <dd>Skew mv independent-Student components with estimated O, general dimension</dd>
+
+        <dt>
+
+          <code><a href="orthogonalFactor.html">orthogonalFactor()</a></code>
+
+        </dt>
+        <dd>Orthogonal factor from Householder angles</dd>
+
+        <dt>
+
+          <code><a href="canonicaliseO.html">canonicaliseO()</a></code>
+
+        </dt>
+        <dd>Canonical representative of an FS orthogonal factor</dd>
       </dl></div><div class="section level2">
       <h2 id="neo-normal-distribution-functions">Neo-normal distribution functions<a class="anchor" aria-label="anchor" href="#neo-normal-distribution-functions"></a></h2>
 
@@ -553,6 +686,76 @@
 
         </dt>
         <dd>GMSNBurr Distribution</dd>
+
+        <dt>
+
+          <code><a href="sep-distribution.html">dsep()</a></code> <code><a href="sep-distribution.html">psep()</a></code> <code><a href="sep-distribution.html">qsep()</a></code> <code><a href="sep-distribution.html">rsep()</a></code>
+
+        </dt>
+        <dd>Subbotin Exponential Power (SEP) Distribution</dd>
+
+        <dt>
+
+          <code><a href="lep-distribution.html">dlep()</a></code> <code><a href="lep-distribution.html">plep()</a></code> <code><a href="lep-distribution.html">qlep()</a></code> <code><a href="lep-distribution.html">rlep()</a></code>
+
+        </dt>
+        <dd>Lunetta Exponential Power Distribution</dd>
+
+        <dt>
+
+          <code><a href="fssn-distribution.html">dfssn()</a></code> <code><a href="fssn-distribution.html">pfssn()</a></code> <code><a href="fssn-distribution.html">qfssn()</a></code> <code><a href="fssn-distribution.html">rfssn()</a></code>
+
+        </dt>
+        <dd>Fernandez-Steel Skew Normal Distribution</dd>
+
+        <dt>
+
+          <code><a href="fossep-distribution.html">dfossep()</a></code> <code><a href="fossep-distribution.html">pfossep()</a></code> <code><a href="fossep-distribution.html">qfossep()</a></code> <code><a href="fossep-distribution.html">rfossep()</a></code>
+
+        </dt>
+        <dd>Fernandez-Osiewalski-Steel Skew Exponential Power Distribution</dd>
+
+        <dt>
+
+          <code><a href="fsst-distribution.html">dfsst()</a></code> <code><a href="fsst-distribution.html">pfsst()</a></code> <code><a href="fsst-distribution.html">qfsst()</a></code> <code><a href="fsst-distribution.html">rfsst()</a></code>
+
+        </dt>
+        <dd>Fernandez-Steel Skew t Distribution</dd>
+
+        <dt>
+
+          <code><a href="jfst-distribution.html">djfst()</a></code> <code><a href="jfst-distribution.html">pjfst()</a></code> <code><a href="jfst-distribution.html">qjfst()</a></code> <code><a href="jfst-distribution.html">rjfst()</a></code>
+
+        </dt>
+        <dd>Jones-Faddy Skew-t Distribution</dd>
+
+        <dt>
+
+          <code><a href="skewnormal-mv-distribution.html">dskewmvn()</a></code> <code><a href="skewnormal-mv-distribution.html">rskewmvn()</a></code>
+
+        </dt>
+        <dd>Ferreira-Steel skew multivariate Normal</dd>
+
+        <dt>
+
+          <code><a href="skewistudent-mv-distribution.html">dskewmvit()</a></code> <code><a href="skewistudent-mv-distribution.html">rskewmvit()</a></code>
+
+        </dt>
+        <dd>Ferreira-Steel skew multivariate independent-Student</dd>
+
+        <dt>
+
+          <code><a href="skewnormal-mv-o-distribution.html">dskewmvno()</a></code> <code><a href="skewnormal-mv-o-distribution.html">rskewmvno()</a></code>
+
+        </dt>
+        <dd>Ferreira-Steel skew multivariate Normal with estimated orthogonal factor</dd>
+
+        <dt>
+
+          <code><a href="skewistudent-mv-o-distribution.html">dskewmvito()</a></code> <code><a href="skewistudent-mv-o-distribution.html">rskewmvito()</a></code>
+
+        </dt>
+        <dd>Ferreira-Steel skew multivariate independent-Student with estimated O</dd>
       </dl></div><div class="section level2">
       <h2 id="spatial-mixtures-mrf-">Spatial mixtures (MRF)<a class="anchor" aria-label="anchor" href="#spatial-mixtures-mrf-"></a></h2>
 
@@ -650,6 +853,27 @@
 
         </dt>
         <dd>Posterior predictive check</dd>
+
+        <dt>
+
+          <code><a href="posteriorPredict.html">posteriorPredict()</a></code>
+
+        </dt>
+        <dd>Posterior predictive replicates</dd>
+
+        <dt>
+
+          <code><a href="drawsArray.html">drawsArray()</a></code>
+
+        </dt>
+        <dd>Posterior draws as an iterations x chains x parameters array</dd>
+
+        <dt>
+
+          <code><a href="ppcData.html">ppcData()</a></code>
+
+        </dt>
+        <dd>Observed data and posterior predictive replicates for graphical PPC</dd>
       </dl></div><div class="section level2">
       <h2 id="extension-api-engine-facing-generics-">Extension API (engine-facing generics)<a class="anchor" aria-label="anchor" href="#extension-api-engine-facing-generics-"></a></h2>
 
@@ -831,7 +1055,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer></div>

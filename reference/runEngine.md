@@ -43,6 +43,17 @@ runEngine(
   ...
 )
 
+# S4 method for class 'HMMEngine'
+runEngine(
+  engine,
+  model,
+  mcmcControl = list(),
+  initMethod = "kmeans",
+  seed = 1L,
+  verbose = TRUE,
+  ...
+)
+
 # S4 method for class 'MRFEngine'
 runEngine(
   engine,
@@ -87,6 +98,10 @@ and the resolved MCMC control list.
 
 - `runEngine(FixedKEngine)`: Finite-mixture run with fixed K (Dirichlet
   weights + categorical allocation).
+
+- `runEngine(HMMEngine)`: Hidden-Markov mixture run
+  (forward-marginalised likelihood; allocations recovered post-hoc by
+  FFBS).
 
 - `runEngine(MRFEngine)`: Spatially constrained finite mixture (Potts
   MRF on the labels, fixed interaction `beta`); univariate Gaussian

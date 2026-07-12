@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">nimix</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -34,7 +34,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Fitted nimix mixture result</h1>
-      <small class="dont-index">Source: <a href="https://github.com/madsyair/nimix/blob/MRF/R/class-FitResult.R" class="external-link"><code>R/class-FitResult.R</code></a>, <a href="https://github.com/madsyair/nimix/blob/MRF/R/methods-summary-plot.R" class="external-link"><code>R/methods-summary-plot.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/madsyair/nimix/blob/main/R/class-FitResult.R" class="external-link"><code>R/class-FitResult.R</code></a>, <a href="https://github.com/madsyair/nimix/blob/main/R/methods-summary-plot.R" class="external-link"><code>R/methods-summary-plot.R</code></a></small>
       <div class="d-none name"><code>FitResult-class.Rd</code></div>
     </div>
 
@@ -103,6 +103,14 @@ data frame of predictors (regression). Defaults to the training data.</p></dd>
 500); draws are thinned uniformly if exceeded.</p></dd>
 
 </dl></div>
+    <div class="section level2">
+    <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
+    <p>Invisibly, a tidy data frame of exactly what was drawn (e.g.
+  <code>iteration</code>/<code>component</code>/<code>value</code> for traces,
+  <code>x</code>/<code>density</code> for the predictive density), so the plot can be
+  reproduced with ggplot2 or any other system without nimix depending on
+  them.</p>
+    </div>
     <div class="section level2">
     <h2 id="methods-by-generic-">Methods (by generic)<a class="anchor" aria-label="anchor" href="#methods-by-generic-"></a></h2>
 
@@ -190,7 +198,7 @@ than one chain is run; otherwise a single-chain summary.</p></dd>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer></div>

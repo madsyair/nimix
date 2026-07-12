@@ -1,5 +1,460 @@
 # Changelog
 
+## nimix 1.3.0
+
+This release adds a fourth inference engine – hidden-Markov mixtures for
+regime switching in time series, with six emission families – and random
+intercepts for grouped data in the mixture of regressions, both
+delivered through gated prototypes whose measured findings are recorded
+below.
+
+### New: random intercepts in the mixture of regressions
+
+- `nimixReg(y ~ x, data, random = ~ group, method = "fixedk")` adds a
+  shared group offset `b_g ~ N(0, tau^2)` to every component’s linear
+  predictor. Two design decisions came out of a measured gate prototype
+  and are baked in: (i) **sum-to-zero parameterisation** – with free
+  `b`, the component intercepts and `mean(b)` form a pure translation
+  ridge (`cor = -0.979`, min ESS 25 of 2500); the constraint restored
+  min ESS to 205-238 with recovery intact
+  (`cor(b_hat, centred truth) = 0.992`, `tau_hat` 0.83 vs 0.8), and the
+  reported `b` are centred with the component intercepts absorbing the
+  group mean. (ii) The **exact NIG Gibbs sampler gains a random-effect
+  offset**: the gate found NIMBLE’s conjugacy detection does handle
+  dynamic indexing in additive *scalar* form, but not the `inprod` form
+  production uses – so the P1 sampler now conditions on the current `b`.
+  The P1 scale-equivariance lock still holds with RE active (measured
+  slope discrepancy 0.0026 under a 1000x rescale), and the test suite
+  asserts it.
+- Scope: `method = "fixedk"` with `distribution = "normal"`, one
+  grouping factor, random intercept. Random slopes and further families
+  follow the gated plan; other combinations are refused with a pointed
+  message.
+
+### New engine: hidden-Markov mixtures (regime switching), `method = "hmm"`
+
+- Component labels can now follow a first-order Markov chain in time:
+  `nimixClust(y, K = S, method = "hmm")` fits a regime-switching mixture
+  in which the state path is **marginalised out of the likelihood by the
+  forward algorithm** – the MCMC only ever samples the continuous
+  parameters. The gate prototype measured why: 4000 iterations in ~1 s
+  at T = 300, min ESS/sec 456 vs 144 for the naive latent-state model
+  (x3.2 on an easy setting, and the marginalised model removes T
+  discrete nodes from the graph). The forward kernel is exact against a
+  pure-R reference (difference 0, compiled and uncompiled), asserted in
+  the test suite.
+
+- Allocation draws are recovered **post-hoc by forward-filter
+  backward-sampling (FFBS)** per retained draw, so every existing tool
+  works unchanged on HMM fits:
+  [`relabel()`](https://madsyair.github.io/nimix/reference/relabel.md),
+  [`psm()`](https://madsyair.github.io/nimix/reference/psm.md),
+  [`binderPartition()`](https://madsyair.github.io/nimix/reference/binderPartition.md),
+  [`plot()`](https://rdrr.io/r/graphics/plot.default.html), and the
+  bayesplot adaptors. Measured on simulated regimes: location recovery
+  -1.99/2.14 (truth -2/2), self-transitions 0.965/0.895 (truth
+  0.95/0.90), per-time MAP and Viterbi decoding both at accuracy 1.0.
+
+- `viterbiPath(fit)` returns the jointly most probable state sequence at
+  the posterior means – complementary to
+  [`binderPartition()`](https://madsyair.github.io/nimix/reference/binderPartition.md),
+  which summarises marginal co-clustering across the FFBS draws.
+
+- `nimbleEcology` was evaluated and is not used: its `dHMM` family is
+  categorical-emission only, while regime switching on continuous data
+  needs continuous emissions. The gate showed nimix’s own kernels
+  compile exactly inside the forward pass, which is the path for
+  extending the engine to the other emission families – current scope is
+  `"normal"`, `"student-t"`, `"poisson"` (count regimes; lambda
+  2.94/14.98 on truth 3/15, Viterbi 0.993), and the neo-normal skewed
+  families `"msnburr"`, `"msnburr2a"`, `"gmsnburr"` (measured recovery
+  e.g. msnburr2a mu -3.01/2.93, gmsnburr mu -4.12/4.27, Viterbi
+  0.99-1.0) – all univariate; the t family targets heavy-tailed regimes
+  and recovered locations/transitions/decoding on simulated t4 regimes:
+  mu -2.01/2.12 vs truth -2/2, Viterbi accuracy 1.0. further families
+  follow the gated plan one at a time. New emission families implement
+  one density method and one forward kernel; the engine, FFBS, and
+  [`viterbiPath()`](https://madsyair.github.io/nimix/reference/viterbiPath.md)
+  are family-generic.
+
+- FFBS allocation decoding and Viterbi are now numerically hardened
+  against emission underflow: for a thin-tailed family an outlying point
+  can drive every state’s density to 0 at some draw, which previously
+  produced NaN weights and an “NA in probability vector” crash. The
+  forward pass now falls back to a uniform over states in that
+  degenerate case, and Viterbi floors zero densities before taking logs
+  – decoding stays correct on normal regimes and no longer crashes on
+  outliers (asserted by a dedicated test).
+
+- Over-parameterised fits (nStates above the true number of regimes)
+  leave empty states without corruption, asserted by a dedicated test
+  (the structural lesson of the 1.2.0 PPC bug applied to a new engine
+  from day one).
+
+## nimix 1.2.1
+
+### New: internal cluster-validity indices
+
+- `clusterValidity(fit)` computes silhouette width, the Dunn index, and
+  Calinski-Harabasz for a clustering fit’s point partition (default:
+  [`binderPartition()`](https://madsyair.github.io/nimix/reference/binderPartition.md),
+  so every posterior draw contributes and no relabelling is needed), via
+  the `cluster` and `fpc` packages – both in Suggests. The documentation
+  states, and the test suite asserts, the honest caveat: these indices
+  reward *geometric* separation, while mixtures are *density*-based –
+  overlapping components can be exactly the right model and still score
+  low (measured: silhouette 0.90/Dunn 1.6 for separated clusters vs
+  0.52/0.0 for a legitimate overlapping fit). They are a secondary
+  comparison lens;
+  [`ppCheck()`](https://madsyair.github.io/nimix/reference/ppCheck.md)
+  and [`psm()`](https://madsyair.github.io/nimix/reference/psm.md)
+  remain the primary model-adequacy tools.
+
+## nimix 1.2.0
+
+Response wave to an external code review: two correctness fixes, five
+new exported functions, sampler-default upgrades, and a test-harness
+overhaul. Every claim below was measured in-session; see the file
+headers for the numbers’ provenance.
+
+### Improved: plots return their data; PPC column lookup memoised
+
+- Every `plot(fit, type = ...)` branch now returns, invisibly, the tidy
+  data frame it drew (`iteration`/`component`/`value` for traces,
+  `x`/`density` for the predictive density, `dim*`/`cluster` for the MAP
+  scatter, `fitted`/`observed` for regression). Base `graphics` remains
+  the only plotting dependency; users who want ggplot2/lattice/plotly
+  replot from the returned data.
+- [`ppCheck()`](https://madsyair.github.io/nimix/reference/ppCheck.md)/[`posteriorPredict()`](https://madsyair.github.io/nimix/reference/posteriorPredict.md)
+  now resolve each monitored node’s columns once per call instead of
+  once per draw (memoised via an attribute cache). Measured cost of the
+  old lookup was ~3e-05 s/call, so this is a clarity and
+  large-monitor-set improvement, not a speedup claim.
+- Considered and rejected: passing prior hyperparameters as data nodes
+  to avoid recompilation on prior changes. It would touch every family’s
+  model code and risks breaking NIMBLE’s conjugacy detection (which the
+  FixedK regression fix showed is already fragile under dynamic
+  indexing); the compile cache already forces a correct rebuild when
+  priors change.
+
+### Fixed: 65 tests silently erroring in installed-mode runs
+
+- Running the suite against the *installed* package (as opposed to
+  [`pkgload::load_all()`](https://pkgload.r-lib.org/reference/load_all.html))
+  is this project’s guard against a documented bug class – kernels
+  resolving under `load_all()` but not after `R CMD INSTALL`. That guard
+  had a blind spot: many tests called internal helpers
+  (`.rowPresence()`, `.nodeToArray()`, `.cacheKey()`,
+  [`buildConstants()`](https://madsyair.github.io/nimix/reference/buildConstants.md),
+  …) unqualified, which works under `load_all()` but errors when only
+  the namespace exports are attached – and testthat counts those as
+  *errors*, not *failures*, so a summary reading “0 failed” hid them.
+  All internal references in tests are now `nimix:::`-qualified, and
+  both suite modes now report identically (588 passing, zero errors).
+  Suite gates now check the error flag, not just the failure count.
+
+### Improved: AF_slice defaults for correlated-parameter univariate families
+
+- The nine 3-4 parameter univariate families (`msnburr`, `msnburr2a`,
+  `gmsnburr`, `fssn`, `fossep`, `fsst`, `jfst`, `sep`, `lep`) now sample
+  each component’s parameters as a single automated-factor-slice block
+  (Tibbits et al. 2014) instead of independent univariate samplers.
+  Motivation was measured, not assumed: on `fssn`, `cor(mu, alpha)`
+  reaches -0.94 and the default samplers delivered min ESS 12 of 1500
+  draws (0.28 ESS/sec); on `gmsnburr`, min ESS 46 (0.86 ESS/sec). The
+  escalation ladder mattered – `RW_block` made `fssn` *worse* (min
+  ESS 7) – while AF_slice reached min ESS 622 (`fssn`, x32 ESS/sec) and
+  417 (`gmsnburr`, x5.7), with parameter recovery unchanged. Verified
+  under all three engines (FixedK, DPM, MRF).
+
+### New: bayesplot interoperability – `drawsArray()` and `ppcData()`
+
+- `drawsArray(fit)` returns a plain `iterations x chains x parameters`
+  array – the layout `bayesplot::mcmc_*` functions accept natively – and
+  `ppcData(fit)` returns `list(y, yrep)` for
+  [`bayesplot::ppc_dens_overlay()`](https://mc-stan.org/bayesplot/reference/PPC-distributions.html)
+  and friends (with a `margin` argument for multivariate fits).
+  bayesplot enters `Suggests` only; the adaptors return base R objects
+  and add no runtime dependency.
+- The important part is the safety guard, not the plumbing:
+  `drawsArray(fit, "components")` **refuses** to serve per-component
+  draws before
+  [`relabel()`](https://madsyair.github.io/nimix/reference/relabel.md),
+  explaining why – under label switching, `muTilde[1]` names different
+  components in different chains, so an R-hat computed on the raw trace
+  looks valid and means nothing. The default `"invariant"` view (cluster
+  count, allocation entropy, `alpha`) is safe on raw draws and keeps the
+  true per-chain structure. After relabelling, the chain dimension is
+  honestly collapsed to 1, because conditioning on the modal cluster
+  count leaves chains with unequal lengths.
+
+### New: interoperability foundations – `yrep` and chain identity
+
+- `posteriorPredict(fit, ndraws)` returns the posterior predictive
+  replicates themselves (`ndraws x n`, or `ndraws x n x d` for
+  multivariate fits), and `ppCheck(..., store_yrep = TRUE)` attaches
+  `yrep`/`y`/`draws` attributes. Previously the replicates were computed
+  and discarded, which made graphical PPC
+  (e.g. `bayesplot::ppc_dens_overlay(y, yrep)`) impossible to drive from
+  a nimix fit. Storage stays opt-in so the default result remains lean.
+- Multi-chain fits now record `diagnostics$chainId`, marking which chain
+  each pooled draw came from. Post-hoc per-chain diagnostics (R-hat on
+  invariant functionals, per-chain traces, draws arrays) were previously
+  impossible to reconstruct because chains were stacked without a
+  marker. Stored in the diagnostics list, so the `FitResult` class is
+  unchanged and existing objects remain valid.
+
+### New: label-free partition summaries – `psm()` and `binderPartition()`
+
+- `psm(fit)` returns the posterior similarity matrix `P(z_i = z_j | y)`;
+  `binderPartition(fit)` selects, among the partitions the chain
+  actually visited, the one minimising the expected Binder loss (Dahl’s
+  least-squares criterion). Both are invariant to label permutations
+  *and* to the number of occupied clusters, so **every draw
+  contributes** – unlike
+  [`relabel()`](https://madsyair.github.io/nimix/reference/relabel.md),
+  which must condition on the modal cluster count to align component
+  parameters (measured: 34% of DPM draws discarded on a two-cluster
+  example). They are complements, not replacements:
+  [`relabel()`](https://madsyair.github.io/nimix/reference/relabel.md)
+  answers “what are the component parameters”,
+  [`psm()`](https://madsyair.github.io/nimix/reference/psm.md)/[`binderPartition()`](https://madsyair.github.io/nimix/reference/binderPartition.md)
+  answer “which observations belong together”. On overlapping clusters
+  the similarity matrix expresses genuine allocation uncertainty
+  (mid-region pairs ~0.65) instead of forcing a hard 0/1 answer.
+
+### Fixed: multivariate posterior predictive checks with empty components
+
+- [`ppCheck()`](https://madsyair.github.io/nimix/reference/ppCheck.md)
+  for `normal-mv` (and the inheriting `student-t-mv`, `normal-gamma-mv`)
+  reconstructed each draw’s covariance array with
+  `dim = c(max(alloc), d, d)`. On draws where a component was empty,
+  `max(alloc)` undercounts the monitored components, truncating and
+  shifting the covariance entries – usually a
+  [`chol()`](https://rdrr.io/r/base/chol.html) error, but occasionally a
+  shifted-yet-still-PD matrix returning wrong replicates silently. The
+  dimension is now derived from the monitored component count, with a
+  defensive length check. Regression tests deliberately over-fit K so
+  empty components must occur; the six skew-mv families were audited and
+  were never affected.
+
+### Fixed: FixedK mixture regression is now scale-equivariant
+
+- Under the FixedK engine, NIMBLE’s conjugacy checker cannot see through
+  the dynamically indexed `betaTilde[z[i], ]`, so `betaTilde`/`s2Tilde`
+  fell back to adaptive random-walk samplers in raw units. With poorly
+  scaled predictors this biased the fit visibly (slope 2.50 vs true 2.0
+  when X was multiplied by 1000 – systematic, not mixing). A conjugate
+  Normal-Inverse-Gamma Gibbs sampler now replaces them on the FixedK
+  path (the DPM path was already conjugate via `CRP_cluster_wrapper`).
+  Measured: max slope discrepancy under a 1000x predictor rescale fell
+  from 0.48 to 0.004, and minimum ESS/second on the coefficients rose
+  ~35x (0.4 to 15.3). A scale-equivariance test locks the guarantee.
+
+## nimix 1.1.0
+
+### New: estimating the orthogonal factor O beyond two dimensions
+
+All six skew multivariate families now run under the finite-K, DPM and
+MRF engines. Budget more MCMC iterations for the general-m variants:
+each component carries `m(m-1)/2` slice-sampled angles, which slows the
+Potts sweep – on an 8x8 grid with `m = 3` and heavy tails, 1200
+iterations recovered the spatial regions poorly and 3000 recovered them
+exactly.
+
+- `distribution = "skewistudent-mv-o"` likewise accepts any `m >= 2`.
+  The canonicalisation carries `nu` with the permutation but never
+  inverts it: a sign flip inverts `gamma` and leaves `nu` alone, because
+  the Student kernel is symmetric. Density invariance checked to 1e-15
+  for `m = 2, 3, 4`.
+
+- `distribution = "skewnormal-mv-o"` now accepts any `m >= 2`. It routes
+  on the data dimension: `m = 2` keeps its dedicated implementation,
+  `m > 2` uses the general Householder parameterisation with `m(m-1)/2`
+  angles (FS Lemma 2). New exported helpers
+  [`orthogonalFactor()`](https://madsyair.github.io/nimix/reference/orthogonalFactor.md)
+  and
+  [`canonicaliseO()`](https://madsyair.github.io/nimix/reference/canonicaliseO.md).
+
+- **Restriction (8) is a canonicalisation, not a sampling constraint.**
+  FS write that confining the angles to their box `Theta^j` puts `O` in
+  `O_m`; testing this directly, the fraction of box draws that
+  satisfy (8) is 0.245 (`m = 2`), 0.069 (`m = 3`) and 0.007 (`m = 4`).
+  Constraining a sampler to a 0.7% slice of its own prior would mix
+  badly. What *is* true, and what nimix uses: among the signed row
+  permutations `P` of `A` with `|P| = +1`, exactly one `PO` satisfies
+
+  8.  – verified exhaustively for `m = 2, 3, 4`. So the angles are
+      sampled unconstrained and each posterior draw is mapped to its
+      unique representative, with `gamma` carried along
+      (`gamma_i -> gamma_perm(i)` or its reciprocal, per the row sign).
+      The density is invariant under the map, to 1e-14. The `m! 2^m` row
+      ambiguity of `A` is label switching in the dimension index, and
+      this package already prefers post-hoc relabelling to ordering
+      constraints.
+
+- Reassuringly, for `m = 2` the (8)-satisfying set is exactly
+  `theta in (-pi/8, pi/8)` – the prior support already shipped. The
+  general treatment reduces to the bivariate one rather than replacing
+  it.
+
+- **Experimental, and read with care.** `gamma` and `O` are reported
+  *after* canonicalisation, so comparing them with simulating values
+  requires canonicalising those too. `O_mean` is an elementwise
+  posterior mean and is not itself orthogonal. The mirror modes of the
+  angle likelihood multiply with `m`: partition and location recovery
+  are robust (accuracy 1.0 at `m = 3`), but individual angles are
+  large-sample quantities.
+
+### New: estimating the orthogonal factor O (bivariate)
+
+All four skew multivariate families – fixed-O and estimated-O, Gaussian
+and heavy-tailed – run under the finite-K, DPM and MRF engines.
+
+- `distribution = "skewistudent-mv-o"`: the heavy-tailed counterpart,
+  with `O` estimated the same way. **Its `theta` is better identified
+  than the Gaussian one**, and the reason is instructive: at `gamma = 1`
+  the skew-Normal density is theta-invariant, because spherical Normal
+  errors carry no directional information (FS Lemma 1). Independent
+  Student margins are *not* spherical, so the skew-IStudent density
+  depends on `theta` even under symmetry – verified numerically, with
+  the profile likelihood recovering `theta` from symmetric data. Letting
+  `nu -> Inf` restores sphericity and with it the invariance, exactly as
+  the theory predicts.
+
+- Grid-initialisation of `theta` uses each family’s own density.
+  Initialising a heavy-tailed family from a Gaussian profile picks the
+  wrong angle, because outliers dominate the Gaussian fit – this was
+  observed, not assumed.
+
+- `distribution = "skewnormal-mv-o"`: the FS skew multivariate Normal
+  with the orthogonal factor of `A = OU` **estimated** rather than held
+  fixed, via the Householder angle `theta` (FS 2007, Appendix A). This
+  lifts the main scope limitation of `skewnormal-mv`: `O` is what
+  determines the *directions* of asymmetry (FS Sec 3.3). Bivariate data
+  only for now.
+
+- `theta` has a uniform prior on `(-pi/8, pi/8)`, which is exactly FS’s
+  identifiability restriction (8) once written in the Householder
+  parameterisation (`O11 = cos 2 theta`, `O21 = -sin 2 theta`,
+  `|O| = -1`). Because `|O| = -1` always, `O = I` is *not* a member of
+  FS’s restricted set: `theta = 0` gives `O = diag(1, -1)`, which
+  coincides with `skewnormal-mv` after replacing `gamma_2` by
+  `1/gamma_2`. The fixed-`O` family is therefore nested here at
+  `theta = 0`, up to that reflection.
+
+- **Read `theta` with care.** At `gamma = 1` the density does not depend
+  on `theta` at all, so `theta` is identified only through the skewness.
+  Even with clear skewness the likelihood has a near-mirror secondary
+  mode: at 150 observations per component it sat within 1.65
+  log-likelihood units of the true mode (both above the log-likelihood
+  at the true parameters) and chains settled on the wrong sign; at 500
+  per component the 95% intervals covered the simulating angles. `theta`
+  is slice-sampled and grid-initialised, and should be treated as a
+  large-sample quantity.
+
+### New: Ferreira-Steel skew multivariate distributions
+
+Both skew multivariate families run under all three engines: finite-K,
+DPM and MRF (spatial Potts prior). \*
+`distribution = "skewistudent-mv"`: the FS skew multivariate
+independent-Student (Ferreira & Steel 2007, Sec 5.2) – FS-skew Student-t
+margins with per-dimension degrees of freedom `nu` (stochastic,
+truncated below at 2), the same `A = chol(Sigma)` construction and
+harmonised `gamma` convention as `skewnormal-mv`. Closed-form (no lambda
+augmentation), which avoids the documented 25-38x partition-mixing
+penalty of the augmented skew-Student path and is the model most
+supported by the data in FS’s own application. Validated: kernel equals
+the R reference to 1e-15, `nu -> Inf` recovers `skewnormal-mv`, `m = 1`
+equals the univariate `fsst`, the density integrates to one, and
+mixtures recover location, per-dimension skew direction and partition
+(accuracy 1.0; DPM modal K correct).
+
+- `distribution = "skewnormal-mv"`: the skewed multivariate distribution
+  of Ferreira & Steel (2007), `eta = A' eps + mu`, with independent
+  FS-skew-Normal margins for `eps`, per-dimension skewness `gamma`
+  (harmonised convention: `gamma_j > 1` skews dimension j right;
+  `gamma = 1` recovers `dmnorm` exactly), and `A = chol(Sigma)` upper
+  triangular with `Sigma ~ inverse-Wishart`. Available under the
+  finite-K and DPM engines, with
+  [`dskewmvn()`](https://madsyair.github.io/nimix/reference/skewnormal-mv-distribution.md)
+  /
+  [`rskewmvn()`](https://madsyair.github.io/nimix/reference/skewnormal-mv-distribution.md)
+  and
+  [`ppCheck()`](https://madsyair.github.io/nimix/reference/ppCheck.md)
+  support. Validated: compiled kernel equals the R reference to 1e-14,
+  the 2-D density integrates to one, the m = 1 case equals the
+  univariate `fssn`, and mixtures recover location, per-dimension skew
+  direction, and partition (accuracy 1.0; DPM modal K correct).
+- **Scope, stated plainly**: the orthogonal factor `O` of `A = OU` (FS
+  Lemma 1) is fixed at the identity. FS Sec 3.3 explains that under
+  skewness `O` determines the *directions* of asymmetry, so this release
+  ties those directions to the coordinate axes after the triangular
+  transform. A Householder-parameterised `O` (FS Appendix A) is planned
+  as a follow-up, as is the skew multivariate independent-Student
+  family.
+
+### Breaking change: one skewness convention across all Fernandez-Steel families
+
+Previously `fssn` and `fsst` parameterised skewness as
+`alpha = 1/gamma`, while `fossep` used `alpha = gamma`. The same
+`alpha = 2` therefore skewed *left* in `fssn`/`fsst` and *right* in
+`fossep`. Fits and simulations were internally consistent within each
+family, so this never produced wrong inference, but it made the families
+incomparable and the parameter uninterpretable across them.
+
+All Fernandez-Steel families (`fssn`, `fsst`, `fossep`) now share the
+convention of Fernandez & Steel (1998, 2007): the exported `alpha`
+**is** the FS skewness `gamma`, so
+
+- `alpha = 1` is symmetric,
+- `alpha > 1` skews right, `alpha < 1` skews left,
+- `P(X > mu) = alpha^2 / (1 + alpha^2)` exactly, in every family.
+
+**What this means for you.** `fssn` and `fsst` results computed with
+1.0.1 or earlier correspond to the reciprocal `alpha` under 1.1.0: an
+estimate of `alpha = 2` then is `alpha = 0.5` now. Densities, CDFs,
+quantiles, RNG and the compiled NIMBLE kernels were all updated
+together, and a regression test (`test-skew-convention.R`) now pins the
+guarantee. `fossep` is unchanged. The Jones-Faddy family (`jfst`) uses
+its own `alpha`/`theta` shapes and is not affected; neither are the
+MSNBurr families.
+
+## nimix 1.0.1
+
+### Batch B: six new neo-normal component families
+
+All six are univariate, non-conjugate, and available under the finite-K,
+DPM and MRF engines, with `d/p/q/r` functions and
+[`ppCheck()`](https://madsyair.github.io/nimix/reference/ppCheck.md)
+support. Each NIMBLE kernel is built and registered in the global
+environment (the pattern required for scalar user-defined densities) and
+was validated against the R reference to 1e-8, with the density
+integrating to one and the family’s known reduction reproduced exactly.
+
+- `distribution = "sep"` – symmetric exponential power (`nu = 2` Normal,
+  `nu = 1` Laplace).
+- `distribution = "lep"` – exponential power under the alternative
+  parameterisation (`nu = 2` Normal).
+- `distribution = "fssn"` – Fernandez-Steel skew Normal (`alpha = 1`
+  Normal), with a log-normal prior on `alpha` that treats left/right
+  skew symmetrically.
+- `distribution = "fossep"` – Fernandez-Steel skew exponential power
+  (`theta = 2` skew-Normal kernel).
+- `distribution = "fsst"` – Fernandez-Steel skew Student-t (`alpha = 1`
+  symmetric-t). `nu` is a stochastic node truncated below at 2 so the
+  variance exists; it is only weakly identified by the data. The
+  t-kernel is inlined rather than calling NIMBLE’s `dt`.
+- `distribution = "jfst"` – Jones-Faddy skew-t (`alpha = theta`
+  symmetric). The density uses the branch-free identity
+  `sign(z)/sqrt((a+th)/z^2 + 1) == z/sqrt(a + th + z^2)`, which is also
+  finite at `z = 0`.
+
+The `q*` functions for these families recycle vector parameters to the
+sample length and subset them per branch, so per-observation parameter
+vectors (as used by posterior predictive simulation) align without
+recycling warnings.
+
 ## nimix 1.0.0 (in development)
 
 ### Bug fixes (installed-package correctness)

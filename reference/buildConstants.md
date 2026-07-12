@@ -7,6 +7,15 @@ Assemble distribution-specific NIMBLE constants for the DPM engine
 ``` r
 buildConstants(spec, prior, n, ...)
 
+# S4 method for class 'FSSNUvSpec'
+buildConstants(spec, prior, n, ...)
+
+# S4 method for class 'FOSSEPUvSpec'
+buildConstants(spec, prior, n, ...)
+
+# S4 method for class 'FSSTUvSpec'
+buildConstants(spec, prior, n, ...)
+
 # S4 method for class 'PoissonRegSpec'
 buildConstants(spec, prior, n, ...)
 
@@ -23,6 +32,15 @@ buildConstants(spec, prior, n, ...)
 buildConstants(spec, prior, n, ...)
 
 # S4 method for class 'NormalGammaRegSpec'
+buildConstants(spec, prior, n, ...)
+
+# S4 method for class 'JFSTUvSpec'
+buildConstants(spec, prior, n, ...)
+
+# S4 method for class 'SEPUvSpec'
+buildConstants(spec, prior, n, ...)
+
+# S4 method for class 'LEPUvSpec'
 buildConstants(spec, prior, n, ...)
 
 # S4 method for class 'MSNBurrUvSpec'
@@ -56,6 +74,24 @@ buildConstants(spec, prior, n, ...)
 buildConstants(spec, prior, n, ...)
 
 # S4 method for class 'BinomialSpec'
+buildConstants(spec, prior, n, ...)
+
+# S4 method for class 'SkewNormalMvSpec'
+buildConstants(spec, prior, n, ...)
+
+# S4 method for class 'SkewNormalMvOSpec'
+buildConstants(spec, prior, n, ...)
+
+# S4 method for class 'SkewIStudentMvSpec'
+buildConstants(spec, prior, n, ...)
+
+# S4 method for class 'SkewIStudentMvOSpec'
+buildConstants(spec, prior, n, ...)
+
+# S4 method for class 'SkewNormalMvOGenSpec'
+buildConstants(spec, prior, n, ...)
+
+# S4 method for class 'SkewIStudentMvOGenSpec'
 buildConstants(spec, prior, n, ...)
 
 # S4 method for class 'StudentTMvSpec'
@@ -92,6 +128,12 @@ the engine appends).
 
 ## Functions
 
+- `buildConstants(FSSNUvSpec)`: FSSN constants.
+
+- `buildConstants(FOSSEPUvSpec)`: FOSSEP constants.
+
+- `buildConstants(FSSTUvSpec)`: FSST constants.
+
 - `buildConstants(PoissonRegSpec)`: Poisson regression constants.
 
 - `buildConstants(BinomialRegSpec)`: Binomial regression constants plus
@@ -105,6 +147,12 @@ the engine appends).
 - `buildConstants(StudentTRegSpec)`: NIG g-prior constants plus `df`.
 
 - `buildConstants(NormalGammaRegSpec)`: NIG g-prior constants plus `df`.
+
+- `buildConstants(JFSTUvSpec)`: JFST constants.
+
+- `buildConstants(SEPUvSpec)`: SEP constants.
+
+- `buildConstants(LEPUvSpec)`: LEP constants.
 
 - `buildConstants(MSNBurrUvSpec)`: MSNBurr constants.
 
@@ -135,6 +183,20 @@ the engine appends).
 
 - `buildConstants(BinomialSpec)`: Binomial Beta-prior constants plus
   `size`.
+
+- `buildConstants(SkewNormalMvSpec)`: Skew-mv-Normal constants.
+
+- `buildConstants(SkewNormalMvOSpec)`: Skew-mv-Normal-O constants.
+
+- `buildConstants(SkewIStudentMvSpec)`: Skew-mv-IStudent constants.
+
+- `buildConstants(SkewIStudentMvOSpec)`: Skew-mv-IStudent-O constants.
+
+- `buildConstants(SkewNormalMvOGenSpec)`: General-m constants (angle box
+  included).
+
+- `buildConstants(SkewIStudentMvOGenSpec)`: General-m constants (angle
+  box included).
 
 - `buildConstants(StudentTMvSpec)`: Normal-Inverse-Wishart constants
   plus `df`.

@@ -13,7 +13,7 @@ arbitrarily vague when K_max is large)."><meta property="og:image" content="http
 
     <a class="navbar-brand me-2" href="../index.html">nimix</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -40,7 +40,7 @@ arbitrarily vague when K_max is large)."><meta property="og:image" content="http
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Build a data-scaled default prior for a distribution</h1>
-      <small class="dont-index">Source: <a href="https://github.com/madsyair/nimix/blob/MRF/R/class-DistributionSpec.R" class="external-link"><code>R/class-DistributionSpec.R</code></a>, <a href="https://github.com/madsyair/nimix/blob/MRF/R/dist-glm-reg.R" class="external-link"><code>R/dist-glm-reg.R</code></a>, <a href="https://github.com/madsyair/nimix/blob/MRF/R/dist-gmsnburr.R" class="external-link"><code>R/dist-gmsnburr.R</code></a>, and 11 more</small>
+      <small class="dont-index">Source: <a href="https://github.com/madsyair/nimix/blob/main/R/class-DistributionSpec.R" class="external-link"><code>R/class-DistributionSpec.R</code></a>, <a href="https://github.com/madsyair/nimix/blob/main/R/dist-fssn.R" class="external-link"><code>R/dist-fssn.R</code></a>, <a href="https://github.com/madsyair/nimix/blob/main/R/dist-fossep.R" class="external-link"><code>R/dist-fossep.R</code></a>, and 23 more</small>
       <div class="d-none name"><code>defaultPrior.Rd</code></div>
     </div>
 
@@ -54,6 +54,15 @@ arbitrarily vague when <code>K_max</code> is large).</p>
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">defaultPrior</span><span class="op">(</span><span class="va">spec</span>, <span class="va">data</span>, control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'FSSNUvSpec'</span></span>
+<span><span class="fu">defaultPrior</span><span class="op">(</span><span class="va">spec</span>, <span class="va">data</span>, control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'FOSSEPUvSpec'</span></span>
+<span><span class="fu">defaultPrior</span><span class="op">(</span><span class="va">spec</span>, <span class="va">data</span>, control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'FSSTUvSpec'</span></span>
+<span><span class="fu">defaultPrior</span><span class="op">(</span><span class="va">spec</span>, <span class="va">data</span>, control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S4 method for class 'PoissonRegSpec'</span></span>
 <span><span class="fu">defaultPrior</span><span class="op">(</span><span class="va">spec</span>, <span class="va">data</span>, control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">...</span><span class="op">)</span></span>
@@ -71,6 +80,15 @@ arbitrarily vague when <code>K_max</code> is large).</p>
 <span><span class="fu">defaultPrior</span><span class="op">(</span><span class="va">spec</span>, <span class="va">data</span>, control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S4 method for class 'NormalGammaRegSpec'</span></span>
+<span><span class="fu">defaultPrior</span><span class="op">(</span><span class="va">spec</span>, <span class="va">data</span>, control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'JFSTUvSpec'</span></span>
+<span><span class="fu">defaultPrior</span><span class="op">(</span><span class="va">spec</span>, <span class="va">data</span>, control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'SEPUvSpec'</span></span>
+<span><span class="fu">defaultPrior</span><span class="op">(</span><span class="va">spec</span>, <span class="va">data</span>, control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'LEPUvSpec'</span></span>
 <span><span class="fu">defaultPrior</span><span class="op">(</span><span class="va">spec</span>, <span class="va">data</span>, control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S4 method for class 'MSNBurrUvSpec'</span></span>
@@ -104,6 +122,24 @@ arbitrarily vague when <code>K_max</code> is large).</p>
 <span><span class="fu">defaultPrior</span><span class="op">(</span><span class="va">spec</span>, <span class="va">data</span>, control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S4 method for class 'BinomialSpec'</span></span>
+<span><span class="fu">defaultPrior</span><span class="op">(</span><span class="va">spec</span>, <span class="va">data</span>, control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'SkewNormalMvSpec'</span></span>
+<span><span class="fu">defaultPrior</span><span class="op">(</span><span class="va">spec</span>, <span class="va">data</span>, control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'SkewNormalMvOSpec'</span></span>
+<span><span class="fu">defaultPrior</span><span class="op">(</span><span class="va">spec</span>, <span class="va">data</span>, control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'SkewIStudentMvSpec'</span></span>
+<span><span class="fu">defaultPrior</span><span class="op">(</span><span class="va">spec</span>, <span class="va">data</span>, control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'SkewIStudentMvOSpec'</span></span>
+<span><span class="fu">defaultPrior</span><span class="op">(</span><span class="va">spec</span>, <span class="va">data</span>, control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'SkewNormalMvOGenSpec'</span></span>
+<span><span class="fu">defaultPrior</span><span class="op">(</span><span class="va">spec</span>, <span class="va">data</span>, control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'SkewIStudentMvOGenSpec'</span></span>
 <span><span class="fu">defaultPrior</span><span class="op">(</span><span class="va">spec</span>, <span class="va">data</span>, control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S4 method for class 'StudentTMvSpec'</span></span>
@@ -140,7 +176,10 @@ arbitrarily vague when <code>K_max</code> is large).</p>
     <div class="section level2">
     <h2 id="functions">Functions<a class="anchor" aria-label="anchor" href="#functions"></a></h2>
 
-<ul><li><p><code>defaultPrior(PoissonRegSpec)</code>: g-prior on the coefficients.</p></li>
+<ul><li><p><code>defaultPrior(FSSNUvSpec)</code>: Data-scaled FSSN prior (log-normal skewness).</p></li>
+<li><p><code>defaultPrior(FOSSEPUvSpec)</code>: Data-scaled FOSSEP prior.</p></li>
+<li><p><code>defaultPrior(FSSTUvSpec)</code>: Data-scaled FSST prior.</p></li>
+<li><p><code>defaultPrior(PoissonRegSpec)</code>: g-prior on the coefficients.</p></li>
 <li><p><code>defaultPrior(BinomialRegSpec)</code>: g-prior on the coefficients; needs <code>size</code>.</p></li>
 <li><p><code>defaultPrior(GMSNBurrUvSpec)</code>: Data-scaled GMSNBurr prior.</p></li>
 <li><p><code>defaultPrior(NormalRegSpec)</code>: Data-scaled Normal-Inverse-Gamma g-prior for the
@@ -151,6 +190,9 @@ prior) and <code>nu0</code> (InvGamma shape, default 3, must exceed 2 for a fini
 prior variance).</p></li>
 <li><p><code>defaultPrior(StudentTRegSpec)</code>: NIG g-prior plus a fixed <code>df</code> (default 4, &gt; 2).</p></li>
 <li><p><code>defaultPrior(NormalGammaRegSpec)</code>: NIG g-prior plus a fixed <code>df</code> (default 4, &gt; 2).</p></li>
+<li><p><code>defaultPrior(JFSTUvSpec)</code>: Data-scaled JFST prior (symmetric in alpha/theta).</p></li>
+<li><p><code>defaultPrior(SEPUvSpec)</code>: Data-scaled SEP prior.</p></li>
+<li><p><code>defaultPrior(LEPUvSpec)</code>: Data-scaled LEP prior.</p></li>
 <li><p><code>defaultPrior(MSNBurrUvSpec)</code>: Data-scaled MSNBurr prior (location/scale/shape).</p></li>
 <li><p><code>defaultPrior(MSNBurr2aUvSpec)</code>: Data-scaled MSNBurr-IIa prior.</p></li>
 <li><p><code>defaultPrior(NormalMvRegSpec)</code>: Inverse-Wishart on Sigma + matrix-normal coefficients.</p></li>
@@ -175,6 +217,12 @@ variance).</p></li>
 (<code>E[lambda] ~= mean(y)</code>).</p></li>
 <li><p><code>defaultPrior(BinomialSpec)</code>: Data-scaled Beta prior on the success probability.
 Requires the number of trials in <code>control$size</code>.</p></li>
+<li><p><code>defaultPrior(SkewNormalMvSpec)</code>: Data-scaled skew-mv-Normal prior.</p></li>
+<li><p><code>defaultPrior(SkewNormalMvOSpec)</code>: Adds the Householder angle bound to the mv prior.</p></li>
+<li><p><code>defaultPrior(SkewIStudentMvSpec)</code>: Data-scaled skew-mv-IStudent prior.</p></li>
+<li><p><code>defaultPrior(SkewIStudentMvOSpec)</code>: Adds the Householder angle bound.</p></li>
+<li><p><code>defaultPrior(SkewNormalMvOGenSpec)</code>: Adds the Householder angle box.</p></li>
+<li><p><code>defaultPrior(SkewIStudentMvOGenSpec)</code>: Adds the Householder angle box.</p></li>
 <li><p><code>defaultPrior(StudentTMvSpec)</code>: Normal-Inverse-Wishart prior plus a fixed <code>df</code>
 (default 5, must exceed 2 for a finite component covariance).</p></li>
 <li><p><code>defaultPrior(StudentTUvSpec)</code>: Data-scaled Normal location / Gamma precision prior
@@ -193,7 +241,7 @@ exceed 2 for a finite component variance).</p></li>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer></div>

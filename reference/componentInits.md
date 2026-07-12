@@ -7,6 +7,15 @@ Build dispersed initial values (engine-agnostic)
 ``` r
 componentInits(spec, prior, data, count, initMethod = "kmeans", ...)
 
+# S4 method for class 'FSSNUvSpec'
+componentInits(spec, prior, data, count, initMethod = "kmeans", ...)
+
+# S4 method for class 'FOSSEPUvSpec'
+componentInits(spec, prior, data, count, initMethod = "kmeans", ...)
+
+# S4 method for class 'FSSTUvSpec'
+componentInits(spec, prior, data, count, initMethod = "kmeans", ...)
+
 # S4 method for class 'PoissonRegSpec'
 componentInits(spec, prior, data, count, initMethod = "kmeans", ...)
 
@@ -20,6 +29,15 @@ componentInits(spec, prior, data, count, initMethod = "kmeans", ...)
 componentInits(spec, prior, data, count, initMethod = "kmeans", ...)
 
 # S4 method for class 'NormalGammaRegSpec'
+componentInits(spec, prior, data, count, initMethod = "kmeans", ...)
+
+# S4 method for class 'JFSTUvSpec'
+componentInits(spec, prior, data, count, initMethod = "kmeans", ...)
+
+# S4 method for class 'SEPUvSpec'
+componentInits(spec, prior, data, count, initMethod = "kmeans", ...)
+
+# S4 method for class 'LEPUvSpec'
 componentInits(spec, prior, data, count, initMethod = "kmeans", ...)
 
 # S4 method for class 'MSNBurrUvSpec'
@@ -50,6 +68,24 @@ componentInits(spec, prior, data, count, initMethod = "kmeans", ...)
 componentInits(spec, prior, data, count, initMethod = "kmeans", ...)
 
 # S4 method for class 'BinomialSpec'
+componentInits(spec, prior, data, count, initMethod = "kmeans", ...)
+
+# S4 method for class 'SkewNormalMvSpec'
+componentInits(spec, prior, data, count, initMethod = "kmeans", ...)
+
+# S4 method for class 'SkewNormalMvOSpec'
+componentInits(spec, prior, data, count, initMethod = "kmeans", ...)
+
+# S4 method for class 'SkewIStudentMvSpec'
+componentInits(spec, prior, data, count, initMethod = "kmeans", ...)
+
+# S4 method for class 'SkewIStudentMvOSpec'
+componentInits(spec, prior, data, count, initMethod = "kmeans", ...)
+
+# S4 method for class 'SkewNormalMvOGenSpec'
+componentInits(spec, prior, data, count, initMethod = "kmeans", ...)
+
+# S4 method for class 'SkewIStudentMvOGenSpec'
 componentInits(spec, prior, data, count, initMethod = "kmeans", ...)
 
 # S4 method for class 'StudentTUvSpec'
@@ -91,6 +127,13 @@ list of component-parameter initial values).
 
 ## Functions
 
+- `componentInits(FSSNUvSpec)`: Dispersed k-means start for FSSN (alpha
+  at 1).
+
+- `componentInits(FOSSEPUvSpec)`: Dispersed k-means start for FOSSEP.
+
+- `componentInits(FSSTUvSpec)`: Dispersed k-means start for FSST.
+
 - `componentInits(PoissonRegSpec)`: Global-GLM start with k-means
   allocation.
 
@@ -105,6 +148,13 @@ list of component-parameter initial values).
 
 - `componentInits(NormalGammaRegSpec)`: k-means start (inherited) plus
   unit `omega`.
+
+- `componentInits(JFSTUvSpec)`: Dispersed k-means start for JFST
+  (symmetric start).
+
+- `componentInits(SEPUvSpec)`: Dispersed k-means start for SEP.
+
+- `componentInits(LEPUvSpec)`: Dispersed k-means start for LEP.
 
 - `componentInits(MSNBurrUvSpec)`: Dispersed k-means start for MSNBurr.
 
@@ -135,6 +185,24 @@ list of component-parameter initial values).
 - `componentInits(PoissonSpec)`: k-means start on counts.
 
 - `componentInits(BinomialSpec)`: k-means start on proportions.
+
+- `componentInits(SkewNormalMvSpec)`: Dispersed k-means start (gamma at
+  1: symmetric).
+
+- `componentInits(SkewNormalMvOSpec)`: k-means start; theta
+  grid-initialised per cluster.
+
+- `componentInits(SkewIStudentMvSpec)`: k-means start (gamma at 1, nu at
+  8).
+
+- `componentInits(SkewIStudentMvOSpec)`: k-means start; theta
+  grid-initialised per cluster.
+
+- `componentInits(SkewNormalMvOGenSpec)`: k-means start; angles at the
+  box midpoint.
+
+- `componentInits(SkewIStudentMvOGenSpec)`: k-means start; angles at the
+  box midpoint.
 
 - `componentInits(StudentTUvSpec)`: k-means dispersed start (location +
   precision).

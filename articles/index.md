@@ -17,3 +17,9 @@ Rendered on the website only (not shipped as package vignettes).
   components](https://madsyair.github.io/nimix/articles/normal-gamma-vs-studentt.md):
 - [Spatially constrained mixtures (MRF
   engine)](https://madsyair.github.io/nimix/articles/spatial-mixture.md):
+- [Skew multivariate clustering with an estimated orthogonal
+  factor](https://madsyair.github.io/nimix/articles/skew-multivariate.md):
+- [Regime switching in time series: the hidden-Markov
+  engine](https://madsyair.github.io/nimix/articles/hmm-timeseries.md):
+- [Diagnostics, partitions, and bayesplot
+  interoperability](https://madsyair.github.io/nimix/articles/diagnostics-interop.md):

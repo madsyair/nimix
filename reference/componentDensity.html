@@ -15,7 +15,7 @@ and params$mu a vector, params$Sigma a d x d matrix."><meta property="og:image" 
 
     <a class="navbar-brand me-2" href="../index.html">nimix</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -42,7 +42,7 @@ and params$mu a vector, params$Sigma a d x d matrix."><meta property="og:image" 
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Component density evaluator (R-level, for posterior predictive checks)</h1>
-      <small class="dont-index">Source: <a href="https://github.com/madsyair/nimix/blob/MRF/R/class-DistributionSpec.R" class="external-link"><code>R/class-DistributionSpec.R</code></a>, <a href="https://github.com/madsyair/nimix/blob/MRF/R/dist-glm-reg.R" class="external-link"><code>R/dist-glm-reg.R</code></a>, <a href="https://github.com/madsyair/nimix/blob/MRF/R/dist-gmsnburr.R" class="external-link"><code>R/dist-gmsnburr.R</code></a>, and 10 more</small>
+      <small class="dont-index">Source: <a href="https://github.com/madsyair/nimix/blob/main/R/class-DistributionSpec.R" class="external-link"><code>R/class-DistributionSpec.R</code></a>, <a href="https://github.com/madsyair/nimix/blob/main/R/dist-fssn.R" class="external-link"><code>R/dist-fssn.R</code></a>, <a href="https://github.com/madsyair/nimix/blob/main/R/dist-fossep.R" class="external-link"><code>R/dist-fossep.R</code></a>, and 22 more</small>
       <div class="d-none name"><code>componentDensity.Rd</code></div>
     </div>
 
@@ -58,6 +58,15 @@ and <code>params$mu</code> a vector, <code>params$Sigma</code> a <code>d x d</co
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">componentDensity</span><span class="op">(</span><span class="va">spec</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
+<span><span class="co"># S4 method for class 'FSSNUvSpec'</span></span>
+<span><span class="fu">componentDensity</span><span class="op">(</span><span class="va">spec</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'FOSSEPUvSpec'</span></span>
+<span><span class="fu">componentDensity</span><span class="op">(</span><span class="va">spec</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'FSSTUvSpec'</span></span>
+<span><span class="fu">componentDensity</span><span class="op">(</span><span class="va">spec</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
 <span><span class="co"># S4 method for class 'PoissonRegSpec'</span></span>
 <span><span class="fu">componentDensity</span><span class="op">(</span><span class="va">spec</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
@@ -68,6 +77,15 @@ and <code>params$mu</code> a vector, <code>params$Sigma</code> a <code>d x d</co
 <span><span class="fu">componentDensity</span><span class="op">(</span><span class="va">spec</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S4 method for class 'NormalRegSpec'</span></span>
+<span><span class="fu">componentDensity</span><span class="op">(</span><span class="va">spec</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'JFSTUvSpec'</span></span>
+<span><span class="fu">componentDensity</span><span class="op">(</span><span class="va">spec</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'SEPUvSpec'</span></span>
+<span><span class="fu">componentDensity</span><span class="op">(</span><span class="va">spec</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'LEPUvSpec'</span></span>
 <span><span class="fu">componentDensity</span><span class="op">(</span><span class="va">spec</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S4 method for class 'MSNBurrUvSpec'</span></span>
@@ -97,6 +115,24 @@ and <code>params$mu</code> a vector, <code>params$Sigma</code> a <code>d x d</co
 <span><span class="co"># S4 method for class 'BinomialSpec'</span></span>
 <span><span class="fu">componentDensity</span><span class="op">(</span><span class="va">spec</span>, size <span class="op">=</span> <span class="cn">NULL</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
+<span><span class="co"># S4 method for class 'SkewNormalMvSpec'</span></span>
+<span><span class="fu">componentDensity</span><span class="op">(</span><span class="va">spec</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'SkewNormalMvOSpec'</span></span>
+<span><span class="fu">componentDensity</span><span class="op">(</span><span class="va">spec</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'SkewIStudentMvSpec'</span></span>
+<span><span class="fu">componentDensity</span><span class="op">(</span><span class="va">spec</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'SkewIStudentMvOSpec'</span></span>
+<span><span class="fu">componentDensity</span><span class="op">(</span><span class="va">spec</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'SkewNormalMvOGenSpec'</span></span>
+<span><span class="fu">componentDensity</span><span class="op">(</span><span class="va">spec</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'SkewIStudentMvOGenSpec'</span></span>
+<span><span class="fu">componentDensity</span><span class="op">(</span><span class="va">spec</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
 <span><span class="co"># S4 method for class 'StudentTMvSpec'</span></span>
 <span><span class="fu">componentDensity</span><span class="op">(</span><span class="va">spec</span>, df <span class="op">=</span> <span class="fl">5</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
@@ -123,12 +159,18 @@ and <code>params$mu</code> a vector, <code>params$Sigma</code> a <code>d x d</co
     <div class="section level2">
     <h2 id="functions">Functions<a class="anchor" aria-label="anchor" href="#functions"></a></h2>
 
-<ul><li><p><code>componentDensity(PoissonRegSpec)</code>: Poisson pmf at the fitted rate.</p></li>
+<ul><li><p><code>componentDensity(FSSNUvSpec)</code>: FSSN density closure (stable reference form).</p></li>
+<li><p><code>componentDensity(FOSSEPUvSpec)</code>: FOSSEP density closure (stable reference form).</p></li>
+<li><p><code>componentDensity(FSSTUvSpec)</code>: FSST density closure (stable reference form).</p></li>
+<li><p><code>componentDensity(PoissonRegSpec)</code>: Poisson pmf at the fitted rate.</p></li>
 <li><p><code>componentDensity(BinomialRegSpec)</code>: Binomial pmf at the fitted probability.</p></li>
 <li><p><code>componentDensity(GMSNBurrUvSpec)</code>: GMSNBurr density closure (stable reference form).</p></li>
 <li><p><code>componentDensity(NormalRegSpec)</code>: Gaussian density of a response given its linear
 predictor. <code>params</code> must carry <code>mu</code> (the fitted mean) and
 <code>s2</code>.</p></li>
+<li><p><code>componentDensity(JFSTUvSpec)</code>: JFST density closure (stable reference form).</p></li>
+<li><p><code>componentDensity(SEPUvSpec)</code>: SEP density closure (stable reference form).</p></li>
+<li><p><code>componentDensity(LEPUvSpec)</code>: LEP density closure (stable reference form).</p></li>
 <li><p><code>componentDensity(MSNBurrUvSpec)</code>: MSNBurr density closure (stable reference form).</p></li>
 <li><p><code>componentDensity(MSNBurr2aUvSpec)</code>: MSNBurr-IIa density closure (stable form).</p></li>
 <li><p><code>componentDensity(NormalMvRegSpec)</code>: Multivariate normal density of the residual.</p></li>
@@ -139,6 +181,12 @@ predictor. <code>params</code> must carry <code>mu</code> (the fitted mean) and
 scale \(\sqrt{s2}\), <code>df</code>).</p></li>
 <li><p><code>componentDensity(PoissonSpec)</code>: Poisson pmf.</p></li>
 <li><p><code>componentDensity(BinomialSpec)</code>: Binomial pmf.</p></li>
+<li><p><code>componentDensity(SkewNormalMvSpec)</code>: Skew-mv-Normal density closure.</p></li>
+<li><p><code>componentDensity(SkewNormalMvOSpec)</code>: Density closure with the Householder angle.</p></li>
+<li><p><code>componentDensity(SkewIStudentMvSpec)</code>: Skew-mv-IStudent density closure.</p></li>
+<li><p><code>componentDensity(SkewIStudentMvOSpec)</code>: Density closure with nu and the angle.</p></li>
+<li><p><code>componentDensity(SkewNormalMvOGenSpec)</code>: Density closure with a general orthogonal factor.</p></li>
+<li><p><code>componentDensity(SkewIStudentMvOGenSpec)</code>: Density closure, general O and per-margin nu.</p></li>
 <li><p><code>componentDensity(StudentTMvSpec)</code>: Multivariate Student-t density.</p></li>
 <li><p><code>componentDensity(StudentTUvSpec)</code>: Location-scale Student-t density.</p></li>
 </ul></div>
@@ -152,7 +200,7 @@ scale \(\sqrt{s2}\), <code>df</code>).</p></li>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer></div>

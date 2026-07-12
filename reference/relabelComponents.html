@@ -15,7 +15,7 @@ NormalMvSpec."><meta property="og:image" content="https://madsyair.github.io/nim
 
     <a class="navbar-brand me-2" href="../index.html">nimix</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -42,7 +42,7 @@ NormalMvSpec."><meta property="og:image" content="https://madsyair.github.io/nim
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Permute cluster parameters and build the relabelled component summary</h1>
-      <small class="dont-index">Source: <a href="https://github.com/madsyair/nimix/blob/MRF/R/class-DistributionSpec.R" class="external-link"><code>R/class-DistributionSpec.R</code></a>, <a href="https://github.com/madsyair/nimix/blob/MRF/R/dist-glm-reg.R" class="external-link"><code>R/dist-glm-reg.R</code></a>, <a href="https://github.com/madsyair/nimix/blob/MRF/R/dist-gmsnburr.R" class="external-link"><code>R/dist-gmsnburr.R</code></a>, and 7 more</small>
+      <small class="dont-index">Source: <a href="https://github.com/madsyair/nimix/blob/main/R/class-DistributionSpec.R" class="external-link"><code>R/class-DistributionSpec.R</code></a>, <a href="https://github.com/madsyair/nimix/blob/main/R/dist-fssn.R" class="external-link"><code>R/dist-fssn.R</code></a>, <a href="https://github.com/madsyair/nimix/blob/main/R/dist-fossep.R" class="external-link"><code>R/dist-fossep.R</code></a>, and 19 more</small>
       <div class="d-none name"><code>relabelComponents.Rd</code></div>
     </div>
 
@@ -58,6 +58,15 @@ tidy per-component summary, so multivariate covariance handling stays inside
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">relabelComponents</span><span class="op">(</span><span class="va">spec</span>, <span class="va">paramTrace</span>, <span class="va">idx</span>, <span class="va">occList</span>, <span class="va">perms</span>, <span class="va">modalK</span>, <span class="va">weights</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
+<span><span class="co"># S4 method for class 'FSSNUvSpec'</span></span>
+<span><span class="fu">relabelComponents</span><span class="op">(</span><span class="va">spec</span>, <span class="va">paramTrace</span>, <span class="va">idx</span>, <span class="va">occList</span>, <span class="va">perms</span>, <span class="va">modalK</span>, <span class="va">weights</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'FOSSEPUvSpec'</span></span>
+<span><span class="fu">relabelComponents</span><span class="op">(</span><span class="va">spec</span>, <span class="va">paramTrace</span>, <span class="va">idx</span>, <span class="va">occList</span>, <span class="va">perms</span>, <span class="va">modalK</span>, <span class="va">weights</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'FSSTUvSpec'</span></span>
+<span><span class="fu">relabelComponents</span><span class="op">(</span><span class="va">spec</span>, <span class="va">paramTrace</span>, <span class="va">idx</span>, <span class="va">occList</span>, <span class="va">perms</span>, <span class="va">modalK</span>, <span class="va">weights</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
 <span><span class="co"># S4 method for class 'PoissonRegSpec'</span></span>
 <span><span class="fu">relabelComponents</span><span class="op">(</span><span class="va">spec</span>, <span class="va">paramTrace</span>, <span class="va">idx</span>, <span class="va">occList</span>, <span class="va">perms</span>, <span class="va">modalK</span>, <span class="va">weights</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
@@ -68,6 +77,15 @@ tidy per-component summary, so multivariate covariance handling stays inside
 <span><span class="fu">relabelComponents</span><span class="op">(</span><span class="va">spec</span>, <span class="va">paramTrace</span>, <span class="va">idx</span>, <span class="va">occList</span>, <span class="va">perms</span>, <span class="va">modalK</span>, <span class="va">weights</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S4 method for class 'NormalRegSpec'</span></span>
+<span><span class="fu">relabelComponents</span><span class="op">(</span><span class="va">spec</span>, <span class="va">paramTrace</span>, <span class="va">idx</span>, <span class="va">occList</span>, <span class="va">perms</span>, <span class="va">modalK</span>, <span class="va">weights</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'JFSTUvSpec'</span></span>
+<span><span class="fu">relabelComponents</span><span class="op">(</span><span class="va">spec</span>, <span class="va">paramTrace</span>, <span class="va">idx</span>, <span class="va">occList</span>, <span class="va">perms</span>, <span class="va">modalK</span>, <span class="va">weights</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'SEPUvSpec'</span></span>
+<span><span class="fu">relabelComponents</span><span class="op">(</span><span class="va">spec</span>, <span class="va">paramTrace</span>, <span class="va">idx</span>, <span class="va">occList</span>, <span class="va">perms</span>, <span class="va">modalK</span>, <span class="va">weights</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'LEPUvSpec'</span></span>
 <span><span class="fu">relabelComponents</span><span class="op">(</span><span class="va">spec</span>, <span class="va">paramTrace</span>, <span class="va">idx</span>, <span class="va">occList</span>, <span class="va">perms</span>, <span class="va">modalK</span>, <span class="va">weights</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S4 method for class 'MSNBurrUvSpec'</span></span>
@@ -89,6 +107,24 @@ tidy per-component summary, so multivariate covariance handling stays inside
 <span><span class="fu">relabelComponents</span><span class="op">(</span><span class="va">spec</span>, <span class="va">paramTrace</span>, <span class="va">idx</span>, <span class="va">occList</span>, <span class="va">perms</span>, <span class="va">modalK</span>, <span class="va">weights</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S4 method for class 'BinomialSpec'</span></span>
+<span><span class="fu">relabelComponents</span><span class="op">(</span><span class="va">spec</span>, <span class="va">paramTrace</span>, <span class="va">idx</span>, <span class="va">occList</span>, <span class="va">perms</span>, <span class="va">modalK</span>, <span class="va">weights</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'SkewNormalMvSpec'</span></span>
+<span><span class="fu">relabelComponents</span><span class="op">(</span><span class="va">spec</span>, <span class="va">paramTrace</span>, <span class="va">idx</span>, <span class="va">occList</span>, <span class="va">perms</span>, <span class="va">modalK</span>, <span class="va">weights</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'SkewNormalMvOSpec'</span></span>
+<span><span class="fu">relabelComponents</span><span class="op">(</span><span class="va">spec</span>, <span class="va">paramTrace</span>, <span class="va">idx</span>, <span class="va">occList</span>, <span class="va">perms</span>, <span class="va">modalK</span>, <span class="va">weights</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'SkewIStudentMvSpec'</span></span>
+<span><span class="fu">relabelComponents</span><span class="op">(</span><span class="va">spec</span>, <span class="va">paramTrace</span>, <span class="va">idx</span>, <span class="va">occList</span>, <span class="va">perms</span>, <span class="va">modalK</span>, <span class="va">weights</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'SkewIStudentMvOSpec'</span></span>
+<span><span class="fu">relabelComponents</span><span class="op">(</span><span class="va">spec</span>, <span class="va">paramTrace</span>, <span class="va">idx</span>, <span class="va">occList</span>, <span class="va">perms</span>, <span class="va">modalK</span>, <span class="va">weights</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'SkewNormalMvOGenSpec'</span></span>
+<span><span class="fu">relabelComponents</span><span class="op">(</span><span class="va">spec</span>, <span class="va">paramTrace</span>, <span class="va">idx</span>, <span class="va">occList</span>, <span class="va">perms</span>, <span class="va">modalK</span>, <span class="va">weights</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'SkewIStudentMvOGenSpec'</span></span>
 <span><span class="fu">relabelComponents</span><span class="op">(</span><span class="va">spec</span>, <span class="va">paramTrace</span>, <span class="va">idx</span>, <span class="va">occList</span>, <span class="va">perms</span>, <span class="va">modalK</span>, <span class="va">weights</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S4 method for class 'StudentTUvSpec'</span></span>
@@ -142,11 +178,17 @@ mixing weights.</p></dd>
     <div class="section level2">
     <h2 id="functions">Functions<a class="anchor" aria-label="anchor" href="#functions"></a></h2>
 
-<ul><li><p><code>relabelComponents(PoissonRegSpec)</code>: Permute coefficients and summarise.</p></li>
+<ul><li><p><code>relabelComponents(FSSNUvSpec)</code>: Permute mu / sigma / alpha, summarise.</p></li>
+<li><p><code>relabelComponents(FOSSEPUvSpec)</code>: Permute mu / sigma / alpha / theta, summarise.</p></li>
+<li><p><code>relabelComponents(FSSTUvSpec)</code>: Permute mu / sigma / alpha / nu, summarise.</p></li>
+<li><p><code>relabelComponents(PoissonRegSpec)</code>: Permute coefficients and summarise.</p></li>
 <li><p><code>relabelComponents(BinomialRegSpec)</code>: Permute coefficients and summarise.</p></li>
 <li><p><code>relabelComponents(GMSNBurrUvSpec)</code>: Permute mu / sigma / alpha / theta, summarise.</p></li>
 <li><p><code>relabelComponents(NormalRegSpec)</code>: Permute (beta, s2) and summarise the regression
 components (one coefficient column per predictor).</p></li>
+<li><p><code>relabelComponents(JFSTUvSpec)</code>: Permute mu / sigma / alpha / theta, summarise.</p></li>
+<li><p><code>relabelComponents(SEPUvSpec)</code>: Permute mu / sigma / nu, summarise.</p></li>
+<li><p><code>relabelComponents(LEPUvSpec)</code>: Permute mu / sigma / nu, summarise.</p></li>
 <li><p><code>relabelComponents(MSNBurrUvSpec)</code>: Permute mu / sigma / alpha and summarise.</p></li>
 <li><p><code>relabelComponents(MSNBurr2aUvSpec)</code>: Permute mu / sigma / alpha and summarise.</p></li>
 <li><p><code>relabelComponents(NormalMvRegSpec)</code>: Permute coefficient matrices and summarise.</p></li>
@@ -154,6 +196,14 @@ components (one coefficient column per predictor).</p></li>
 <li><p><code>relabelComponents(NormalUvSpec)</code>: Permute (mu, s2) and summarise components.</p></li>
 <li><p><code>relabelComponents(PoissonSpec)</code>: Permute lambda and summarise.</p></li>
 <li><p><code>relabelComponents(BinomialSpec)</code>: Permute prob and summarise.</p></li>
+<li><p><code>relabelComponents(SkewNormalMvSpec)</code>: Permute mv (mu, Sigma, gamma) and summarise.</p></li>
+<li><p><code>relabelComponents(SkewNormalMvOSpec)</code>: Permute mv params plus theta, summarise.</p></li>
+<li><p><code>relabelComponents(SkewIStudentMvSpec)</code>: Permute mv (mu, Sigma, gamma, nu), summarise.</p></li>
+<li><p><code>relabelComponents(SkewIStudentMvOSpec)</code>: Permute mv params plus nu and theta.</p></li>
+<li><p><code>relabelComponents(SkewNormalMvOGenSpec)</code>: Permute components, then canonicalise each
+draw's orthogonal factor via FS restriction (8), adjusting gamma with it.</p></li>
+<li><p><code>relabelComponents(SkewIStudentMvOGenSpec)</code>: Permute components, then canonicalise each
+draw's orthogonal factor, carrying gamma and nu with the permutation.</p></li>
 <li><p><code>relabelComponents(StudentTUvSpec)</code>: Permute (mu, tau) and summarise; the reported
 scale is \(\sigma = \tau^{-1/2}\).</p></li>
 </ul></div>
@@ -167,7 +217,7 @@ scale is \(\sigma = \tau^{-1/2}\).</p></li>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer></div>

@@ -16,7 +16,7 @@ nimixClust(
   K = NULL,
   K_max = NULL,
   distribution = "normal",
-  method = c("dpm", "fixedk", "mrf"),
+  method = c("dpm", "fixedk", "mrf", "hmm"),
   prior = list(),
   mcmcControl = list(),
   initMethod = c("kmeans", "single"),

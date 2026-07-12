@@ -10,6 +10,15 @@ Each concrete distribution must implement this.
 ``` r
 validateParams(spec, params, ...)
 
+# S4 method for class 'FSSNUvSpec'
+validateParams(spec, params, ...)
+
+# S4 method for class 'FOSSEPUvSpec'
+validateParams(spec, params, ...)
+
+# S4 method for class 'FSSTUvSpec'
+validateParams(spec, params, ...)
+
 # S4 method for class 'PoissonRegSpec'
 validateParams(spec, params, ...)
 
@@ -20,6 +29,15 @@ validateParams(spec, params, ...)
 validateParams(spec, params, ...)
 
 # S4 method for class 'NormalRegSpec'
+validateParams(spec, params, ...)
+
+# S4 method for class 'JFSTUvSpec'
+validateParams(spec, params, ...)
+
+# S4 method for class 'SEPUvSpec'
+validateParams(spec, params, ...)
+
+# S4 method for class 'LEPUvSpec'
 validateParams(spec, params, ...)
 
 # S4 method for class 'MSNBurrUvSpec'
@@ -47,6 +65,24 @@ validateParams(spec, params, ...)
 validateParams(spec, params, ...)
 
 # S4 method for class 'BinomialSpec'
+validateParams(spec, params, ...)
+
+# S4 method for class 'SkewNormalMvSpec'
+validateParams(spec, params, ...)
+
+# S4 method for class 'SkewNormalMvOSpec'
+validateParams(spec, params, ...)
+
+# S4 method for class 'SkewIStudentMvSpec'
+validateParams(spec, params, ...)
+
+# S4 method for class 'SkewIStudentMvOSpec'
+validateParams(spec, params, ...)
+
+# S4 method for class 'SkewNormalMvOGenSpec'
+validateParams(spec, params, ...)
+
+# S4 method for class 'SkewIStudentMvOGenSpec'
 validateParams(spec, params, ...)
 
 # S4 method for class 'StudentTMvSpec'
@@ -77,6 +113,12 @@ Invisibly `TRUE` if valid; otherwise an error is raised.
 
 ## Functions
 
+- `validateParams(FSSNUvSpec)`: FSSN hyperparameter checks.
+
+- `validateParams(FOSSEPUvSpec)`: FOSSEP hyperparameter checks.
+
+- `validateParams(FSSTUvSpec)`: FSST hyperparameter checks.
+
 - `validateParams(PoissonRegSpec)`: Validate the coefficient prior.
 
 - `validateParams(BinomialRegSpec)`: Validate the coefficient prior and
@@ -87,6 +129,12 @@ Invisibly `TRUE` if valid; otherwise an error is raised.
 - `validateParams(NormalRegSpec)`: Validate a Normal-Inverse-Gamma
   regression prior and enforce \\\dim(b_0) = \dim(B_0) = p\\ and \\nu_0
   \> 2\\.
+
+- `validateParams(JFSTUvSpec)`: JFST hyperparameter checks.
+
+- `validateParams(SEPUvSpec)`: SEP hyperparameter checks.
+
+- `validateParams(LEPUvSpec)`: LEP hyperparameter checks.
 
 - `validateParams(MSNBurrUvSpec)`: MSNBurr hyperparameter checks.
 
@@ -111,6 +159,20 @@ Invisibly `TRUE` if valid; otherwise an error is raised.
 - `validateParams(PoissonSpec)`: Validate the Gamma rate prior.
 
 - `validateParams(BinomialSpec)`: Validate the Beta prior and `size`.
+
+- `validateParams(SkewNormalMvSpec)`: Skew-mv-Normal hyperparameter
+  checks.
+
+- `validateParams(SkewNormalMvOSpec)`: Checks the Householder bound.
+
+- `validateParams(SkewIStudentMvSpec)`: Skew-mv-IStudent hyperparameter
+  checks.
+
+- `validateParams(SkewIStudentMvOSpec)`: Checks the Householder bound.
+
+- `validateParams(SkewNormalMvOGenSpec)`: Checks the angle box.
+
+- `validateParams(SkewIStudentMvOGenSpec)`: Checks the angle box.
 
 - `validateParams(StudentTMvSpec)`: Validate the NIW prior and the fixed
   `df`.

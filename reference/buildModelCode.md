@@ -10,6 +10,24 @@ base class.
 ``` r
 buildModelCode(spec, engine, n, L, ...)
 
+# S4 method for class 'FSSNUvSpec,FixedKEngine'
+buildModelCode(spec, engine, n, L, ...)
+
+# S4 method for class 'FSSNUvSpec,DPMEngine'
+buildModelCode(spec, engine, n, L, ...)
+
+# S4 method for class 'FOSSEPUvSpec,FixedKEngine'
+buildModelCode(spec, engine, n, L, ...)
+
+# S4 method for class 'FOSSEPUvSpec,DPMEngine'
+buildModelCode(spec, engine, n, L, ...)
+
+# S4 method for class 'FSSTUvSpec,FixedKEngine'
+buildModelCode(spec, engine, n, L, ...)
+
+# S4 method for class 'FSSTUvSpec,DPMEngine'
+buildModelCode(spec, engine, n, L, ...)
+
 # S4 method for class 'PoissonRegSpec,DPMEngine'
 buildModelCode(spec, engine, n, L, ...)
 
@@ -41,6 +59,24 @@ buildModelCode(spec, engine, n, L, ...)
 buildModelCode(spec, engine, n, L, ...)
 
 # S4 method for class 'NormalGammaRegSpec,FixedKEngine'
+buildModelCode(spec, engine, n, L, ...)
+
+# S4 method for class 'JFSTUvSpec,FixedKEngine'
+buildModelCode(spec, engine, n, L, ...)
+
+# S4 method for class 'JFSTUvSpec,DPMEngine'
+buildModelCode(spec, engine, n, L, ...)
+
+# S4 method for class 'SEPUvSpec,FixedKEngine'
+buildModelCode(spec, engine, n, L, ...)
+
+# S4 method for class 'SEPUvSpec,DPMEngine'
+buildModelCode(spec, engine, n, L, ...)
+
+# S4 method for class 'LEPUvSpec,FixedKEngine'
+buildModelCode(spec, engine, n, L, ...)
+
+# S4 method for class 'LEPUvSpec,DPMEngine'
 buildModelCode(spec, engine, n, L, ...)
 
 # S4 method for class 'MSNBurrUvSpec,FixedKEngine'
@@ -91,6 +127,42 @@ buildModelCode(spec, engine, n, L, ...)
 # S4 method for class 'BinomialSpec,DPMEngine'
 buildModelCode(spec, engine, n, L, ...)
 
+# S4 method for class 'SkewNormalMvSpec,FixedKEngine'
+buildModelCode(spec, engine, n, L, ...)
+
+# S4 method for class 'SkewNormalMvSpec,DPMEngine'
+buildModelCode(spec, engine, n, L, ...)
+
+# S4 method for class 'SkewNormalMvOSpec,FixedKEngine'
+buildModelCode(spec, engine, n, L, ...)
+
+# S4 method for class 'SkewNormalMvOSpec,DPMEngine'
+buildModelCode(spec, engine, n, L, ...)
+
+# S4 method for class 'SkewIStudentMvSpec,FixedKEngine'
+buildModelCode(spec, engine, n, L, ...)
+
+# S4 method for class 'SkewIStudentMvSpec,DPMEngine'
+buildModelCode(spec, engine, n, L, ...)
+
+# S4 method for class 'SkewIStudentMvOSpec,FixedKEngine'
+buildModelCode(spec, engine, n, L, ...)
+
+# S4 method for class 'SkewIStudentMvOSpec,DPMEngine'
+buildModelCode(spec, engine, n, L, ...)
+
+# S4 method for class 'SkewNormalMvOGenSpec,FixedKEngine'
+buildModelCode(spec, engine, n, L, ...)
+
+# S4 method for class 'SkewNormalMvOGenSpec,DPMEngine'
+buildModelCode(spec, engine, n, L, ...)
+
+# S4 method for class 'SkewIStudentMvOGenSpec,FixedKEngine'
+buildModelCode(spec, engine, n, L, ...)
+
+# S4 method for class 'SkewIStudentMvOGenSpec,DPMEngine'
+buildModelCode(spec, engine, n, L, ...)
+
 # S4 method for class 'StudentTMvSpec,DPMEngine'
 buildModelCode(spec, engine, n, L, ...)
 
@@ -104,7 +176,7 @@ buildModelCode(spec, engine, n, L, ...)
 buildModelCode(spec, engine, n, L, ...)
 
 # S4 method for class 'NormalRegSpec,FixedKEngine'
-buildModelCode(spec, engine, n, L, ...)
+buildModelCode(spec, engine, n, L, re = FALSE, ...)
 
 # S4 method for class 'StudentTUvSpec,FixedKEngine'
 buildModelCode(spec, engine, n, L, ...)
@@ -122,6 +194,30 @@ buildModelCode(spec, engine, n, L, ...)
 buildModelCode(spec, engine, n, L, ...)
 
 # S4 method for class 'BinomialSpec,FixedKEngine'
+buildModelCode(spec, engine, n, L, ...)
+
+# S4 method for class 'NormalUvSpec,HMMEngine'
+buildModelCode(spec, engine, n, L, ...)
+
+# S4 method for class 'StudentTUvSpec,HMMEngine'
+buildModelCode(spec, engine, n, L, ...)
+
+# S4 method for class 'PoissonSpec,HMMEngine'
+buildModelCode(spec, engine, n, L, ...)
+
+# S4 method for class 'MSNBurrUvSpec,HMMEngine'
+buildModelCode(spec, engine, n, L, ...)
+
+# S4 method for class 'MSNBurr2aUvSpec,HMMEngine'
+buildModelCode(spec, engine, n, L, ...)
+
+# S4 method for class 'GMSNBurrUvSpec,HMMEngine'
+buildModelCode(spec, engine, n, L, ...)
+
+# S4 method for class 'MSNBurrUvSpec,HMMEngine'
+buildModelCode(spec, engine, n, L, ...)
+
+# S4 method for class 'PoissonSpec,HMMEngine'
 buildModelCode(spec, engine, n, L, ...)
 
 # S4 method for class 'DistributionSpec,MRFEngine'
@@ -152,6 +248,12 @@ buildModelCode(spec, engine, n, L, ...)
 
   Reserved for methods.
 
+- re:
+
+  Logical; regression + FixedK method only – when `TRUE`, emit the
+  random-intercept variant of the model code (sum-to-zero `b` offsets
+  plus `tauRE`).
+
 ## Value
 
 A list with elements `code` (a `nimbleCode` object), `monitors`
@@ -159,6 +261,24 @@ A list with elements `code` (a `nimbleCode` object), `monitors`
 logical parameter names to model nodes).
 
 ## Functions
+
+- `buildModelCode(spec = FSSNUvSpec, engine = FixedKEngine)`: FSSN
+  finite mixture (fixed K).
+
+- `buildModelCode(spec = FSSNUvSpec, engine = DPMEngine)`: FSSN DPM
+  mixture.
+
+- `buildModelCode(spec = FOSSEPUvSpec, engine = FixedKEngine)`: FOSSEP
+  finite mixture (fixed K).
+
+- `buildModelCode(spec = FOSSEPUvSpec, engine = DPMEngine)`: FOSSEP DPM
+  mixture.
+
+- `buildModelCode(spec = FSSTUvSpec, engine = FixedKEngine)`: FSST
+  finite mixture (fixed K).
+
+- `buildModelCode(spec = FSSTUvSpec, engine = DPMEngine)`: FSST DPM
+  mixture.
 
 - `buildModelCode(spec = PoissonRegSpec, engine = DPMEngine)`: Poisson
   GLM regression DPM code (log link).
@@ -201,6 +321,24 @@ logical parameter names to model nodes).
 
 - `buildModelCode(spec = NormalGammaRegSpec, engine = FixedKEngine)`:
   Normal-Gamma regression fixed-K code.
+
+- `buildModelCode(spec = JFSTUvSpec, engine = FixedKEngine)`: JFST
+  finite mixture (fixed K).
+
+- `buildModelCode(spec = JFSTUvSpec, engine = DPMEngine)`: JFST DPM
+  mixture.
+
+- `buildModelCode(spec = SEPUvSpec, engine = FixedKEngine)`: SEP finite
+  mixture (fixed K).
+
+- `buildModelCode(spec = SEPUvSpec, engine = DPMEngine)`: SEP DPM
+  mixture.
+
+- `buildModelCode(spec = LEPUvSpec, engine = FixedKEngine)`: LEP finite
+  mixture (fixed K).
+
+- `buildModelCode(spec = LEPUvSpec, engine = DPMEngine)`: LEP DPM
+  mixture.
 
 - `buildModelCode(spec = MSNBurrUvSpec, engine = FixedKEngine)`: MSNBurr
   finite mixture (fixed K).
@@ -268,6 +406,42 @@ logical parameter names to model nodes).
 - `buildModelCode(spec = BinomialSpec, engine = DPMEngine)`: Binomial
   DPM model code (Beta-Binomial conjugate).
 
+- `buildModelCode(spec = SkewNormalMvSpec, engine = FixedKEngine)`:
+  Skew-mv-Normal finite mixture (fixed K).
+
+- `buildModelCode(spec = SkewNormalMvSpec, engine = DPMEngine)`:
+  Skew-mv-Normal DPM mixture.
+
+- `buildModelCode(spec = SkewNormalMvOSpec, engine = FixedKEngine)`:
+  Skew-mv-Normal-O finite mixture (fixed K).
+
+- `buildModelCode(spec = SkewNormalMvOSpec, engine = DPMEngine)`:
+  Skew-mv-Normal-O DPM mixture.
+
+- `buildModelCode(spec = SkewIStudentMvSpec, engine = FixedKEngine)`:
+  Skew-mv-IStudent finite mixture (fixed K).
+
+- `buildModelCode(spec = SkewIStudentMvSpec, engine = DPMEngine)`:
+  Skew-mv-IStudent DPM mixture.
+
+- `buildModelCode(spec = SkewIStudentMvOSpec, engine = FixedKEngine)`:
+  Skew-mv-IStudent-O finite mixture (fixed K).
+
+- `buildModelCode(spec = SkewIStudentMvOSpec, engine = DPMEngine)`:
+  Skew-mv-IStudent-O DPM mixture.
+
+- `buildModelCode(spec = SkewNormalMvOGenSpec, engine = FixedKEngine)`:
+  General-m skew-mv-Normal-O finite mixture.
+
+- `buildModelCode(spec = SkewNormalMvOGenSpec, engine = DPMEngine)`:
+  General-m skew-mv-Normal-O DPM mixture.
+
+- `buildModelCode(spec = SkewIStudentMvOGenSpec, engine = FixedKEngine)`:
+  General-m skew-mv-IStudent-O finite mixture.
+
+- `buildModelCode(spec = SkewIStudentMvOGenSpec, engine = DPMEngine)`:
+  General-m skew-mv-IStudent-O DPM mixture.
+
 - `buildModelCode(spec = StudentTMvSpec, engine = DPMEngine)`:
   Multivariate Student-t DPM code using the user-defined `dmvt_nimix`
   kernel with a Normal-Inverse-Wishart cluster prior.
@@ -304,6 +478,36 @@ logical parameter names to model nodes).
 
 - `buildModelCode(spec = BinomialSpec, engine = FixedKEngine)`: Binomial
   finite-mixture code (fixed K).
+
+- `buildModelCode(spec = NormalUvSpec, engine = HMMEngine)`: Univariate
+  Gaussian regime-switching HMM code (states marginalised by the forward
+  algorithm; no allocation node).
+
+- `buildModelCode(spec = StudentTUvSpec, engine = HMMEngine)`:
+  Univariate Student-t regime-switching HMM code (fixed df; states
+  marginalised by the forward algorithm).
+
+- `buildModelCode(spec = PoissonSpec, engine = HMMEngine)`: Poisson
+  regime-switching HMM code (count data; states marginalised by the
+  forward algorithm).
+
+- `buildModelCode(spec = MSNBurrUvSpec, engine = HMMEngine)`: MSNBurr
+  (neo-normal, skewed) regime-switching HMM code (states marginalised by
+  the forward algorithm).
+
+- `buildModelCode(spec = MSNBurr2aUvSpec, engine = HMMEngine)`:
+  MSNBurr-IIa regime-switching HMM code.
+
+- `buildModelCode(spec = GMSNBurrUvSpec, engine = HMMEngine)`: GMSNBurr
+  (four-parameter, skewed) regime-switching HMM code.
+
+- `buildModelCode(spec = MSNBurrUvSpec, engine = HMMEngine)`: MSNBurr
+  regime-switching HMM code (skewed regimes; states marginalised by the
+  forward algorithm).
+
+- `buildModelCode(spec = PoissonSpec, engine = HMMEngine)`: Poisson
+  regime-switching HMM code (count regimes; states marginalised by the
+  forward algorithm).
 
 - `buildModelCode(spec = DistributionSpec, engine = MRFEngine)`: Default
   MRF kernel for any family: the family's fixed-K kernel with the

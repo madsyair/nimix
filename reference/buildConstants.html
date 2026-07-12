@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">nimix</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -34,7 +34,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Assemble distribution-specific NIMBLE constants for the DPM engine</h1>
-      <small class="dont-index">Source: <a href="https://github.com/madsyair/nimix/blob/MRF/R/class-DistributionSpec.R" class="external-link"><code>R/class-DistributionSpec.R</code></a>, <a href="https://github.com/madsyair/nimix/blob/MRF/R/dist-glm-reg.R" class="external-link"><code>R/dist-glm-reg.R</code></a>, <a href="https://github.com/madsyair/nimix/blob/MRF/R/dist-gmsnburr.R" class="external-link"><code>R/dist-gmsnburr.R</code></a>, and 11 more</small>
+      <small class="dont-index">Source: <a href="https://github.com/madsyair/nimix/blob/main/R/class-DistributionSpec.R" class="external-link"><code>R/class-DistributionSpec.R</code></a>, <a href="https://github.com/madsyair/nimix/blob/main/R/dist-fssn.R" class="external-link"><code>R/dist-fssn.R</code></a>, <a href="https://github.com/madsyair/nimix/blob/main/R/dist-fossep.R" class="external-link"><code>R/dist-fossep.R</code></a>, and 23 more</small>
       <div class="d-none name"><code>buildConstants.Rd</code></div>
     </div>
 
@@ -45,6 +45,15 @@
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">buildConstants</span><span class="op">(</span><span class="va">spec</span>, <span class="va">prior</span>, <span class="va">n</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'FSSNUvSpec'</span></span>
+<span><span class="fu">buildConstants</span><span class="op">(</span><span class="va">spec</span>, <span class="va">prior</span>, <span class="va">n</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'FOSSEPUvSpec'</span></span>
+<span><span class="fu">buildConstants</span><span class="op">(</span><span class="va">spec</span>, <span class="va">prior</span>, <span class="va">n</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'FSSTUvSpec'</span></span>
+<span><span class="fu">buildConstants</span><span class="op">(</span><span class="va">spec</span>, <span class="va">prior</span>, <span class="va">n</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S4 method for class 'PoissonRegSpec'</span></span>
 <span><span class="fu">buildConstants</span><span class="op">(</span><span class="va">spec</span>, <span class="va">prior</span>, <span class="va">n</span>, <span class="va">...</span><span class="op">)</span></span>
@@ -62,6 +71,15 @@
 <span><span class="fu">buildConstants</span><span class="op">(</span><span class="va">spec</span>, <span class="va">prior</span>, <span class="va">n</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S4 method for class 'NormalGammaRegSpec'</span></span>
+<span><span class="fu">buildConstants</span><span class="op">(</span><span class="va">spec</span>, <span class="va">prior</span>, <span class="va">n</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'JFSTUvSpec'</span></span>
+<span><span class="fu">buildConstants</span><span class="op">(</span><span class="va">spec</span>, <span class="va">prior</span>, <span class="va">n</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'SEPUvSpec'</span></span>
+<span><span class="fu">buildConstants</span><span class="op">(</span><span class="va">spec</span>, <span class="va">prior</span>, <span class="va">n</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'LEPUvSpec'</span></span>
 <span><span class="fu">buildConstants</span><span class="op">(</span><span class="va">spec</span>, <span class="va">prior</span>, <span class="va">n</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S4 method for class 'MSNBurrUvSpec'</span></span>
@@ -95,6 +113,24 @@
 <span><span class="fu">buildConstants</span><span class="op">(</span><span class="va">spec</span>, <span class="va">prior</span>, <span class="va">n</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S4 method for class 'BinomialSpec'</span></span>
+<span><span class="fu">buildConstants</span><span class="op">(</span><span class="va">spec</span>, <span class="va">prior</span>, <span class="va">n</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'SkewNormalMvSpec'</span></span>
+<span><span class="fu">buildConstants</span><span class="op">(</span><span class="va">spec</span>, <span class="va">prior</span>, <span class="va">n</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'SkewNormalMvOSpec'</span></span>
+<span><span class="fu">buildConstants</span><span class="op">(</span><span class="va">spec</span>, <span class="va">prior</span>, <span class="va">n</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'SkewIStudentMvSpec'</span></span>
+<span><span class="fu">buildConstants</span><span class="op">(</span><span class="va">spec</span>, <span class="va">prior</span>, <span class="va">n</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'SkewIStudentMvOSpec'</span></span>
+<span><span class="fu">buildConstants</span><span class="op">(</span><span class="va">spec</span>, <span class="va">prior</span>, <span class="va">n</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'SkewNormalMvOGenSpec'</span></span>
+<span><span class="fu">buildConstants</span><span class="op">(</span><span class="va">spec</span>, <span class="va">prior</span>, <span class="va">n</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'SkewIStudentMvOGenSpec'</span></span>
 <span><span class="fu">buildConstants</span><span class="op">(</span><span class="va">spec</span>, <span class="va">prior</span>, <span class="va">n</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S4 method for class 'StudentTMvSpec'</span></span>
@@ -132,13 +168,19 @@
     <div class="section level2">
     <h2 id="functions">Functions<a class="anchor" aria-label="anchor" href="#functions"></a></h2>
 
-<ul><li><p><code>buildConstants(PoissonRegSpec)</code>: Poisson regression constants.</p></li>
+<ul><li><p><code>buildConstants(FSSNUvSpec)</code>: FSSN constants.</p></li>
+<li><p><code>buildConstants(FOSSEPUvSpec)</code>: FOSSEP constants.</p></li>
+<li><p><code>buildConstants(FSSTUvSpec)</code>: FSST constants.</p></li>
+<li><p><code>buildConstants(PoissonRegSpec)</code>: Poisson regression constants.</p></li>
 <li><p><code>buildConstants(BinomialRegSpec)</code>: Binomial regression constants plus <code>size</code>.</p></li>
 <li><p><code>buildConstants(GMSNBurrUvSpec)</code>: GMSNBurr constants.</p></li>
 <li><p><code>buildConstants(NormalRegSpec)</code>: Regression constants (design matrix <code>X</code>,
 number of predictors <code>p</code>, and the NIG hyperparameters).</p></li>
 <li><p><code>buildConstants(StudentTRegSpec)</code>: NIG g-prior constants plus <code>df</code>.</p></li>
 <li><p><code>buildConstants(NormalGammaRegSpec)</code>: NIG g-prior constants plus <code>df</code>.</p></li>
+<li><p><code>buildConstants(JFSTUvSpec)</code>: JFST constants.</p></li>
+<li><p><code>buildConstants(SEPUvSpec)</code>: SEP constants.</p></li>
+<li><p><code>buildConstants(LEPUvSpec)</code>: LEP constants.</p></li>
 <li><p><code>buildConstants(MSNBurrUvSpec)</code>: MSNBurr constants.</p></li>
 <li><p><code>buildConstants(MSNBurr2aUvSpec)</code>: MSNBurr-IIa constants.</p></li>
 <li><p><code>buildConstants(NormalMvRegSpec)</code>: Multivariate-regression constants.</p></li>
@@ -152,6 +194,12 @@ number of predictors <code>p</code>, and the NIG hyperparameters).</p></li>
 <li><p><code>buildConstants(NormalGammaUvSpec)</code>: Normal-Inverse-Gamma constants plus <code>df</code>.</p></li>
 <li><p><code>buildConstants(PoissonSpec)</code>: Poisson Gamma-prior constants.</p></li>
 <li><p><code>buildConstants(BinomialSpec)</code>: Binomial Beta-prior constants plus <code>size</code>.</p></li>
+<li><p><code>buildConstants(SkewNormalMvSpec)</code>: Skew-mv-Normal constants.</p></li>
+<li><p><code>buildConstants(SkewNormalMvOSpec)</code>: Skew-mv-Normal-O constants.</p></li>
+<li><p><code>buildConstants(SkewIStudentMvSpec)</code>: Skew-mv-IStudent constants.</p></li>
+<li><p><code>buildConstants(SkewIStudentMvOSpec)</code>: Skew-mv-IStudent-O constants.</p></li>
+<li><p><code>buildConstants(SkewNormalMvOGenSpec)</code>: General-m constants (angle box included).</p></li>
+<li><p><code>buildConstants(SkewIStudentMvOGenSpec)</code>: General-m constants (angle box included).</p></li>
 <li><p><code>buildConstants(StudentTMvSpec)</code>: Normal-Inverse-Wishart constants plus <code>df</code>.</p></li>
 <li><p><code>buildConstants(StudentTUvSpec)</code>: Student-t constants (location/precision prior + df).</p></li>
 </ul></div>
@@ -165,7 +213,7 @@ number of predictors <code>p</code>, and the NIG hyperparameters).</p></li>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer></div>
