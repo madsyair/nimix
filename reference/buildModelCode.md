@@ -31,14 +31,16 @@ buildModelCode(spec, engine, n, L, ...)
 # S4 method for class 'PoissonRegSpec,DPMEngine'
 buildModelCode(spec, engine, n, L, ...)
 
+.glmRegREPriorLines(reSlope = FALSE)
+
 # S4 method for class 'PoissonRegSpec,FixedKEngine'
-buildModelCode(spec, engine, n, L, ...)
+buildModelCode(spec, engine, n, L, re = FALSE, reSlope = FALSE, ...)
 
 # S4 method for class 'BinomialRegSpec,DPMEngine'
 buildModelCode(spec, engine, n, L, ...)
 
 # S4 method for class 'BinomialRegSpec,FixedKEngine'
-buildModelCode(spec, engine, n, L, ...)
+buildModelCode(spec, engine, n, L, re = FALSE, reSlope = FALSE, ...)
 
 # S4 method for class 'GMSNBurrUvSpec,FixedKEngine'
 buildModelCode(spec, engine, n, L, ...)
@@ -53,7 +55,7 @@ buildModelCode(spec, engine, n, L, ...)
 buildModelCode(spec, engine, n, L, ...)
 
 # S4 method for class 'StudentTRegSpec,FixedKEngine'
-buildModelCode(spec, engine, n, L, ...)
+buildModelCode(spec, engine, n, L, re = FALSE, reSlope = FALSE, ...)
 
 # S4 method for class 'NormalGammaRegSpec,DPMEngine'
 buildModelCode(spec, engine, n, L, ...)
@@ -108,6 +110,33 @@ buildModelCode(spec, engine, n, L, ...)
 
 # S4 method for class 'NormalGammaMvRegSpec,FixedKEngine'
 buildModelCode(spec, engine, n, L, ...)
+
+# S4 method for class 'MSNBurrRegSpec,FixedKEngine'
+buildModelCode(spec, engine, n, L, re = FALSE, reSlope = FALSE, ...)
+
+# S4 method for class 'SEPRegSpec,FixedKEngine'
+buildModelCode(spec, engine, n, L, re = FALSE, reSlope = FALSE, ...)
+
+# S4 method for class 'MSNBurr2aRegSpec,FixedKEngine'
+buildModelCode(spec, engine, n, L, re = FALSE, reSlope = FALSE, ...)
+
+# S4 method for class 'FSSNRegSpec,FixedKEngine'
+buildModelCode(spec, engine, n, L, re = FALSE, reSlope = FALSE, ...)
+
+# S4 method for class 'GMSNBurrRegSpec,FixedKEngine'
+buildModelCode(spec, engine, n, L, re = FALSE, reSlope = FALSE, ...)
+
+# S4 method for class 'LEPRegSpec,FixedKEngine'
+buildModelCode(spec, engine, n, L, re = FALSE, reSlope = FALSE, ...)
+
+# S4 method for class 'FSSTRegSpec,FixedKEngine'
+buildModelCode(spec, engine, n, L, re = FALSE, reSlope = FALSE, ...)
+
+# S4 method for class 'FOSSEPRegSpec,FixedKEngine'
+buildModelCode(spec, engine, n, L, re = FALSE, reSlope = FALSE, ...)
+
+# S4 method for class 'JFSTRegSpec,FixedKEngine'
+buildModelCode(spec, engine, n, L, re = FALSE, reSlope = FALSE, ...)
 
 # S4 method for class 'NormalMvSpec,DPMEngine'
 buildModelCode(spec, engine, n, L, ...)
@@ -176,7 +205,7 @@ buildModelCode(spec, engine, n, L, ...)
 buildModelCode(spec, engine, n, L, ...)
 
 # S4 method for class 'NormalRegSpec,FixedKEngine'
-buildModelCode(spec, engine, n, L, re = FALSE, ...)
+buildModelCode(spec, engine, n, L, re = FALSE, reSlope = FALSE, ...)
 
 # S4 method for class 'StudentTUvSpec,FixedKEngine'
 buildModelCode(spec, engine, n, L, ...)
@@ -202,16 +231,46 @@ buildModelCode(spec, engine, n, L, ...)
 # S4 method for class 'StudentTUvSpec,HMMEngine'
 buildModelCode(spec, engine, n, L, ...)
 
-# S4 method for class 'PoissonSpec,HMMEngine'
-buildModelCode(spec, engine, n, L, ...)
-
-# S4 method for class 'MSNBurrUvSpec,HMMEngine'
-buildModelCode(spec, engine, n, L, ...)
-
 # S4 method for class 'MSNBurr2aUvSpec,HMMEngine'
 buildModelCode(spec, engine, n, L, ...)
 
 # S4 method for class 'GMSNBurrUvSpec,HMMEngine'
+buildModelCode(spec, engine, n, L, ...)
+
+# S4 method for class 'FSSNUvSpec,HMMEngine'
+buildModelCode(spec, engine, n, L, ...)
+
+# S4 method for class 'FSSTUvSpec,HMMEngine'
+buildModelCode(spec, engine, n, L, ...)
+
+# S4 method for class 'SEPUvSpec,HMMEngine'
+buildModelCode(spec, engine, n, L, ...)
+
+# S4 method for class 'LEPUvSpec,HMMEngine'
+buildModelCode(spec, engine, n, L, ...)
+
+# S4 method for class 'FOSSEPUvSpec,HMMEngine'
+buildModelCode(spec, engine, n, L, ...)
+
+# S4 method for class 'JFSTUvSpec,HMMEngine'
+buildModelCode(spec, engine, n, L, ...)
+
+# S4 method for class 'BinomialSpec,HMMEngine'
+buildModelCode(spec, engine, n, L, ...)
+
+# S4 method for class 'StudentTRegSpec,HMMEngine'
+buildModelCode(spec, engine, n, L, ...)
+
+# S4 method for class 'NormalGammaRegSpec,HMMEngine'
+buildModelCode(spec, engine, n, L, ...)
+
+# S4 method for class 'BinomialRegSpec,HMMEngine'
+buildModelCode(spec, engine, n, L, ...)
+
+# S4 method for class 'PoissonRegSpec,HMMEngine'
+buildModelCode(spec, engine, n, L, ...)
+
+# S4 method for class 'NormalRegSpec,HMMEngine'
 buildModelCode(spec, engine, n, L, ...)
 
 # S4 method for class 'MSNBurrUvSpec,HMMEngine'
@@ -248,6 +307,12 @@ buildModelCode(spec, engine, n, L, ...)
 
   Reserved for methods.
 
+- reSlope:
+
+  Logical; regression + FixedK method only – when `TRUE` (with
+  `re = TRUE`), also emit sum-to-zero random-slope offsets `sRE` plus
+  `tauSlope`.
+
 - re:
 
   Logical; regression + FixedK method only – when `TRUE`, emit the
@@ -283,8 +348,12 @@ logical parameter names to model nodes).
 - `buildModelCode(spec = PoissonRegSpec, engine = DPMEngine)`: Poisson
   GLM regression DPM code (log link).
 
+- `.glmRegREPriorLines()`: Poisson GLM regression fixed-K code (log
+  link).
+
 - `buildModelCode(spec = PoissonRegSpec, engine = FixedKEngine)`:
-  Poisson GLM regression fixed-K code (log link).
+  Poisson regression finite mixture (fixed K), with an optional random
+  effect inside the log link (GLMM).
 
 - `buildModelCode(spec = BinomialRegSpec, engine = DPMEngine)`: Binomial
   GLM regression DPM code (logit link).
@@ -371,6 +440,33 @@ logical parameter names to model nodes).
 
 - `buildModelCode(spec = NormalGammaMvRegSpec, engine = FixedKEngine)`:
   Multivariate-response Normal-Gamma regression fixed-K code.
+
+- `buildModelCode(spec = MSNBurrRegSpec, engine = FixedKEngine)`:
+  MSNBurr regression finite mixture (fixed K).
+
+- `buildModelCode(spec = SEPRegSpec, engine = FixedKEngine)`: SEP
+  regression finite mixture (fixed K).
+
+- `buildModelCode(spec = MSNBurr2aRegSpec, engine = FixedKEngine)`:
+  MSNBurr-IIa regression finite mixture (fixed K).
+
+- `buildModelCode(spec = FSSNRegSpec, engine = FixedKEngine)`: FSSN
+  regression finite mixture (fixed K).
+
+- `buildModelCode(spec = GMSNBurrRegSpec, engine = FixedKEngine)`:
+  GMSNBurr regression finite mixture (fixed K).
+
+- `buildModelCode(spec = LEPRegSpec, engine = FixedKEngine)`: LEP
+  regression finite mixture (fixed K).
+
+- `buildModelCode(spec = FSSTRegSpec, engine = FixedKEngine)`: FSST
+  regression finite mixture (fixed K).
+
+- `buildModelCode(spec = FOSSEPRegSpec, engine = FixedKEngine)`: FOSSEP
+  regression finite mixture (fixed K).
+
+- `buildModelCode(spec = JFSTRegSpec, engine = FixedKEngine)`: JFST
+  regression finite mixture (fixed K).
 
 - `buildModelCode(spec = NormalMvSpec, engine = DPMEngine)`:
   Multivariate Gaussian DPM model code (dCRP) with a conjugate
@@ -487,19 +583,59 @@ logical parameter names to model nodes).
   Univariate Student-t regime-switching HMM code (fixed df; states
   marginalised by the forward algorithm).
 
-- `buildModelCode(spec = PoissonSpec, engine = HMMEngine)`: Poisson
-  regime-switching HMM code (count data; states marginalised by the
-  forward algorithm).
-
-- `buildModelCode(spec = MSNBurrUvSpec, engine = HMMEngine)`: MSNBurr
-  (neo-normal, skewed) regime-switching HMM code (states marginalised by
-  the forward algorithm).
-
 - `buildModelCode(spec = MSNBurr2aUvSpec, engine = HMMEngine)`:
   MSNBurr-IIa regime-switching HMM code.
 
 - `buildModelCode(spec = GMSNBurrUvSpec, engine = HMMEngine)`: GMSNBurr
   (four-parameter, skewed) regime-switching HMM code.
+
+- `buildModelCode(spec = FSSNUvSpec, engine = HMMEngine)`: FSSN
+  (Ferreira-Steel skew normal) regime-switching HMM code.
+
+- `buildModelCode(spec = FSSTUvSpec, engine = HMMEngine)`: FSST
+  (Ferreira-Steel skew t) regime-switching HMM code – heavy-tailed and
+  skewed regimes at once.
+
+- `buildModelCode(spec = SEPUvSpec, engine = HMMEngine)`: SEP (skew
+  exponential power) regime-switching HMM code.
+
+- `buildModelCode(spec = LEPUvSpec, engine = HMMEngine)`: LEP
+  regime-switching HMM code.
+
+- `buildModelCode(spec = FOSSEPUvSpec, engine = HMMEngine)`: FOSSEP
+  regime-switching HMM code.
+
+- `buildModelCode(spec = JFSTUvSpec, engine = HMMEngine)`: JFST
+  (Jones-Faddy skew t) regime-switching HMM code.
+
+- `buildModelCode(spec = BinomialSpec, engine = HMMEngine)`: Binomial
+  regime-switching HMM code (regime-specific success probabilities,
+  known `size`).
+
+- `buildModelCode(spec = StudentTRegSpec, engine = HMMEngine)`:
+  Markov-switching Student-t (heavy-tail) regression HMM code: location
+  coefficients and scale switch with the regime, df a fixed
+  hyperparameter.
+
+- `buildModelCode(spec = NormalGammaRegSpec, engine = HMMEngine)`:
+  Markov-switching Normal-Gamma regression HMM code: same Student-t
+  marginal as the direct parameterisation, so the same kernel. Defined
+  explicitly because the two heavy-tail specs are siblings under
+  NormalRegSpec, not parent and child (9.29/9.41).
+
+- `buildModelCode(spec = BinomialRegSpec, engine = HMMEngine)`:
+  Markov-switching Binomial (proportion) regression HMM code: logit-link
+  coefficients switch with the regime, known number of trials `size`.
+
+- `buildModelCode(spec = PoissonRegSpec, engine = HMMEngine)`:
+  Markov-switching Poisson (count) regression HMM code: log-link
+  coefficients switch with a latent Markov regime, no error-variance
+  parameter.
+
+- `buildModelCode(spec = NormalRegSpec, engine = HMMEngine)`:
+  Markov-switching regression HMM code: the regression coefficients and
+  error variance switch with a latent first-order Markov regime
+  (Hamilton 1989).
 
 - `buildModelCode(spec = MSNBurrUvSpec, engine = HMMEngine)`: MSNBurr
   regime-switching HMM code (skewed regimes; states marginalised by the

@@ -25,7 +25,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">nimix</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.5.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -154,9 +154,64 @@ simulated benchmark (two latent groups with slopes +2 / -2, mixed
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="fu"><a href="../reference/relabel.html">relabel</a></span><span class="op">(</span><span class="va">fs</span><span class="op">)</span><span class="op">)</span>    <span class="co"># recovers slopes near +2 and -2, weights near 0.8/0.2</span></span></code></pre></div>
 </div>
 <div class="section level2">
+<h2 id="reading-the-error-variance">Reading the error variance<a class="anchor" aria-label="anchor" href="#reading-the-error-variance"></a>
+</h2>
+<p>One number deserves a caveat: the component error variance
+<code>s2</code>. Its prior is centred on the residual variance of a
+<em>global</em> OLS fit, which ignores the mixture — so for separated
+components it measures the spread <em>between</em> components as much as
+the spread within one, and <code>s2</code> comes out too large.</p>
+<p>The bias is largest exactly where mixtures earn their keep. At 150
+observations per component it is about 1.0x for overlapping components
+and 4.7x for well-separated ones; against sample size it runs ~9x at 25
+observations per component and fades to 1.0x by 5000. It is in the safe
+direction — predictive intervals come out wider, not narrower — and the
+coefficients are untouched.</p>
+<p>The conservatism is deliberate: it also regularises against splitting
+when <code>K</code> is over-specified. Shrinking it makes an
+over-specified fit occupy more components than it should. So it stays
+the default — but if you know the within-component scale, say so:</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/nimixReg.html">nimixReg</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x</span>, <span class="va">df</span>, K <span class="op">=</span> <span class="fl">2</span>, method <span class="op">=</span> <span class="st">"fixedk"</span>,</span>
+<span>         prior <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>s2Guess <span class="op">=</span> <span class="fl">0.3</span><span class="op">)</span><span class="op">)</span>   <span class="co"># your prior mean for s2</span></span></code></pre></div>
+<p>On a simulated benchmark with a true <code>s2</code> of 0.25, that
+moved the estimate from 0.78 to 0.36 while leaving the slopes where they
+were. The override asks for an absolute value on purpose: a multiplier
+on the automatic scale could only ever mean “a fraction of a quantity
+that measures the wrong thing” — a knob rather than a statement.</p>
+<p>Tightening the prior is safe with the DPM, and with
+<code>fixedk</code> when <code>K</code> is right. It is <em>not</em>
+safe when <code>K</code> is over-specified: on the same data with
+<code>K = 4</code> against two true components, the default kept two
+components occupied while a tenfold tighter prior filled a third. If you
+are unsure about <code>K</code>, leave the default alone or use the
+DPM.</p>
+<div class="section level3">
+<h3 id="recipe-two-stage-empirical-bayes">Recipe: two-stage empirical Bayes<a class="anchor" aria-label="anchor" href="#recipe-two-stage-empirical-bayes"></a>
+</h3>
+<p>If you need the scale right and have no external knowledge, let the
+first fit tell you. Its <em>allocation</em> is reliable even where its
+<code>s2</code> is not — which is exactly what makes this work:</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">fit1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/relabel.html">relabel</a></span><span class="op">(</span><span class="fu"><a href="../reference/nimixReg.html">nimixReg</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x</span>, <span class="va">df</span>, K <span class="op">=</span> <span class="fl">2</span>, method <span class="op">=</span> <span class="st">"fixedk"</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">z</span>    <span class="op">&lt;-</span> <span class="fu"><a href="../reference/binderPartition.html">binderPartition</a></span><span class="op">(</span><span class="va">fit1</span><span class="op">)</span><span class="op">$</span><span class="va">partition</span>          <span class="co"># MAP component per point</span></span>
+<span><span class="va">cf</span>   <span class="op">&lt;-</span> <span class="va">fit1</span><span class="op">@</span><span class="va">relabeled</span><span class="op">$</span><span class="va">summary</span></span>
+<span><span class="va">Xm</span>   <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/model.matrix.html" class="external-link">model.matrix</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x</span>, <span class="va">df</span><span class="op">)</span></span>
+<span><span class="va">res</span>  <span class="op">&lt;-</span> <span class="va">df</span><span class="op">$</span><span class="va">y</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="va">Xm</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">cf</span><span class="op">[</span><span class="va">z</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"(Intercept)"</span>, <span class="st">"x"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">s2hat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">res</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span> <span class="op">/</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span> <span class="op">-</span> <span class="fl">2</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">Xm</span><span class="op">)</span><span class="op">)</span> <span class="co"># within-component residual var</span></span>
+<span></span>
+<span><span class="va">fit2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nimixReg.html">nimixReg</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x</span>, <span class="va">df</span>, K <span class="op">=</span> <span class="fl">2</span>, method <span class="op">=</span> <span class="st">"fixedk"</span>,</span>
+<span>                 prior <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>s2Guess <span class="op">=</span> <span class="va">s2hat</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p>It costs a second compile-and-run, which is why it is not the
+default. Note the same caveat as above: only reach for it when
+<code>K</code> is not over-specified.</p>
+</div>
+</div>
+<div class="section level2">
 <h2 id="prediction">Prediction<a class="anchor" aria-label="anchor" href="#prediction"></a>
 </h2>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">newd</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>lgdp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1000</span>, <span class="fl">10000</span>, <span class="fl">50000</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/stats/predict.html" class="external-link">predict</a></span><span class="op">(</span><span class="va">fit</span>, newdata <span class="op">=</span> <span class="va">newd</span><span class="op">)</span></span></code></pre></div>
 <p>Heavy-tailed residuals (<code>distribution = "studentt"</code> /
@@ -171,7 +226,7 @@ batches), a shared group offset
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>b</mi><mrow><mi>g</mi><mo stretchy="false" form="prefix">(</mo><mi>i</mi><mo stretchy="false" form="postfix">)</mo></mrow></msub><mo>∼</mo><mi>N</mi><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo>,</mo><msup><mi>τ</mi><mn>2</mn></msup><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">b_{g(i)} \sim N(0, \tau^2)</annotation></semantics></math>
 can be added to every component’s linear predictor with
 <code>random = ~ group</code>:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># grouped data with 12 groups; component slopes +2 / -2</span></span>
 <span><span class="va">reg</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nimixReg.html">nimixReg</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x</span>, <span class="va">df</span>, random <span class="op">=</span> <span class="op">~</span> <span class="va">g</span>, K <span class="op">=</span> <span class="fl">2</span>, method <span class="op">=</span> <span class="st">"fixedk"</span>,</span>
 <span>                mcmcControl <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>niter <span class="op">=</span> <span class="fl">3000</span>, nburnin <span class="op">=</span> <span class="fl">1200</span><span class="op">)</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
@@ -190,10 +245,56 @@ centred, and the component intercepts absorb the group mean. And the
 exact conjugate coefficient sampler is extended to condition on the
 current offsets, which keeps the fit scale-equivariant in the predictors
 even with the random effect active.</p>
+<p>Reading <code>tauRE</code> needs one caution. It estimates the spread
+of <em>your</em> group offsets, and with few groups that spread is
+itself a lottery: twelve offsets drawn from a population with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>σ</mi><mo>=</mo><mn>0.8</mn></mrow><annotation encoding="application/x-tex">\sigma = 0.8</annotation></semantics></math>
+have a realized standard deviation anywhere between about 0.5 and 1.1.
+So an apparent “miss” against a population value is usually the draw,
+not the estimator – judge <code>tauRE</code> against the groups you
+actually have.</p>
+<p>Groups need not be balanced across components. With groups sitting
+almost entirely in one component (a case that could plausibly let the
+offsets absorb a component intercept), the coefficients still separate
+cleanly and the offsets stay identified; the test suite asserts
+this.</p>
+<div class="section level3">
+<h3 id="random-slopes">Random slopes<a class="anchor" aria-label="anchor" href="#random-slopes"></a>
+</h3>
+<p><code>random = ~ x | g</code> lets the slope of <code>x</code> vary
+by group as well (the intercept comes along, as in <code>lme4</code>’s
+<code>(x|g)</code>):</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">reg</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nimixReg.html">nimixReg</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x</span>, <span class="va">df</span>, random <span class="op">=</span> <span class="op">~</span> <span class="va">x</span> <span class="op">|</span> <span class="va">g</span>, K <span class="op">=</span> <span class="fl">2</span>, method <span class="op">=</span> <span class="st">"fixedk"</span>,</span>
+<span>                mcmcControl <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>niter <span class="op">=</span> <span class="fl">3000</span>, nburnin <span class="op">=</span> <span class="fl">1200</span><span class="op">)</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
+<p>There is an obvious worry here: components in a mixture of
+regressions are distinguished <em>by</em> their slopes, so group-varying
+slopes might fight with component identification. A prototype pushed
+this deliberately hard – group slope deviations spanning
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>−</mi><mn>2.05</mn></mrow><annotation encoding="application/x-tex">-2.05</annotation></semantics></math>
+to
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mn>1.43</mn><annotation encoding="application/x-tex">1.43</annotation></semantics></math>
+against a component separation of 4, so one group’s effective slope
+landed exactly between the two components – and it held: group slopes
+recovered at <code>cor</code> = 0.997 and component allocation at 95.3%
+accuracy.</p>
+<p>The same sum-to-zero logic applies, so the component slopes absorb
+<code>mean(s_g)</code> and the reported <code>sRE</code> are centred.
+The two sets of offsets get independent priors; that was checked against
+correlated truth
+(<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ρ</mi><mo>=</mo><mn>0.92</mn></mrow><annotation encoding="application/x-tex">\rho = 0.92</annotation></semantics></math>),
+where the independent model still recovered both and the correlation
+reappeared in the estimates anyway. With very few observations per group
+the prior does more work and a correlated prior would matter more.</p>
+<p>Both work with heavy-tailed residuals too —
+<code>distribution = "studentt"</code> accepts the same
+<code>random =</code> argument, which is often what grouped data with
+occasional outliers actually needs.</p>
 <p>Current scope: <code>method = "fixedk"</code>,
-<code>distribution = "normal"</code>, one grouping factor, random
-intercept. Random slopes and further families follow the gated
-roadmap.</p>
+<code>distribution = "normal"</code> or <code>"studentt"</code>, one
+grouping factor, random intercept and one random slope. Further families
+follow the gated roadmap.</p>
+</div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

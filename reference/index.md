@@ -81,12 +81,39 @@ Register and look up component distributions by name.
 - [`NormalGammaMvRegSpec()`](https://madsyair.github.io/nimix/reference/NormalGammaMvRegSpec.md)
   : Construct a multivariate-response Normal-Gamma regression spec
 
+## Neo-normal regression component specs
+
+Skew and heavy-tailed mixture-of-regressions: each component’s location
+is a linear predictor, with per-component scale and shape. Available
+across the fixed-K, DPM, and HMM (Markov-switching) engines, with random
+effects under fixed-K and DPM.
+
+- [`MSNBurrRegSpec()`](https://madsyair.github.io/nimix/reference/MSNBurrRegSpec-class.md)
+  : MSNBurr regression specification
+- [`MSNBurr2aRegSpec()`](https://madsyair.github.io/nimix/reference/MSNBurr2aRegSpec-class.md)
+  : MSNBurr-IIa regression specification
+- [`GMSNBurrRegSpec()`](https://madsyair.github.io/nimix/reference/GMSNBurrRegSpec-class.md)
+  : GMSNBurr regression specification
+- [`FSSNRegSpec()`](https://madsyair.github.io/nimix/reference/FSSNRegSpec-class.md)
+  : FSSN regression specification
+- [`FSSTRegSpec()`](https://madsyair.github.io/nimix/reference/FSSTRegSpec-class.md)
+  : FSST regression specification
+- [`SEPRegSpec()`](https://madsyair.github.io/nimix/reference/SEPRegSpec-class.md)
+  : SEP regression specification
+- [`LEPRegSpec()`](https://madsyair.github.io/nimix/reference/LEPRegSpec-class.md)
+  : LEP regression specification
+- [`FOSSEPRegSpec()`](https://madsyair.github.io/nimix/reference/FOSSEPRegSpec-class.md)
+  : FOSSEP regression specification
+- [`JFSTRegSpec()`](https://madsyair.github.io/nimix/reference/JFSTRegSpec-class.md)
+  : JFST regression specification
+
 ## Extension API (generics)
 
 The public S4 contract a component spec implements so a new family plugs
 into every engine without engine edits.
 
 - [`buildModelCode()`](https://madsyair.github.io/nimix/reference/buildModelCode.md)
+  [`.glmRegREPriorLines()`](https://madsyair.github.io/nimix/reference/buildModelCode.md)
   : Build the NIMBLE model code for a (distribution, engine) pair
 - [`defaultPrior()`](https://madsyair.github.io/nimix/reference/defaultPrior.md)
   : Build a data-scaled default prior for a distribution
@@ -104,10 +131,20 @@ into every engine without engine edits.
   : Internal validity indices for a fitted clustering
 - [`viterbiPath()`](https://madsyair.github.io/nimix/reference/viterbiPath.md)
   : Most probable state path of a hidden-Markov mixture fit
+- [`nimixForecast()`](https://madsyair.github.io/nimix/reference/nimixForecast.md)
+  : Forecast ahead from a regime-switching (HMM) fit
+- [`posteriorLinpred()`](https://madsyair.github.io/nimix/reference/posteriorLinpred.md)
+  : Per-component linear predictors
+- [`posteriorEpred()`](https://madsyair.github.io/nimix/reference/posteriorEpred.md)
+  : Expected value of the posterior predictive
+- [`posteriorPredictive()`](https://madsyair.github.io/nimix/reference/posteriorPredictive.md)
+  : Draws from the posterior predictive distribution
 - [`isRegressionSpec()`](https://madsyair.github.io/nimix/reference/isRegressionSpec.md)
   : Is this a regression component spec?
 - [`linkInv()`](https://madsyair.github.io/nimix/reference/linkInv.md) :
   Inverse link for a regression component
+- [`responseRng()`](https://madsyair.github.io/nimix/reference/responseRng.md)
+  : Draw a response given linear predictors and error scale
 
 ## S4 class definitions
 
@@ -280,6 +317,8 @@ random field over a neighbourhood graph.
   : Construct a SpatialWeightSpec from an adjacency/weight matrix
 - [`gridAdjacency()`](https://madsyair.github.io/nimix/reference/gridAdjacency.md)
   : Rook/queen contiguity on a regular grid
+- [`spacetimeAdjacency()`](https://madsyair.github.io/nimix/reference/spacetimeAdjacency.md)
+  : Build a space-time adjacency for spatio-temporal mixtures
 - [`nRegions()`](https://madsyair.github.io/nimix/reference/nRegions.md)
   : Number of regions in a spatial weight structure
 - [`getAdjacency()`](https://madsyair.github.io/nimix/reference/getAdjacency.md)
@@ -350,6 +389,11 @@ plugs into every engine.
 
 - [`nimixClearCache()`](https://madsyair.github.io/nimix/reference/nimixClearCache.md)
   : Clear the compiled-model cache
+- [`dmvt_nimix()`](https://madsyair.github.io/nimix/reference/dmvt_nimix.md)
+  [`rmvt_nimix()`](https://madsyair.github.io/nimix/reference/dmvt_nimix.md)
+  : Multivariate Student-t log density (nimbleFunction)
+- [`getEdges()`](https://madsyair.github.io/nimix/reference/getEdges.md)
+  : Edge list of a spatial weight structure
 
 ## Datasets
 

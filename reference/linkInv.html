@@ -9,7 +9,7 @@ link (Normal-linear); GLM specs override it (log, logit)."><meta property="og:im
 
     <a class="navbar-brand me-2" href="../index.html">nimix</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.5.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -36,7 +36,7 @@ link (Normal-linear); GLM specs override it (log, logit)."><meta property="og:im
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Inverse link for a regression component</h1>
-      <small class="dont-index">Source: <a href="https://github.com/madsyair/nimix/blob/main/R/class-DistributionSpec.R" class="external-link"><code>R/class-DistributionSpec.R</code></a>, <a href="https://github.com/madsyair/nimix/blob/main/R/dist-glm-reg.R" class="external-link"><code>R/dist-glm-reg.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/madsyair/nimix/blob/main/R/class-DistributionSpec.R" class="external-link"><code>R/class-DistributionSpec.R</code></a>, <a href="https://github.com/madsyair/nimix/blob/main/R/dist-glm-reg.R" class="external-link"><code>R/dist-glm-reg.R</code></a>, <a href="https://github.com/madsyair/nimix/blob/main/R/dist-neonormal-reg.R" class="external-link"><code>R/dist-neonormal-reg.R</code></a></small>
       <div class="d-none name"><code>linkInv.Rd</code></div>
     </div>
 
@@ -56,6 +56,33 @@ link (Normal-linear); GLM specs override it (log, logit).</p>
 <span><span class="fu">linkInv</span><span class="op">(</span><span class="va">spec</span>, <span class="va">eta</span>, prior <span class="op">=</span> <span class="cn">NULL</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S4 method for class 'BinomialRegSpec'</span></span>
+<span><span class="fu">linkInv</span><span class="op">(</span><span class="va">spec</span>, <span class="va">eta</span>, prior <span class="op">=</span> <span class="cn">NULL</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'MSNBurrRegSpec'</span></span>
+<span><span class="fu">linkInv</span><span class="op">(</span><span class="va">spec</span>, <span class="va">eta</span>, prior <span class="op">=</span> <span class="cn">NULL</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'SEPRegSpec'</span></span>
+<span><span class="fu">linkInv</span><span class="op">(</span><span class="va">spec</span>, <span class="va">eta</span>, prior <span class="op">=</span> <span class="cn">NULL</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'MSNBurr2aRegSpec'</span></span>
+<span><span class="fu">linkInv</span><span class="op">(</span><span class="va">spec</span>, <span class="va">eta</span>, prior <span class="op">=</span> <span class="cn">NULL</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'FSSNRegSpec'</span></span>
+<span><span class="fu">linkInv</span><span class="op">(</span><span class="va">spec</span>, <span class="va">eta</span>, prior <span class="op">=</span> <span class="cn">NULL</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'GMSNBurrRegSpec'</span></span>
+<span><span class="fu">linkInv</span><span class="op">(</span><span class="va">spec</span>, <span class="va">eta</span>, prior <span class="op">=</span> <span class="cn">NULL</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'LEPRegSpec'</span></span>
+<span><span class="fu">linkInv</span><span class="op">(</span><span class="va">spec</span>, <span class="va">eta</span>, prior <span class="op">=</span> <span class="cn">NULL</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'FSSTRegSpec'</span></span>
+<span><span class="fu">linkInv</span><span class="op">(</span><span class="va">spec</span>, <span class="va">eta</span>, prior <span class="op">=</span> <span class="cn">NULL</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'FOSSEPRegSpec'</span></span>
+<span><span class="fu">linkInv</span><span class="op">(</span><span class="va">spec</span>, <span class="va">eta</span>, prior <span class="op">=</span> <span class="cn">NULL</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'JFSTRegSpec'</span></span>
 <span><span class="fu">linkInv</span><span class="op">(</span><span class="va">spec</span>, <span class="va">eta</span>, prior <span class="op">=</span> <span class="cn">NULL</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -89,6 +116,15 @@ link (Normal-linear); GLM specs override it (log, logit).</p>
 <ul><li><p><code>linkInv(DistributionSpec)</code>: Identity link (Normal-linear).</p></li>
 <li><p><code>linkInv(PoissonRegSpec)</code>: Log link inverse (<code>exp</code>).</p></li>
 <li><p><code>linkInv(BinomialRegSpec)</code>: Logit link inverse (<code>size * plogis</code>).</p></li>
+<li><p><code>linkInv(MSNBurrRegSpec)</code>: MSNBurr regression identity link.</p></li>
+<li><p><code>linkInv(SEPRegSpec)</code>: SEP regression identity link.</p></li>
+<li><p><code>linkInv(MSNBurr2aRegSpec)</code>: MSNBurr-IIa regression identity link.</p></li>
+<li><p><code>linkInv(FSSNRegSpec)</code>: FSSN regression identity link.</p></li>
+<li><p><code>linkInv(GMSNBurrRegSpec)</code>: GMSNBurr regression identity link.</p></li>
+<li><p><code>linkInv(LEPRegSpec)</code>: LEP regression identity link.</p></li>
+<li><p><code>linkInv(FSSTRegSpec)</code>: FSST regression identity link.</p></li>
+<li><p><code>linkInv(FOSSEPRegSpec)</code>: FOSSEP regression identity link.</p></li>
+<li><p><code>linkInv(JFSTRegSpec)</code>: JFST regression identity link.</p></li>
 </ul></div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

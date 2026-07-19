@@ -15,7 +15,8 @@ summary(object, ...)
 plot(
   x,
   y,
-  type = c("K", "trace_raw", "trace_relabeled", "density", "cluster", "fitted"),
+  type = c("K", "trace_raw", "trace_relabeled", "density", "cluster", "fitted", "series",
+    "regime", "forecast"),
   ...
 )
 
@@ -31,9 +32,9 @@ predict(object, newdata, maxDraws = 500L, ...)
 
 - ...:
 
-  Passed to
-  [`relabel`](https://madsyair.github.io/nimix/reference/relabel.md)
-  when relabelling is triggered.
+  Passed to the underlying plot. For `type = "forecast"`, also `h`,
+  `newdata`, `lags`, `draws` and `level`, as in
+  [`nimixForecast`](https://madsyair.github.io/nimix/reference/nimixForecast.md).
 
 - x:
 
@@ -45,13 +46,21 @@ predict(object, newdata, maxDraws = 500L, ...)
 
 - type:
 
-  One of `"K"` (posterior of \#clusters), `"trace_raw"` (raw
-  cluster-parameter traces; zig-zags reveal label switching),
-  `"trace_relabeled"` (traces after relabelling), `"density"`
-  (univariate clustering only: data histogram with posterior predictive
-  overlay), `"cluster"` (multivariate clustering, \\d \ge 2\\: scatter
-  coloured by MAP cluster), or `"fitted"` (regression only: observed
-  response vs posterior predictive mean).
+  Which view to draw. `"K"`, `"trace_raw"`, `"trace_relabeled"`,
+  `"density"`, `"cluster"` and `"fitted"` are the mixture views.
+
+  `"series"`, `"regime"` and `"forecast"` are the **time-series views**,
+  for `method = "hmm"` only. A density plot of a regime-switching series
+  is the wrong picture twice over: it discards the axis the model is
+  about, and it shows a bimodal smear where the story is "the series sat
+  in one regime, then moved". `"series"` draws the data with its decoded
+  regimes shaded as blocks (blocks, because that is what the Markov
+  chain models); `"regime"` draws the smoothed \\P(\mathrm{regime} \mid
+  \mathrm{data})\\ through time, which is the honest companion to the
+  Viterbi path – where the bands are mixed, the decode is a guess; and
+  `"forecast"` draws the predictive fan past the end of the series (see
+  [`nimixForecast`](https://madsyair.github.io/nimix/reference/nimixForecast.md)
+  for what that fan can and cannot mean).
 
 - newdata:
 

@@ -58,6 +58,33 @@ buildConstants(spec, prior, n, ...)
 # S4 method for class 'NormalGammaMvRegSpec'
 buildConstants(spec, prior, n, ...)
 
+# S4 method for class 'MSNBurrRegSpec'
+buildConstants(spec, prior, n, ...)
+
+# S4 method for class 'SEPRegSpec'
+buildConstants(spec, prior, n, ...)
+
+# S4 method for class 'MSNBurr2aRegSpec'
+buildConstants(spec, prior, n, ...)
+
+# S4 method for class 'FSSNRegSpec'
+buildConstants(spec, prior, n, ...)
+
+# S4 method for class 'GMSNBurrRegSpec'
+buildConstants(spec, prior, n, ...)
+
+# S4 method for class 'LEPRegSpec'
+buildConstants(spec, prior, n, ...)
+
+# S4 method for class 'FSSTRegSpec'
+buildConstants(spec, prior, n, ...)
+
+# S4 method for class 'FOSSEPRegSpec'
+buildConstants(spec, prior, n, ...)
+
+# S4 method for class 'JFSTRegSpec'
+buildConstants(spec, prior, n, ...)
+
 # S4 method for class 'NormalMvSpec'
 buildConstants(spec, prior, n, ...)
 
@@ -165,6 +192,24 @@ the engine appends).
 
 - `buildConstants(NormalGammaMvRegSpec)`: Multivariate-regression
   constants plus `df`.
+
+- `buildConstants(MSNBurrRegSpec)`: MSNBurr regression constants.
+
+- `buildConstants(SEPRegSpec)`: SEP regression constants.
+
+- `buildConstants(MSNBurr2aRegSpec)`: MSNBurr-IIa regression constants.
+
+- `buildConstants(FSSNRegSpec)`: FSSN regression constants.
+
+- `buildConstants(GMSNBurrRegSpec)`: GMSNBurr regression constants.
+
+- `buildConstants(LEPRegSpec)`: LEP regression constants.
+
+- `buildConstants(FSSTRegSpec)`: FSST regression constants.
+
+- `buildConstants(FOSSEPRegSpec)`: FOSSEP regression constants.
+
+- `buildConstants(JFSTRegSpec)`: JFST regression constants.
 
 - `buildConstants(NormalMvSpec)`: Multivariate Normal-Inverse-Wishart
   constants (includes the dimension `d`, mean vector `mu0` and scale

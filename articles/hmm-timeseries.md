@@ -49,8 +49,17 @@ binds to.
 `K` is the number of states (fixed, like `method = "fixedk"`); current
 emission families are univariate Gaussian, Student-t (heavy-tailed
 regimes such as financial returns), Poisson (regime-switching counts),
-and the neo-normal skewed families MSNBurr, MSNBurr-IIa and GMSNBurr,
-with further families following the gated roadmap.
+Binomial (regime-switching proportions with a known number of trials,
+via `prior = list(size = )`; measured recovery 0.150/0.597 against a
+truth of 0.15/0.6 at Viterbi 1.0), and nine neo-normal / skew families:
+MSNBurr, MSNBurr-IIa, GMSNBurr, FSSN, FSST, SEP, LEP, FOSSEP, and JFST –
+thirteen in all, completing the planned univariate set. FSST and JFST
+give regimes that are skewed *and* heavy-tailed at once, which is often
+what asset returns actually look like; SEP/LEP’s tail-shape parameter is
+well identified in practice (measured 1.30/3.48 against a truth of
+1.2/3.5). `normal-gamma` is excluded by design – its augmented
+representation is exactly what the marginalised forward kernel avoids,
+and direct Student-t serves the heavy-tail case.
 
 ``` r
 

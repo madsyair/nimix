@@ -13,7 +13,7 @@ arbitrarily vague when K_max is large)."><meta property="og:image" content="http
 
     <a class="navbar-brand me-2" href="../index.html">nimix</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.5.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -40,7 +40,7 @@ arbitrarily vague when K_max is large)."><meta property="og:image" content="http
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Build a data-scaled default prior for a distribution</h1>
-      <small class="dont-index">Source: <a href="https://github.com/madsyair/nimix/blob/main/R/class-DistributionSpec.R" class="external-link"><code>R/class-DistributionSpec.R</code></a>, <a href="https://github.com/madsyair/nimix/blob/main/R/dist-fssn.R" class="external-link"><code>R/dist-fssn.R</code></a>, <a href="https://github.com/madsyair/nimix/blob/main/R/dist-fossep.R" class="external-link"><code>R/dist-fossep.R</code></a>, and 23 more</small>
+      <small class="dont-index">Source: <a href="https://github.com/madsyair/nimix/blob/main/R/class-DistributionSpec.R" class="external-link"><code>R/class-DistributionSpec.R</code></a>, <a href="https://github.com/madsyair/nimix/blob/main/R/dist-fssn.R" class="external-link"><code>R/dist-fssn.R</code></a>, <a href="https://github.com/madsyair/nimix/blob/main/R/dist-fossep.R" class="external-link"><code>R/dist-fossep.R</code></a>, and 24 more</small>
       <div class="d-none name"><code>defaultPrior.Rd</code></div>
     </div>
 
@@ -104,6 +104,33 @@ arbitrarily vague when <code>K_max</code> is large).</p>
 <span><span class="fu">defaultPrior</span><span class="op">(</span><span class="va">spec</span>, <span class="va">data</span>, control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S4 method for class 'NormalGammaMvRegSpec'</span></span>
+<span><span class="fu">defaultPrior</span><span class="op">(</span><span class="va">spec</span>, <span class="va">data</span>, control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'MSNBurrRegSpec'</span></span>
+<span><span class="fu">defaultPrior</span><span class="op">(</span><span class="va">spec</span>, <span class="va">data</span>, control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'SEPRegSpec'</span></span>
+<span><span class="fu">defaultPrior</span><span class="op">(</span><span class="va">spec</span>, <span class="va">data</span>, control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'MSNBurr2aRegSpec'</span></span>
+<span><span class="fu">defaultPrior</span><span class="op">(</span><span class="va">spec</span>, <span class="va">data</span>, control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'FSSNRegSpec'</span></span>
+<span><span class="fu">defaultPrior</span><span class="op">(</span><span class="va">spec</span>, <span class="va">data</span>, control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'GMSNBurrRegSpec'</span></span>
+<span><span class="fu">defaultPrior</span><span class="op">(</span><span class="va">spec</span>, <span class="va">data</span>, control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'LEPRegSpec'</span></span>
+<span><span class="fu">defaultPrior</span><span class="op">(</span><span class="va">spec</span>, <span class="va">data</span>, control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'FSSTRegSpec'</span></span>
+<span><span class="fu">defaultPrior</span><span class="op">(</span><span class="va">spec</span>, <span class="va">data</span>, control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'FOSSEPRegSpec'</span></span>
+<span><span class="fu">defaultPrior</span><span class="op">(</span><span class="va">spec</span>, <span class="va">data</span>, control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'JFSTRegSpec'</span></span>
 <span><span class="fu">defaultPrior</span><span class="op">(</span><span class="va">spec</span>, <span class="va">data</span>, control <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S4 method for class 'NormalMvSpec'</span></span>
@@ -195,15 +222,59 @@ prior variance).</p></li>
 <li><p><code>defaultPrior(LEPUvSpec)</code>: Data-scaled LEP prior.</p></li>
 <li><p><code>defaultPrior(MSNBurrUvSpec)</code>: Data-scaled MSNBurr prior (location/scale/shape).</p></li>
 <li><p><code>defaultPrior(MSNBurr2aUvSpec)</code>: Data-scaled MSNBurr-IIa prior.</p></li>
-<li><p><code>defaultPrior(NormalMvRegSpec)</code>: Inverse-Wishart on Sigma + matrix-normal coefficients.</p></li>
+<li><p><code>defaultPrior(NormalMvRegSpec)</code>: Inverse-Wishart on Sigma + matrix-normal
+  coefficients.</p>
+<p>Control overrides: <code>g</code> (the coefficient g-prior scale, default
+  <code>n</code>) and <code>sigmaGuess</code>, the prior mean of a component's
+  residual covariance – a positive scalar (read as isotropic) or a
+  \(d \times d\) positive-definite matrix.</p>
+<p><code>sigmaGuess</code> exists because the automatic reference is
+  <code><a href="https://rdrr.io/r/stats/cor.html" class="external-link">cov()</a></code> of the <em>global</em> OLS residuals, which carry the
+  between-component variation as well as the within-component one. This is
+  the multivariate face of the univariate problem behind
+  <code><a href="nimixReg.html">nimixReg</a></code>'s <code>s2Guess</code>. Measured on two components
+  differing only in their coefficients, with isotropic within-covariance:
+  the prior mean of Sigma was 22.4x the truth in trace, with condition
+  number 40 where the truth is a circle – wrong size and wrong shape.</p>
+<p>It stays the default anyway, for the reason the clustering case does:
+  <code>df0 = d + 2</code> makes the InverseWishart prior worth exactly one
+  observation for every \(d\) (the univariate InvGamma is worth four),
+  so the fitted covariance came back at about 1.5x with condition ~2
+  against a prior off by 22x. Reach for <code>sigmaGuess</code> when you know
+  the residual scale – most often <code>sigmaGuess = s</code> for isotropic
+  residuals of variance <code>s</code>. <code>"studentt"</code> and
+  <code>"normalgamma"</code> inherit it.</p></li>
 <li><p><code>defaultPrior(StudentTMvRegSpec)</code>: Inverse-Wishart + matrix-normal plus a fixed <code>df</code>.</p></li>
 <li><p><code>defaultPrior(NormalGammaMvRegSpec)</code>: Inverse-Wishart + matrix-normal plus a fixed <code>df</code>.</p></li>
+<li><p><code>defaultPrior(MSNBurrRegSpec)</code>: MSNBurr regression prior.</p></li>
+<li><p><code>defaultPrior(SEPRegSpec)</code>: SEP regression prior.</p></li>
+<li><p><code>defaultPrior(MSNBurr2aRegSpec)</code>: MSNBurr-IIa regression prior (shares the MSNBurr
+scale/shape prior).</p></li>
+<li><p><code>defaultPrior(FSSNRegSpec)</code>: FSSN regression prior (log-normal skewness).</p></li>
+<li><p><code>defaultPrior(GMSNBurrRegSpec)</code>: GMSNBurr regression prior.</p></li>
+<li><p><code>defaultPrior(LEPRegSpec)</code>: LEP regression prior.</p></li>
+<li><p><code>defaultPrior(FSSTRegSpec)</code>: FSST regression prior.</p></li>
+<li><p><code>defaultPrior(FOSSEPRegSpec)</code>: FOSSEP regression prior.</p></li>
+<li><p><code>defaultPrior(JFSTRegSpec)</code>: JFST regression prior.</p></li>
 <li><p><code>defaultPrior(NormalMvSpec)</code>: Data-scaled Normal-Inverse-Wishart prior (multivariate).</p>
 <p>Control overrides: <code>cLoc</code> (mean-dispersion multiplier; prior covariance
 of <code>mu</code> is <code>Sigma / kappa0</code> with <code>kappa0 = 1 / cLoc^2</code>,
 default <code>cLoc = 2</code>) and <code>df0</code> (inverse-Wishart degrees of freedom,
 default <code>d + 2</code>, must exceed <code>d + 1</code> for a finite, non-singular
-prior covariance on empty components).</p></li>
+prior covariance on empty components).</p>
+<p><code>sigmaGuess</code> sets the prior mean of a component's covariance directly:
+a positive scalar (read as isotropic) or a \(d \times d\)
+positive-definite matrix. The default reference is <code>cov(data)</code>, the
+<em>global</em> covariance, which for separated components is inflated only
+along the direction that separates them – so the prior ellipse has the
+wrong shape, not merely the wrong size. Measured on isotropic components
+separated along a vector v: 37.6x along v against 0.9x across it, a
+condition number of 42.8 where the truth is a circle. The InverseWishart
+default absorbs this well (<code>df0 = d + 2</code> makes the prior worth exactly
+one observation for every \(d\); the fitted covariance came back at 1.2x
+with condition 1.4), so it stays. <code>sigmaGuess</code> is for callers who know
+the within-component shape – most often <code>sigmaGuess = s</code> for an
+isotropic component of variance <code>s</code>.</p></li>
 <li><p><code>defaultPrior(NormalGammaMvSpec)</code>: Normal-Inverse-Wishart prior plus a fixed <code>df</code>
 (default 5, must exceed 2 for a finite component covariance).</p></li>
 <li><p><code>defaultPrior(NormalUvSpec)</code>: Data-scaled Normal-Inverse-Gamma prior.</p>

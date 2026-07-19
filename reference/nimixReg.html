@@ -17,7 +17,7 @@ mixing weights do not depend on the covariates.'><meta property="og:image" conte
 
     <a class="navbar-brand me-2" href="../index.html">nimix</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.5.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -66,11 +66,11 @@ mixing weights do not depend on the covariates.</p>
 <span>  K <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  K_max <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  distribution <span class="op">=</span> <span class="st">"normal"</span>,</span>
-<span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"dpm"</span>, <span class="st">"fixedk"</span>, <span class="st">"mrf"</span><span class="op">)</span>,</span>
+<span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"dpm"</span>, <span class="st">"fixedk"</span>, <span class="st">"mrf"</span>, <span class="st">"hmm"</span><span class="op">)</span>,</span>
 <span>  gating <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"constant"</span>, <span class="st">"covariate"</span><span class="op">)</span>,</span>
 <span>  prior <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  mcmcControl <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>  initMethod <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"kmeans"</span>, <span class="st">"single"</span><span class="op">)</span>,</span>
+<span>  initMethod <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"kmeans"</span>, <span class="st">"single"</span>, <span class="st">"spread"</span><span class="op">)</span>,</span>
 <span>  seed <span class="op">=</span> <span class="fl">1L</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  spatialWeights <span class="op">=</span> <span class="cn">NULL</span></span>
@@ -90,14 +90,20 @@ mixing weights do not depend on the covariates.</p>
 
 
 <dt id="arg-random">random<a class="anchor" aria-label="anchor" href="#arg-random"></a></dt>
-<dd><p>Optional one-sided formula naming a single grouping factor
-for a random intercept, e.g. <code>random = ~ region</code>: the linear
-predictor of every component gains a shared group offset
-\(b_{g(i)} \sim N(0, \tau^2)\) with a sum-to-zero constraint (so the
-component intercepts absorb the group mean, and the reported <code>b</code>
-are centred – the parameterisation that mixes well; see NEWS for the
-measured motivation). Currently supported with
-<code>method = "fixedk"</code> and <code>distribution = "normal"</code> only.</p></dd>
+<dd><p>Optional one-sided formula for group-level random effects.
+<code>random = ~ region</code> gives a random intercept: every component's
+linear predictor gains a shared group offset
+\(b_{g(i)} \sim N(0, \tau^2)\). <code>random = ~ x | region</code>
+additionally gives a random slope for <code>x</code> (which must be a term of
+<code>formula</code>); as in <code>lme4</code>'s <code>(x|g)</code>, the intercept comes
+along. Both offsets use a sum-to-zero constraint – the parameterisation
+that mixes well – so the component coefficients absorb the group means
+and the reported <code>b</code> / <code>sRE</code> are centred. The two offsets are
+given independent priors by default. <code>tauRE</code> and <code>tauSlope</code>
+estimate the spread of <em>your</em> groups, which with few groups is
+itself variable. Currently supported with <code>method = "fixedk"</code> and
+<code>distribution = "normal"</code> or <code>"studentt"</code> (heavy-tailed
+residuals).</p></dd>
 
 
 <dt id="arg-k">K<a class="anchor" aria-label="anchor" href="#arg-k"></a></dt>
@@ -113,16 +119,44 @@ A generous data-aware default (with headroom) is used when missing.</p></dd>
 
 
 <dt id="arg-distribution">distribution<a class="anchor" aria-label="anchor" href="#arg-distribution"></a></dt>
-<dd><p>Component distribution. Currently <code>"normal"</code>
-(Gaussian linear component). Other GLM families are planned.</p></dd>
+<dd><p>Component distribution. Gaussian (<code>"normal"</code>),
+  heavy-tailed (<code>"studentt"</code>, <code>"normalgamma"</code>), GLM
+  (<code>"poisson"</code>, <code>"binomial"</code>), and the nine neo-normal skew
+  families (<code>"msnburr"</code>, <code>"msnburr2a"</code>, <code>"gmsnburr"</code>,
+  <code>"fssn"</code>, <code>"fsst"</code>, <code>"sep"</code>, <code>"lep"</code>, <code>"fossep"</code>,
+  <code>"jfst"</code>) are available; multivariate variants exist for the Gaussian
+  and heavy-tailed families.</p>
+<p><strong>Non-Gaussian families cost effective sample size.</strong> Only the
+  Gaussian regression has a conjugate coefficient update; every other family
+  (neo-normal, heavy-tailed, GLM) is sampled by NIMBLE's defaults, which mix
+  more slowly. Measured on <code>"fixedk"</code> with two components, the Gaussian
+  reaches about 10.7 ESS/s against 1.9 for <code>"msnburr"</code> and 1.4 for the
+  three-shape <code>"gmsnburr"</code> – roughly a 5–7x factor. Budget
+  proportionally more iterations for a skewed or heavy-tailed fit; the
+  three-shape families (gmsnburr, fsst, fossep, jfst) are the slowest.</p></dd>
 
 
 <dt id="arg-method">method<a class="anchor" aria-label="anchor" href="#arg-method"></a></dt>
-<dd><p>Engine: <code>"dpm"</code> (default; estimate the number of
-components), <code>"fixedk"</code> (fixed <code>K</code>), or <code>"mrf"</code>
-(spatially constrained: fixed <code>K</code>, Potts smoothing of the labels on
-a <code>spatialWeights</code> graph; Gaussian response, fixed
-<code>prior$beta</code>, default 0.8).</p></dd>
+<dd><p>Fitting method: <code>"dpm"</code>, <code>"fixedk"</code>,
+  <code>"mrf"</code>, or <code>"hmm"</code>.</p>
+<p><code>"hmm"</code> fits a <strong>Markov-switching regression</strong> (Hamilton
+  1989): the coefficients and error variance switch with a latent
+  first-order Markov regime, so the rows of <code>data</code> are a
+  <em>time series</em> rather than an exchangeable sample – their order
+  carries meaning here as it does nowhere else in <code>nimixReg</code>. Give
+  <code>K</code> for the number of regimes, as for <code>"fixedk"</code>; the regime
+  path is marginalised out of the likelihood and decoded afterwards, so
+  <code><a href="viterbiPath.html">viterbiPath</a></code> gives the most probable regime sequence.
+  Currently <code>distribution = "normal"</code> (Gaussian) or <code>"poisson"</code> (log-link counts), or <code>"studentt"</code> / <code>"normalgamma"</code> (heavy-tailed), or <code>"binomial"</code> (logit-link
+  proportions, with the number of trials in <code>prior = list(size = )</code>).</p>
+<p><strong>Budget more iterations than for <code>"fixedk"</code>.</strong> Marginalising
+  the regime path rules out the conjugate Normal-Inverse-Gamma update, so
+  the coefficients are sampled by NIMBLE's defaults instead. Measured on a
+  two-regime series, that costs roughly four times the effective sample
+  size per second (ESS/s 2.3 against 8.9 for the conjugate <code>"fixedk"</code>
+  sampler), even though the marginalised chain has a shorter wall time. A
+  light run gives usably-decoded regimes but wide coefficient intervals;
+  raise <code>niter</code> until the intervals settle.</p></dd>
 
 
 <dt id="arg-gating">gating<a class="anchor" aria-label="anchor" href="#arg-gating"></a></dt>
@@ -134,9 +168,12 @@ opt-in and currently errors.</p></dd>
 <dt id="arg-prior">prior<a class="anchor" aria-label="anchor" href="#arg-prior"></a></dt>
 <dd><p>A named list of prior overrides passed to
 <code><a href="defaultPrior.html">defaultPrior</a></code> (e.g. <code>g</code> for the g-prior factor,
-<code>nu0</code> for the InvGamma shape) plus, for the DPM, optional
-<code>concPrior = c(shape, rate)</code>, or, for the finite mixture,
-<code>dirichletConc</code>.</p></dd>
+<code>nu0</code> for the InvGamma shape, and <code>s2Guess</code> for its scale –
+see ‘Reading the error variance’ below; with a multivariate
+response, <code>sigmaGuess</code> plays the same role for the residual
+covariance) plus,
+for the DPM, optional <code>concPrior = c(shape, rate)</code>, or, for the
+finite mixture, <code>dirichletConc</code>.</p></dd>
 
 
 <dt id="arg-mcmccontrol">mcmcControl<a class="anchor" aria-label="anchor" href="#arg-mcmccontrol"></a></dt>
@@ -177,6 +214,65 @@ region per observation). Required by, and only used with,
   per-component regression coefficients and residual variances;
   <code>predict(fit, newdata)</code> returns the posterior predictive mean;
   <code>plot(fit, type = "fitted")</code> shows observed vs fitted.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="reading-the-error-variance">Reading the error variance<a class="anchor" aria-label="anchor" href="#reading-the-error-variance"></a></h2>
+
+
+<p>The prior on each component's error variance <code>s2</code> is centred on the
+residual variance of a <em>global</em> OLS fit, which ignores the mixture.
+For separated components that quantity measures the spread <em>between</em>
+components as much as the spread within one, so the prior is deliberately
+conservative and <code>s2</code> is biased upward. The bias is largest exactly
+where mixtures are most useful – well-separated components at moderate
+sample size – and it disappears as the per-component sample size grows:
+with a prior/truth scale ratio of about 60, the measured bias runs near
+9x at 25 observations per component, 2.5x at 150, 1.2x at 1000, and 1.0x
+by 5000. It is a bias in the safe direction (wider predictive intervals),
+and the coefficients are unaffected.</p>
+<p>The conservatism is load-bearing rather than incidental: it also
+regularises against splitting when <code>K</code> is over-specified, so it
+stays the default.</p>
+<p>If you know the within-component scale – from a pilot study, the
+literature, or domain knowledge – say so directly:
+<code>prior = list(s2Guess = 0.3)</code> makes 0.3 the prior mean of <code>s2</code>.
+(<code>s0</code> sets the raw InvGamma scale instead, for callers who think in
+those terms; give one or the other.) On a simulated benchmark with a true
+<code>s2</code> of 0.25 that moved the estimate from 0.78 (3.1x) to 0.36
+(1.4x), slopes untouched. The override is deliberately absolute: a
+multiplier on the automatic scale would only ever mean "a fraction of a
+quantity that measures the wrong thing", which is a knob, not a
+statement.</p>
+<p><strong>Where a tighter prior is safe.</strong> A tenfold tighter scale left the
+DPM's recovery of <code>K</code> untouched (modal <code>K</code> = 2 throughout a
+benchmark with two true components), and is likewise safe for
+<code>fixedk</code> when <code>K</code> is correct, where it halved the error in
+<code>s2</code>. It is <strong>not</strong> safe for <code>fixedk</code> with an
+over-specified <code>K</code>: on the same data with <code>K = 4</code> against two
+true components, the default occupied two components while a tenfold
+tighter prior occupied three. Wide components make two suffice; narrow
+ones make the model want more. If you are unsure whether <code>K</code> is
+over-specified, leave the default alone or use the DPM.</p>
+<p><strong>Recipe: two-stage empirical Bayes.</strong> If you need the scale right
+and have no external knowledge, fit once with the default, read the
+within-component residual variance off that fit, and refit with it as
+<code>s2Guess</code>. It costs a second compile-and-run, which is why it is not
+the default, but it needs no guesswork:</p>
+<div class="sourceCode"><pre><code><span></span>
+<span><span class="va">fit1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nimixReg.html">nimixReg</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x</span>, <span class="va">df</span>, K <span class="op">=</span> <span class="fl">2</span>, method <span class="op">=</span> <span class="st">"fixedk"</span><span class="op">)</span></span>
+<span><span class="va">fit1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/relabel.html">relabel</a></span><span class="op">(</span><span class="va">fit1</span><span class="op">)</span></span>
+<span><span class="co"># residuals of each point under its own MAP component</span></span>
+<span><span class="va">z</span>    <span class="op">&lt;-</span> <span class="fu"><a href="../reference/binderPartition.html">binderPartition</a></span><span class="op">(</span><span class="va">fit1</span><span class="op">)</span><span class="op">$</span><span class="va">partition</span></span>
+<span><span class="va">cf</span>   <span class="op">&lt;-</span> <span class="va">fit1</span><span class="op">@</span><span class="va">relabeled</span><span class="op">$</span><span class="va">summary</span></span>
+<span><span class="va">Xm</span>   <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/model.matrix.html" class="external-link">model.matrix</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x</span>, <span class="va">df</span><span class="op">)</span></span>
+<span><span class="va">res</span>  <span class="op">&lt;-</span> <span class="va">df</span><span class="op">$</span><span class="va">y</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/base/colSums.html" class="external-link">rowSums</a></span><span class="op">(</span><span class="va">Xm</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span><span class="va">cf</span><span class="op">[</span><span class="va">z</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"(Intercept)"</span>, <span class="st">"x"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">s2hat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">res</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span> <span class="op">/</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">df</span><span class="op">)</span> <span class="op">-</span> <span class="fl">2</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">Xm</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">fit2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nimixReg.html">nimixReg</a></span><span class="op">(</span><span class="va">y</span> <span class="op">~</span> <span class="va">x</span>, <span class="va">df</span>, K <span class="op">=</span> <span class="fl">2</span>, method <span class="op">=</span> <span class="st">"fixedk"</span>,</span>
+<span>                 prior <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>s2Guess <span class="op">=</span> <span class="va">s2hat</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+
+<p>The first fit's <em>allocation</em> is reliable even where its <code>s2</code> is
+not – that is what makes the recipe work.</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>

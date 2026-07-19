@@ -16,8 +16,8 @@
 <script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Bayesian Mixture Clustering and Regression with NIMBLE">
-<meta name="description" content="A nimble-based framework for Bayesian mixture clustering and regression models (de Valpine dkk, 2017 &lt;doi:10.1080/10618600.2016.1172487&gt;). It supports diverse univariate and multivariate distributions across four inference paradigms: finite, infinite (Dirichlet process), spatial (Markov random field), and hidden-Markov mixtures. Features include tuned MCMC samplers and comprehensive post-processing tools for label-switching correction and cluster validation.">
-<meta property="og:description" content="A nimble-based framework for Bayesian mixture clustering and regression models (de Valpine dkk, 2017 &lt;doi:10.1080/10618600.2016.1172487&gt;). It supports diverse univariate and multivariate distributions across four inference paradigms: finite, infinite (Dirichlet process), spatial (Markov random field), and hidden-Markov mixtures. Features include tuned MCMC samplers and comprehensive post-processing tools for label-switching correction and cluster validation.">
+<meta name="description" content="Implements Bayesian mixture models and mixture regression using nimble (de Valpine et al., 2017) &lt;doi:10.1080/10618600.2016.1172487&gt;. The package supports Binomial, Poisson, Gaussian, heavy-tailed, and neo-normal distributions, including the MSNBurr family (Iriawan, 2000; Choir, 2020, ISBN:978-602-5539-45-4), together with distributions from the GAMLSS (Generalized Additive Models for Location, Scale and Shape) framework (Rigby et al., 2019) &lt;doi:10.1201/9780429298547&gt;. Four inference methods are available: finite mixtures, Dirichlet process mixtures, spatial Potts models, and hidden Markov models. Additional features include automatic prior specification, random effects, label-switching correction, and extensive model diagnostics.">
+<meta property="og:description" content="Implements Bayesian mixture models and mixture regression using nimble (de Valpine et al., 2017) &lt;doi:10.1080/10618600.2016.1172487&gt;. The package supports Binomial, Poisson, Gaussian, heavy-tailed, and neo-normal distributions, including the MSNBurr family (Iriawan, 2000; Choir, 2020, ISBN:978-602-5539-45-4), together with distributions from the GAMLSS (Generalized Additive Models for Location, Scale and Shape) framework (Rigby et al., 2019) &lt;doi:10.1201/9780429298547&gt;. Four inference methods are available: finite mixtures, Dirichlet process mixtures, spatial Potts models, and hidden Markov models. Additional features include automatic prior specification, random effects, label-switching correction, and extensive model diagnostics.">
 <meta property="og:image" content="https://madsyair.github.io/nimix/logo.png">
 </head>
 <body>
@@ -28,7 +28,7 @@
 
     <a class="navbar-brand me-2" href="index.html">nimix</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.5.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -90,9 +90,9 @@
 <li>
 <code>"fixedk"</code> — finite mixture with known <code>K</code> (including the <code>K = 1</code> baseline for model comparison).</li>
 <li>
-<code>"mrf"</code> — spatially coupled allocations via a Potts prior over a user-supplied adjacency (<code>spatialWeights</code>; <code><a href="reference/gridAdjacency.html">gridAdjacency()</a></code> builds regular grids).</li>
+<code>"mrf"</code> — spatially coupled allocations via a Potts prior over a user-supplied adjacency (<code>spatialWeights</code>; <code><a href="reference/gridAdjacency.html">gridAdjacency()</a></code> builds regular grids). <code>spacetimeAdjacency(W, nTime)</code> expands that graph over time, giving <strong>spatio-temporal</strong> mixtures with no other change: on a 5x5 grid over 8 times with overlapping components, a plain mixture failed outright (accuracy 0.50), the spatial graph reached 0.95, and the space-time graph 0.995.</li>
 <li>
-<code>"hmm"</code> — regime switching in time: labels follow a first-order Markov chain, the state path is marginalised out by the forward algorithm (measured: min ESS/sec 456 vs 144 for naive latent-state sampling), and exact allocation draws are recovered post hoc by FFBS – so <code><a href="reference/relabel.html">relabel()</a></code>, <code><a href="reference/psm.html">psm()</a></code>, <code><a href="reference/binderPartition.html">binderPartition()</a></code> and the plots work unchanged. <code>viterbiPath(fit)</code> decodes the jointly most probable state sequence. Current emissions (univariate): Gaussian, Student-t (heavy tails), Poisson (count regimes), and the neo-normal skewed families MSNBurr, MSNBurr-IIa and GMSNBurr; further families follow the gated roadmap.</li>
+<code>"hmm"</code> — regime switching in time: labels follow a first-order Markov chain, the state path is marginalised out by the forward algorithm (measured: min ESS/sec 456 vs 144 for naive latent-state sampling), and exact allocation draws are recovered post hoc by FFBS – so <code><a href="reference/relabel.html">relabel()</a></code>, <code><a href="reference/psm.html">psm()</a></code>, <code><a href="reference/binderPartition.html">binderPartition()</a></code> and the plots work unchanged. <code>viterbiPath(fit)</code> decodes the jointly most probable state sequence. Emissions (univariate, complete at 13): Gaussian, Student-t (heavy tails), Poisson (count regimes), Binomial (regime-switching proportions, known <code>size</code>), and nine neo-normal / skew families (MSNBurr, MSNBurr-IIa, GMSNBurr, FSSN, FSST, SEP, LEP, FOSSEP, JFST). <code>normal-gamma</code> is excluded by design: its augmentation is what the marginalised forward kernel exists to avoid. In <code>nimixReg</code> the same method gives a <strong>Markov-switching regression</strong> (Hamilton 1989): the coefficients and error variance switch with the regime, and the rows are a time series rather than an exchangeable sample. Measured on two regimes with opposing slopes: intercepts 1.96/-1.96 against 2/-2, decoding 0.98.</li>
 </ul>
 <p>All 32 families run under the dpm, fixedk and mrf engines.</p>
 </div>
@@ -174,8 +174,10 @@
 <span>                verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">reg</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co">## ... with a random intercept for grouped data (fixedk + normal)</span></span>
-<span><span class="co"># nimixReg(y ~ x, df, random = ~ region, K = 2, method = "fixedk")</span></span>
+<span><span class="co">## ... with random effects for grouped data (fixedk + normal)</span></span>
+<span><span class="co"># nimixReg(y ~ x, df, random = ~ region, K = 2, method = "fixedk")      # intercept</span></span>
+<span><span class="co"># nimixReg(y ~ x, df, random = ~ x | region, K = 2, method = "fixedk")  # + slope</span></span>
+<span><span class="co"># ... add distribution = "studentt" for heavy-tailed residuals</span></span>
 <span></span>
 <span><span class="co">## Hand the fit to bayesplot (if installed)</span></span>
 <span><span class="co"># bayesplot::mcmc_trace(drawsArray(fit))               # invariant functionals</span></span>

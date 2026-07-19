@@ -49,6 +49,33 @@ validateParams(spec, params, ...)
 # S4 method for class 'NormalMvRegSpec'
 validateParams(spec, params, ...)
 
+# S4 method for class 'MSNBurrRegSpec'
+validateParams(spec, params, ...)
+
+# S4 method for class 'SEPRegSpec'
+validateParams(spec, params, ...)
+
+# S4 method for class 'MSNBurr2aRegSpec'
+validateParams(spec, params, ...)
+
+# S4 method for class 'FSSNRegSpec'
+validateParams(spec, params, ...)
+
+# S4 method for class 'GMSNBurrRegSpec'
+validateParams(spec, params, ...)
+
+# S4 method for class 'LEPRegSpec'
+validateParams(spec, params, ...)
+
+# S4 method for class 'FSSTRegSpec'
+validateParams(spec, params, ...)
+
+# S4 method for class 'FOSSEPRegSpec'
+validateParams(spec, params, ...)
+
+# S4 method for class 'JFSTRegSpec'
+validateParams(spec, params, ...)
+
 # S4 method for class 'NormalMvSpec'
 validateParams(spec, params, ...)
 
@@ -142,6 +169,24 @@ Invisibly `TRUE` if valid; otherwise an error is raised.
 
 - `validateParams(NormalMvRegSpec)`: Validate the
   multivariate-regression prior.
+
+- `validateParams(MSNBurrRegSpec)`: MSNBurr regression prior validation.
+
+- `validateParams(SEPRegSpec)`: SEP regression validation.
+
+- `validateParams(MSNBurr2aRegSpec)`: MSNBurr-IIa regression validation.
+
+- `validateParams(FSSNRegSpec)`: FSSN regression validation.
+
+- `validateParams(GMSNBurrRegSpec)`: GMSNBurr regression validation.
+
+- `validateParams(LEPRegSpec)`: LEP regression validation.
+
+- `validateParams(FSSTRegSpec)`: FSST regression validation.
+
+- `validateParams(FOSSEPRegSpec)`: FOSSEP regression validation.
+
+- `validateParams(JFSTRegSpec)`: JFST regression validation.
 
 - `validateParams(NormalMvSpec)`: Validate a Normal-Inverse-Wishart
   prior list and enforce the dimension invariant \\\dim(\mu_0) =

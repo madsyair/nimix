@@ -19,7 +19,7 @@ nimixClust(
   method = c("dpm", "fixedk", "mrf", "hmm"),
   prior = list(),
   mcmcControl = list(),
-  initMethod = c("kmeans", "single"),
+  initMethod = c("kmeans", "single", "spread"),
   seed = 1L,
   verbose = FALSE,
   spatialWeights = NULL
@@ -69,10 +69,10 @@ nimixClust(
 
   A named list of prior overrides passed to
   [`defaultPrior`](https://madsyair.github.io/nimix/reference/defaultPrior.md)
-  (univariate: `cLoc`, `nu0`; multivariate: `cLoc`, `df0`) plus, for the
-  DPM, optional `concPrior = c(shape, rate)` for the concentration, or,
-  for the finite mixture, `dirichletConc` for the Dirichlet weight
-  prior.
+  (univariate: `cLoc`, `nu0`; multivariate: `cLoc`, `df0`, `sigmaGuess`)
+  plus, for the DPM, optional `concPrior = c(shape, rate)` for the
+  concentration, or, for the finite mixture, `dirichletConc` for the
+  Dirichlet weight prior.
 
 - mcmcControl:
 

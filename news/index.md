@@ -1,5 +1,679 @@
 # Changelog
 
+## nimix 1.5.0
+
+### ESS benchmark for regression across engines
+
+- Documented the effective-sample-size cost of the non-Gaussian
+  regressions. Only the Gaussian has a conjugate coefficient update;
+  measured on fixed-K with two components, the Gaussian reaches ~10.7
+  ESS/s against 1.9 for MSNBurr and 1.4 for the three-shape GMSNBurr (a
+  5-7x factor). HMM is slower still per second than fixed-K (regime path
+  marginalised, coefficients more correlated), and the DPM mixes well on
+  its concentration parameter.
+  [`?nimixReg`](https://madsyair.github.io/nimix/reference/nimixReg.md)
+  now states the factor so users can budget iterations; a full benchmark
+  write-up ships with the project notes.
+
+### Random effects extend to the DPM engine (and a note on HMM)
+
+- Neo-normal (and Gaussian) regressions accept random effects under the
+  DPM engine too:
+  `nimixReg(y ~ x, method = "dpm", distribution = "msnburr", random = ~ grp)`.
+  The random-cluster allocation and the fixed external grouping both act
+  on iid exchangeable observations, so the offsets sit cleanly on the
+  location, as they do under fixed-K. Measured: msnburr cor(b_hat,
+  truth) = 0.96, sep 1.00, gmsnburr 1.00.
+- Random effects remain refused under the HMM engine, now with a clear
+  reason: a single time series has no exchangeable grouping, so the
+  offset is unidentified and confounds with the regime transitions.
+  Panel-HMM (multiple series) would be the prerequisite. See the design
+  note for the full argument.
+
+### Random effects for GLM regression – the genuine GLMM case
+
+- Poisson and Binomial regression now accept group-level random effects:
+  `nimixReg(y ~ x, distribution = "poisson", random = ~ grp)`, and
+  `~ x | grp` for a random slope. Unlike the location-scale families, a
+  GLM random effect enters INSIDE the link (log or logit), so the group
+  offset is multiplicative on the response scale – this is the true GLMM
+  the design study flagged. tauRE therefore lives on the link scale, so
+  its prior bounds are fixed rather than scaled by sd(y) (a large count
+  would otherwise give an absurd ceiling). Measured on six groups:
+  Poisson cor(b_hat, truth) = 0.96, Binomial 0.99; Poisson random slope
+  0.93/0.99. Fixed-K engine.
+
+### Random effects for MSNBurr regression (F10 prototype)
+
+- MSNBurr regression accepts group-level random effects, like the
+  Gaussian and Student-t regressions:
+  `nimixReg(y ~ x, distribution = "msnburr", random = ~ grp)` for a
+  random intercept, `random = ~ x | grp` to add a random slope. Because
+  neo-normal families are location-scale, the random effect enters the
+  location exactly as it does for a Gaussian (unlike a GLM, where it
+  would act through the link), with the same sum-to-zero
+  parameterisation. Measured on six groups: random-intercept recovery
+  cor(b_hat, truth) = 0.999; with a random slope too, 0.98 and 1.00.
+  Fixed-K engine. All nine neo-normal families now support random
+  effects through the same generic path (.neoRegREConstants + the
+  re/reSlope arguments to .neoRegFixedKCode); measured recovery
+  cor(b_hat, truth) \>= 0.98 across families.
+
+### Neo-normal regression completes the engine trio with HMM
+
+- All nine neo-normal regression families now run under the HMM engine
+  too – `nimixReg(y ~ x, method = "hmm", distribution = "msnburr")` and
+  the rest – giving Markov-switching skewed / heavy-tailed regression.
+  The per-state location is a linear predictor, with scale and shape
+  switching by regime. Measured on two regimes: MSNBurr intercepts
+  -1.49/1.53 against -1.5/1.5.
+- The forward FFBS kernel, its BUGSdist registration, and the three S4
+  methods (model code, allocation density, forecast RNG) are all
+  generated from two facts – the family’s density kernel and its shape
+  list – via `.makeNeoHMMRegKernel` / `.makeNeoHMMRegMethods`. No
+  hand-written nimbleFunction per family. Together with the fixed-K and
+  DPM variants, every neo-normal family now spans the full engine trio.
+
+### Neo-normal regression now runs under the DPM (nonparametric) engine
+
+- Every neo-normal regression family gains a Dirichlet-process variant –
+  `nimixReg(y ~ x, method = "dpm", distribution = "msnburr")` and the
+  other eight – with the number of components inferred rather than
+  fixed. The DPM model code is generated generically from the family’s
+  density name and its shape-prior lines (the same ingredients the
+  fixed-K code uses), so no per-family DPM code was written. No
+  conjugate cluster wrapper (the likelihood is not Gaussian in the
+  coefficients); NIMBLE samples the cluster parameters directly.
+
+### Prediction for neo-normal regression is now complete
+
+- [`posteriorLinpred()`](https://madsyair.github.io/nimix/reference/posteriorLinpred.md)
+  and
+  [`posteriorEpred()`](https://madsyair.github.io/nimix/reference/posteriorEpred.md)
+  already worked for the neo-normal regressions (identity link), but
+  [`posteriorPredictive()`](https://madsyair.github.io/nimix/reference/posteriorPredictive.md)
+  fell back to a Gaussian draw and lost the skew. It now draws from each
+  family via a generic `responseRng` the framework attaches from the
+  family’s own RNG – so a MSNBurr predictive is skewed, an FSST one
+  heavy-tailed, and so on. Works across all shape counts (2 or 3
+  parameters); the shape traces are pulled by name from a small registry
+  keyed on the family.
+
+### New: neo-normal regression (framework + MSNBurr and SEP)
+
+- Skewed and heavy-tailed regression: each neo-normal component’s
+  location is a linear predictor `X beta_k`, with its shape parameters
+  staying per-component.
+  `nimixReg(y ~ x, K = 2, distribution = "msnburr")` and `"sep"`, ,
+  `"msnburr2a"` – and now all nine neo-normal families: msnburr,
+  msnburr2a, gmsnburr, fssn, fsst, sep, lep, fossep, jfst. Shape sets
+  range from two (sigma, alpha or sigma, nu) to three (sigma, alpha,
+  theta), with Gamma, log-normal, or truncated-Gamma shape priors; the
+  framework absorbs all of these – a new family is a short declaration
+  (density, shape list, prior), and the traces, relabelling, and summary
+  columns follow from the shape list automatically. Measured on two
+  components: MSNBurr intercepts -1.44/1.64 against -1.5/1.5; SEP
+  intercepts -1.26/1.10 against -1.2/1.2.
+- Built on a generic helper (`.neoRegMethods`) so a new family needs
+  only its density, its list of shape parameters, and a short prior –
+  the six boilerplate S4 methods (traces, relabelling, simulation, …)
+  are generated from the shape list. MSNBurr and MSNBurr-IIa use
+  `(sigma, alpha)`, SEP uses `(sigma, nu)`; the summary columns follow
+  automatically (`sigma_mean` + the family’s own shape means). The
+  remaining seven neo-normal families can be added the same way. No
+  conjugate sampler (the likelihood is not Gaussian in the
+  coefficients), so budget more iterations, as with the other
+  non-Gaussian regressions.
+
+### New: Markov-switching heavy-tail regression (Student-t and Normal-Gamma)
+
+- `nimixReg(y ~ x, K = 2, method = "hmm", distribution = "studentt")`
+  (and `"normalgamma"`) fits a regression whose location coefficients
+  and scale switch with a latent Markov regime, with Student-t errors –
+  the heavy-tail sibling of the Gaussian, Poisson, and Binomial
+  Markov-switching regressions. Own forward kernel (`dt_nonstandard`, df
+  a fixed hyperparameter), not the inherited Gaussian one: the guard
+  refuses that inheritance (a silent-wrong kernel otherwise) and this
+  dedicated kernel runs instead. Measured on two regimes with df = 4
+  errors: intercepts -1.50/1.45 against -1.5/1.5, slopes -0.88/1.26
+  against -0.9/1.2, decoding 0.98.
+- `"normalgamma"` shares the kernel (identical Student-t marginal) but
+  has its OWN `buildModelCode` method, because the two heavy-tail specs
+  are siblings under `NormalRegSpec`, not parent and child – inheritance
+  would have handed it the Gaussian default.
+- [`nimixForecast()`](https://madsyair.github.io/nimix/reference/nimixForecast.md)
+  handles both: the predictive draws keep the heavy tails. This closes
+  the long-standing backlog item; the HMM regression families are now
+  normal, studentt, normalgamma, poisson, and binomial (18 HMM kernels).
+
+### New: `initMethod = "spread"` for heterogeneous-variance data
+
+- A third cluster-seeding option alongside `"kmeans"` (default) and
+  `"single"`. For a univariate response, `"spread"` bands observations
+  by `|y - median(y)|`, separating components by scale rather than
+  location. This targets the one case measured to seed k-means poorly:
+  components with very different variances but overlapping means
+  (e.g. sd 0.3 vs 3, both centred near zero), where k-means is forced to
+  draw a spatial boundary that cuts across the real, scale-based split.
+  Initial-allocation accuracy on that case rises from 0.84 (k-means) to
+  0.90.
+- It is a convenience, not a cure. As three initialisation studies
+  found, a well-mixed Bayesian mixture recovers from a poor seed on its
+  own – the MCMC result is the same whether seeded by `"kmeans"` or
+  `"spread"`. The value of `"spread"` is a shorter burn-in on the
+  heterogeneous-variance case, not a different answer. For a
+  multivariate response it has no natural analogue and falls back to
+  k-means.
+- Shared internally via a single `.initClusters()` helper, so future
+  seeding strategies are written once rather than in each family’s
+  `componentInits`.
+
+### New: Markov-switching GLM regression (Poisson and Binomial)
+
+- `nimixReg(y ~ x, K = 2, method = "hmm", distribution = "poisson")`
+  fits a count regression whose log-rate coefficients switch with a
+  latent Markov regime – the count sibling of the Gaussian
+  Markov-switching regression. Own forward kernel (`dpois(exp(Xbeta))`,
+  log link, no error variance), not an inherited one. Measured on two
+  regimes: intercepts 0.93/2.23 against 1.0/2.2, slopes 0.84/-0.51
+  against 0.8/-0.5, decoding 0.967.
+- `distribution = "binomial"` does the same with a logit link and a
+  known number of trials (`prior = list(size = )`): a proportion
+  regression with regime-switching coefficients. Measured: intercepts
+  -1.03/1.50 against -1.0/1.5, slopes 1.22/-0.81 against 1.2/-0.8,
+  decoding 0.997.
+- [`nimixForecast()`](https://madsyair.github.io/nimix/reference/nimixForecast.md)
+  handles both: the predictive draws are counts (Poisson) or proportions
+  of `size` (Binomial). Fixed alongside: the forecaster tested
+  `is(spec, "NormalRegSpec")` to decide whether a fit had covariates,
+  which missed the sibling GLM specs; it now tests the shared regression
+  trait.
+
+### Fixed: `posteriorEpred()`/`posteriorPredictive()` now respect the link
+
+- The first cut of the brms-style predictors was Gaussian-only in
+  disguise:
+  [`posteriorEpred()`](https://madsyair.github.io/nimix/reference/posteriorEpred.md)
+  averaged the linear predictors `x'beta_k` directly, and
+  [`posteriorPredictive()`](https://madsyair.github.io/nimix/reference/posteriorPredictive.md)
+  added Gaussian noise. For a Poisson (log link) or Binomial (logit
+  link) regression that is simply wrong – `epred` returned the log-mean
+  instead of the mean, and the predictive drew Gaussian jitter instead
+  of counts.
+- Now matched to brms.
+  [`posteriorEpred()`](https://madsyair.github.io/nimix/reference/posteriorEpred.md)
+  is `E[Y|X]` on the **response scale**, applying each family’s inverse
+  link to every component *before* the mixture average:
+  `sum_k w_k g^{-1}(x'beta_k)`. Verified on a Poisson fit – epred came
+  back at 0.87/1.79/3.68 against the truth exp(0.5 + 0.8x) =
+  0.74/1.65/3.67, where the linear predictor was 0.5 + 0.8x.
+- [`posteriorLinpred()`](https://madsyair.github.io/nimix/reference/posteriorLinpred.md)
+  stays on the **linear-predictor scale** by design (the log-mean for a
+  Poisson), and gains a `transform` argument – the counterpart of brms’s
+  – to apply the inverse link when you want each component’s response
+  mean instead. For a Normal fit the two coincide, so this is a no-op
+  there.
+- [`posteriorPredictive()`](https://madsyair.github.io/nimix/reference/posteriorPredictive.md)
+  now draws from the family via a new
+  [`responseRng()`](https://madsyair.github.io/nimix/reference/responseRng.md)
+  generic, and this reaches every univariate regression family, not just
+  the Gaussian one. A Poisson predictive draw is a count, a Binomial one
+  a number of successes, and a **Student-t or Normal-Gamma one is
+  heavy-tailed** – the first cut drew Gaussian noise for those too,
+  giving a predictive with measured kurtosis 3.14 where a t with df = 3
+  should be far heavier; it is now 5.0 (Student-t) and 7.1
+  (Normal-Gamma). Their `epred` was already right, since both use the
+  identity link and E\[Y\|X\] = Xbeta; only the predictive law was
+  wrong. Multivariate-response fits are unaffected –
+  [`posteriorLinpred()`](https://madsyair.github.io/nimix/reference/posteriorLinpred.md)
+  and friends decline them by design, and
+  [`predict()`](https://rdrr.io/r/stats/predict.html) handles that case.
+  Fixed alongside: a `K = 1` regression could not be predicted with
+  `newdata` (it has no mixture weight node); it now takes weight one.
+
+### brms-style prediction, time-series views, and Markov autoregression
+
+- **Three prediction functions, because a mixture makes them three
+  different questions.**
+  [`posteriorLinpred()`](https://madsyair.github.io/nimix/reference/posteriorLinpred.md)
+  returns each component’s own linear predictor (a `draws x n x K`
+  array);
+  [`posteriorEpred()`](https://madsyair.github.io/nimix/reference/posteriorEpred.md)
+  averages the components into `E[Y|X]`;
+  [`posteriorPredictive()`](https://madsyair.github.io/nimix/reference/posteriorPredictive.md)
+  adds the residual noise. For a mixture, reach for the first far more
+  often than the second – fit two crossing lines with slopes +1.5 and
+  -1.5 and the expectation is a flat line through the middle (measured
+  0.028/0.069/0.111 at x = -1/0/1). Nothing is wrong with the number; it
+  is a faithful summary of a distribution no component has.
+  [`?posteriorEpred`](https://madsyair.github.io/nimix/reference/posteriorEpred.md)
+  says so.
+- The weights are what change meaning between calls, and the docs are
+  explicit about it: in-sample,
+  [`posteriorEpred()`](https://madsyair.github.io/nimix/reference/posteriorEpred.md)
+  uses each row’s posterior allocation and becomes useful (measured
+  correlation 0.983 with `y` on the same fit whose `newdata` expectation
+  was flat); with `newdata` it uses the mixture weights, since a new
+  row’s component is unknown. For `method = "hmm"` and `newdata` it is
+  refused outright: a regime weight is a function of *when*, and a
+  future row has no decoded regime –
+  [`nimixForecast()`](https://madsyair.github.io/nimix/reference/nimixForecast.md)
+  is the function that projects it.
+- **Fixed: a silent wrong answer in prediction with `newdata`.** If
+  `newdata` lacked a predictor,
+  [`model.frame()`](https://rdrr.io/r/stats/model.frame.html) resolved
+  the name against the formula’s environment – the fitted data – and
+  returned predictions for the original rows. Measured before the fix:
+  one row of `newdata` in, a `10 x 60 x 2` array out.
+  [`predict()`](https://rdrr.io/r/stats/predict.html) surfaced this only
+  as the downstream “replacement has 60 rows, data has 1”; both paths
+  now check up front and name the missing predictors.
+- **Time-series views for regime-switching fits**:
+  `plot(fit, type = "series")` draws the data with its decoded regimes
+  shaded as blocks, `type = "regime"` the smoothed regime probabilities
+  through time (the honest companion to the Viterbi path – where the
+  bands are mixed, the decode is a guess), and `type = "forecast"` the
+  predictive fan. A density plot of a switching series discards the axis
+  the model is about; these put it back. Each returns the tidy frame it
+  drew, as the other plot types do.
+- **Markov-switching autoregression works today, with no new code**: lag
+  the response into the design matrix.
+  `nimixReg(y ~ ylag, df, K = 2, method = "hmm")` fits an MS-AR(1) whose
+  intercept *and* AR coefficient switch with the regime – measured,
+  intercepts -1.42/1.48 against -1.5/1.5 and AR coefficients 0.76/0.32
+  against 0.75/0.30, decoding at 1.0. This is not a coincidence of the
+  implementation: conditioning on lagged `y` is the standard conditional
+  likelihood for an AR model, and the forward kernel takes an arbitrary
+  design matrix.
+- One practical note now that it is measured: the `"hmm"` regression
+  path needs more iterations than `"fixedk"`. Marginalising the regime
+  path rules out the conjugate sampler, and NIMBLE’s defaults mix the
+  coefficients about four times slower per second (ESS/s 2.3 vs 8.9 on a
+  two-regime benchmark), even though the wall time is shorter. Light
+  runs decode the regimes fine but leave the coefficient intervals wide;
+  [`?nimixReg`](https://madsyair.github.io/nimix/reference/nimixReg.md)
+  says so.
+- **And forecasting one now works too**, via
+  `nimixForecast(fit, h, lags = c(ylag = 1))`. `lags` marks the
+  predictors that are the response in disguise; those columns are
+  *generated by the forecast*, not supplied to it, with each posterior
+  draw feeding its own trajectory back as its own lag. That is what
+  makes the interval widen the way an autoregression’s should – measured
+  on an MS-AR(1), from 2.15 at h = 1 to 5.12 at h = 10, with RMSE 0.54
+  against 3.97 for a constant-mean benchmark. Exogenous predictors go in
+  `newdata` and lags in `lags`; give a predictor to one or the other,
+  never both (measured on an MS-ARX: RMSE 0.83 against 5.29).
+- **Do not fake a lag through `newdata`.** It would be taken as a known
+  covariate, held fixed, and the forecast would inherit whatever you
+  invented – confidently and without complaint, because nothing in a
+  design matrix says “this column is the past”. `lags` exists so that
+  you do not have to, and
+  [`?nimixForecast`](https://madsyair.github.io/nimix/reference/nimixForecast.md)
+  says so where it will be read.
+
+### New: forecasting from regime-switching fits (`nimixForecast()`)
+
+- `nimixForecast(fit, h)` draws from the posterior predictive `h` steps
+  past the end of a series, integrating over both parameter uncertainty
+  (one path per posterior draw) and regime uncertainty (the regime is
+  sampled, not fixed). It is the forward algorithm run one step further:
+  filter the regime distribution to the last observation, push it
+  through the transition matrix `h` times, sample a regime, draw from
+  that regime’s emission. All 13 emission families are supported, plus
+  Markov-switching regression (pass `newdata` with the future covariates
+  – the regime can be projected forward, the predictors cannot).
+- Returns `$summary` (mean/median/interval), `$regime` (an `h` x `K`
+  matrix of regime probabilities), and `$draws` (the raw predictive
+  sample).
+- **Calibration measured**, not asserted: interval coverage 0.917
+  against a nominal 0.90 over a 12-step horizon on a two-regime
+  benchmark, with RMSE 1.93 against 3.23 for a constant-mean forecast.
+- **Three honest limits, all documented in
+  [`?nimixForecast`](https://madsyair.github.io/nimix/reference/nimixForecast.md)
+  and all pinned by tests.** (1) The point forecast reverts to the
+  stationary mixture as `h` grows – measured, the median fell 1.8 to
+  -1.1 over twelve steps while the regime probabilities went 0.11/0.89
+  to 0.59/0.41, converging on the stationary 0.67/0.33. That is the
+  model working: an HMM forecasts the regime, and once the regime is
+  unknowable the best guess is the long-run average. (2) Accuracy hinges
+  on whether the regime persists: on a Markov-switching regression that
+  held its regime across the boundary the forecast beat the benchmark
+  fivefold (RMSE 0.50 vs 2.65); on one that switched at exactly the
+  first forecast step – a 5% event under the fitted persistence – it
+  lost (4.42 vs 2.45), while the interval still covered. A switch one
+  step ahead is unpredictable by construction. (3) With separated
+  regimes the predictive is **bimodal**, so its median sits in the
+  trough between the modes where the model puts almost no mass;
+  `$summary` is convenient, `$draws` is faithful, and `$regime` usually
+  answers the question actually being asked.
+
+### New: Markov-switching regression (`nimixReg(..., method = "hmm")`)
+
+- `nimixReg` gains `method = "hmm"`: the regression coefficients and
+  error variance switch with a latent first-order Markov regime –
+  Hamilton’s
+  1989. model, and the one classic mixture-of-regressions variant nimix
+        was missing. Give `K` regimes as for `"fixedk"`; the regime path
+        is marginalised out by a forward kernel and decoded afterwards,
+        so
+        [`viterbiPath()`](https://madsyair.github.io/nimix/reference/viterbiPath.md)
+        returns the most probable regime sequence. Measured on two
+        regimes with opposite slopes: intercepts 1.96/-1.96 against
+        2/-2, slopes 1.50/-1.39 against 1.5/-1.5, decoding at 0.98.
+- Unlike every other emission, this one’s density depends on `t` through
+  the design matrix rather than only through `y[t]`; the kernel carries
+  `X`. Note that **the rows are a time series** here – their order
+  matters, which is true nowhere else in `nimixReg`.
+- **No conjugate sampler here, by requirement.** The
+  Normal-Inverse-Gamma update conditions on the allocations, and the HMM
+  marginalises them away, so the coefficient full conditional is no
+  longer NIG and NIMBLE’s defaults are used instead. Installing the
+  conjugate sampler anyway would be exactly the silent-wrong-sampler bug
+  fixed for Student-t regression in 1.4.0; a test now asserts the
+  mechanism, not just the outcome.
+- `"studentt"` and `"normalgamma"` are refused for now. They are not
+  merely unimplemented: both `contains` the Gaussian regression spec and
+  so *inherit* its new HMM model code, which would have handed a user
+  asking for heavy tails a plain Gaussian fit with no error. The guard
+  matches on the exact class rather than `is()`, and a test pins that.
+- The usual caveat about the default error-variance prior applies with
+  force here: regimes with opposing slopes inflate the global OLS
+  residual variance that the prior is centred on (measured `s2` ~2.2x on
+  the benchmark above). `prior = list(s2Guess = )` is the escape hatch,
+  as for the other regression paths.
+
+### `sigmaGuess` reaches the multivariate regressions
+
+- `prior = list(sigmaGuess = )` now works for a multivariate response
+  too, closing a gap the v1.4.0 study left open: it had been added to
+  the clustering prior only. `"studentt"` and `"normalgamma"` inherit
+  it.
+- Measuring it first turned out to unify the two earlier findings rather
+  than repeat either. The **mechanism** is the univariate regression
+  one: the multivariate prior centres Sigma on
+  [`cov()`](https://rdrr.io/r/stats/cor.html) of the *global* OLS
+  residuals, which carry between-component variation as well as within.
+  On two components differing only in their coefficients, with isotropic
+  within-covariance, that prior was **22.4x** the truth in trace with
+  condition number **40** where the truth is a circle – wrong size *and*
+  wrong shape. The **severity** is the multivariate one: the fitted
+  covariance came back at ~1.5x with condition ~2, because `df0 = d + 2`
+  keeps the InverseWishart prior worth exactly one observation where the
+  univariate InvGamma is worth four. Same error, four times less weight,
+  and it shows.
+- The default is therefore untouched, as in the clustering case. Reach
+  for `sigmaGuess = s` when you know the residual scale is isotropic
+  with variance `s`, or pass a `d x d` matrix. Every number here is
+  anchored by a test.
+
+### HMM emissions complete: 13 families, and a silent-dispatch bug fixed
+
+- Four more emission families for `method = "hmm"`: **`sep`**, **`lep`**
+  (exponential-power, whose tail-shape `nu` proved *well* identified –
+  measured 1.30/3.48 against a truth of 1.2/3.5), the four-parameter
+  skew families **`fossep`** and **`jfst`**, and **`binomial`**
+  (regime-switching proportions with known `size`, via
+  `prior = list(size = )`; measured recovery prob 0.150/0.597 against
+  0.15/0.6, Viterbi 1.0). Measured decoding on simulated regimes:
+  Viterbi 0.993 (sep), 1.0 (lep, fossep, jfst). JFST’s `alpha` and
+  `theta` jointly govern skew and tails and are weakly identified, like
+  FSST’s df – documented and asserted loosely, per that precedent. This
+  completes the planned univariate set at **12 families**;
+  `normal-gamma` is excluded *by design*, since its augmented
+  representation is exactly what the marginalised forward kernel exists
+  to avoid, and direct `student-t` serves the heavy-tail case.
+- **Fixed: a silent wrong-model dispatch.** `NormalGammaUvSpec` inherits
+  from `NormalUvSpec`, so the engine’s `is()`-based family guard
+  accepted `distribution = "normal-gamma"` and S4 dispatch then fell
+  through to the inherited Gaussian HMM method: the user asked for heavy
+  tails and got a plain normal fit, with no error, ever since the HMM
+  engine existed. The guard now matches the exact class. Found by the
+  new *permanent* guard test the moment it moved onto `normal-gamma` –
+  after being relocated four times as the rollout advanced, it now sits
+  on a family that is excluded forever, so it can never go stale again.
+
+### Sparse adjacency: the graph is no longer the wall
+
+- `SpatialWeightSpec` now stores its graph as an **edge list**; the
+  dense matrix is derived on demand
+  ([`getAdjacency()`](https://madsyair.github.io/nimix/reference/getAdjacency.md))
+  and refused above 5000 nodes with a message pointing at the new
+  [`getEdges()`](https://madsyair.github.io/nimix/reference/getEdges.md).
+  The motivation was measured, not assumed: a 10 000-node space-time
+  graph (100 locations over 100 times – a *modest* spatio-temporal
+  problem) was OOM-killed during graph construction, before any model
+  existed, while the quantities the Potts engine actually needs came to
+  ~0.6 MB, some **2700x smaller** than the dense path’s transients.
+  After the refactor that same graph builds in a quarter of a second
+  within ~40 MB, and a 50 000-node graph in about a second.
+- **Nothing changes numerically.** The edge list is kept in exactly the
+  column-major order that `which(upper.tri(A) & A > 0)` produced on the
+  old dense path, so the engine’s structural constants – and therefore
+  fits under a fixed seed – are bit-identical; the test suite asserts
+  the equivalence for rook and queen grids and for space-time graphs.
+  `spatialWeights(A)` with a dense matrix still works, with the same
+  validation and the same error messages, and
+  [`getAdjacency()`](https://madsyair.github.io/nimix/reference/getAdjacency.md)
+  still returns the same named matrix for small graphs.
+- New sparse entry points: `spatialWeights(edges = , nNodes = )` builds
+  a graph without ever touching a dense matrix (edge order and
+  duplicates are normalised), and
+  [`getEdges()`](https://madsyair.github.io/nimix/reference/getEdges.md)
+  returns the canonical two-column form.
+  [`gridAdjacency()`](https://madsyair.github.io/nimix/reference/gridAdjacency.md)
+  and
+  [`spacetimeAdjacency()`](https://madsyair.github.io/nimix/reference/spacetimeAdjacency.md)
+  now build their edge lists directly.
+- One incidental find while chasing a memory gate:
+  [`duplicated()`](https://rdrr.io/r/base/duplicated.html) on a matrix
+  coerces every row to a character string – 55 MB of transient on a 28
+  000-edge graph, and twice that again inside validity. Edges are now
+  deduplicated on a numeric key `(i - 1) * n + j`, which is exact in a
+  double for any realistic `n`.
+- **The honest ledger.** The fit ceiling in a 4 GB container rose from
+  ~5000 to ~7000 nodes (57 s, allocation accuracy 0.999 at 7000); at 10
+  000 the fit still dies, but the binding constraint is now NIMBLE’s
+  per-node model memory (~1.6 GB at 5000, ~2.8 GB at 7000), not the
+  graph. More RAM now buys more nodes roughly linearly, which was not
+  true before.
+- **Breaking change:** `SpatialWeightSpec` objects serialised
+  (`saveRDS`) under earlier versions cannot be loaded; rebuild them from
+  their adjacency or edges. Code that only used the exported
+  constructors and accessors is unaffected.
+
+## nimix 1.4.0
+
+### New: spatio-temporal mixtures via `spacetimeAdjacency()`
+
+- `spacetimeAdjacency(W, nTime)` expands a spatial adjacency over time,
+  so that node (i, t) neighbours its spatial neighbours at t and itself
+  at t +/- 1. Pass the result to `nimixClust(..., method = "mrf")` and
+  the Potts prior couples allocations across space **and** time. There
+  is no new engine: the architectural study behind this found the
+  long-standing blocker – “undirected spatial dependence breaks the HMM
+  forward algorithm” – to be true but beside the point, since the MRF
+  engine never used the forward algorithm; it samples the allocations
+  directly. A space-time graph is simply another adjacency.
+- Measured on a 5x5 grid over 8 time points with deliberately
+  overlapping components: a plain mixture failed outright (allocation
+  accuracy 0.50, one component recovered), the spatial graph reached
+  0.95, and the space-time graph 0.995 – the temporal edges earn their
+  place rather than merely decorating.
+- One honest limit: the coupling is isotropic, because the Potts prior
+  reads the adjacency as unweighted, so a single `beta` governs spatial
+  and temporal edges alike. Misspecifying it is mild rather than fatal –
+  on regimes random across space but perfectly persistent in time,
+  imposing the spatial edges anyway cost 2.5 percentage points (0.900
+  against 0.925 for a temporal-only graph, which `spatial = FALSE`
+  builds).
+- For a pure time series, `method = "hmm"` remains the better tool: it
+  marginalises the state path and offers
+  [`viterbiPath()`](https://madsyair.github.io/nimix/reference/viterbiPath.md).
+  The two are complementary – `hmm` for time alone, a space-time Potts
+  when space matters too.
+
+### New: random slopes in the mixture of regressions
+
+- `nimixReg(y ~ x, data, random = ~ x | group)` adds a group-varying
+  slope for `x` on top of the random intercept (as in `lme4`’s `(x|g)`,
+  the intercept comes along); `random = ~ group` still gives the
+  intercept alone. A gate prototype tested the obvious worry – that
+  group-varying slopes would fight with component identification, since
+  components in a mixture of regressions are distinguished *by* their
+  slopes – and it did not materialise: even with group slope deviations
+  spanning -2.05 to 1.43 against a component separation of 4 (so one
+  group’s effective slope sat exactly between the two components), group
+  slopes recovered at `cor = 0.997` and component allocation at 95.3%
+  accuracy.
+- Both offsets use the sum-to-zero parameterisation and independent
+  priors. The gate measured why: free offsets produce two translation
+  ridges (`cor(beta1, mean(s)) = -0.929`,
+  `cor(beta0, mean(b)) = -0.953`) with min ESS 52, against 226 under the
+  constraint – and notably the free version received *conjugate*
+  samplers from NIMBLE and still lost, i.e. posterior geometry beats
+  sampler class. Independence was checked against correlated truth
+  (`rho = 0.92`): the independent model recovered both sets of offsets
+  (`cor = 0.97`) and the correlation itself reappeared empirically
+  (`cor(b_hat, s_hat) = 0.876`), so a correlated prior buys little at
+  moderate group sizes. With sparse groups it would matter more.
+- Semantics, as for the intercept: the component slopes absorb
+  `mean(s_g)` and the reported `sRE` are centred. `tauSlope` estimates
+  the spread of *your* groups’ slopes.
+- Random effects (intercept and slope) now also work with heavy-tailed
+  residuals: `distribution = "studentt"` accepts `random = ~ group` and
+  `random = ~ x | group`. This needed no sampler work, because that
+  family keeps NIMBLE’s default samplers (see the dispatch fix below) –
+  the offsets simply enter the linear predictor. Measured on simulated
+  t4 residuals: slopes -1.99/1.95 with
+  `cor(b_hat, centred truth) = 0.992` for the intercept, and -1.82/2.09
+  against a sum-to-zero prediction of -1.88/2.12 with `cor = 0.961` for
+  the slope.
+
+### The prior scale on the component error variance is now settable, and documented
+
+- `defaultPrior` centres the InvGamma prior on `s2` at the residual
+  variance of a **global** OLS fit, which ignores the mixture. For
+  separated components that measures the spread *between* components as
+  much as the spread within one, so `s2` is biased upward – and the bias
+  is largest exactly where mixtures are most useful. A study measured
+  it: with a prior/truth scale ratio near 60 the bias runs ~9x at 25
+  observations per component, 2.5x at 150, 1.2x at 1000, and 1.0x by
+  5000; against component separation at n = 150 it runs 1.0x for
+  overlapping components and 4.7x for well-separated ones. The prior’s
+  six nominal pseudo-observations carry a variance ~39x the truth, which
+  makes them worth roughly 236 real ones.
+- **The default does not change**, because the conservatism turned out
+  to be load-bearing rather than incidental: shrinking the prior scale
+  by 10x left the DPM’s K recovery untouched (modal K = 2 throughout)
+  but made an over-specified `fixedk` fit (K = 4 against 2 true
+  components) occupy three components instead of two. Wide components
+  make two suffice; narrow ones make the model want more. The bias is
+  also in the safe direction (wider predictive intervals), and the
+  coefficients are unaffected either way – which is why it stayed
+  invisible.
+- **What is new is the escape hatch.** `g` and `nu0` were overridable
+  but the scale was not, so a user who knew the within-component
+  variance had no way to say so. Now `prior = list(s2Guess = 0.3)` makes
+  0.3 the prior mean of `s2`; `distribution = "studentt"` inherits it,
+  and `s0` still sets the raw InvGamma scale for callers who think in
+  those terms. On the benchmark above (true `s2` = 0.25) that moved the
+  estimate from 0.78 (3.1x) to 0.36 (1.4x), slopes unchanged. The
+  override is deliberately absolute: a relative multiplier on the
+  automatic scale was considered and dropped, since “a tenth of a
+  quantity that measures the wrong thing” is a knob, not a statement a
+  user can defend.
+- **Where a tighter prior is safe** is documented and tested on both
+  sides: safe for the DPM and for `fixedk` with a correct `K` (where it
+  halved the error in `s2` at no cost), unsafe for `fixedk` with an
+  over-specified `K`, where a tenfold tighter prior occupied three
+  components against the default’s two.
+  [`?nimixReg`](https://madsyair.github.io/nimix/reference/nimixReg.md)
+  gains a “Reading the error variance” section with the numbers, the
+  boundary, and a two-stage empirical-Bayes recipe for callers who need
+  the scale right without external knowledge: the first fit’s allocation
+  is reliable even where its `s2` is not, so it can supply `s2Guess` for
+  a second fit. Every number is anchored by a test.
+
+### The multivariate prior ellipse: measured, kept, and now overridable
+
+- The multivariate analogue of the scale study above turned out to be a
+  different failure. `cov(data)` is the **global** covariance, so for
+  separated components it is inflated only *along* the direction that
+  separates them: measured on isotropic components separated along a
+  vector v, 37.6x along v against 0.9x across it – a prior ellipse with
+  condition number 42.8 where the truth is a circle. The prior has the
+  wrong **shape**, not merely the wrong size.
+- **And yet the default survives it**, unlike the univariate one: the
+  fitted covariance came back at 1.2x with condition 1.4. The reason is
+  a happy piece of existing design – `df0 = d + 2` makes the
+  InverseWishart prior worth exactly **one observation, for every d**,
+  where the univariate `nu0 = 3` is worth four. The multivariate bias is
+  therefore both milder and *constant in the dimension* (1.18x at 200
+  observations per component at any d), which is the opposite of what
+  one might expect. The univariate cannot copy the trick: its weight is
+  floored at two observations by the `nu0 > 2` requirement that keeps
+  empty components finite.
+- What the default cannot express is shape, so
+  `prior = list(sigmaGuess = s)` now sets the prior mean of a
+  component’s covariance directly – a positive scalar reads as
+  isotropic, or pass a `d x d` positive-definite matrix. On the
+  benchmark above `sigmaGuess = 0.25` restored the prior ellipse to a
+  circle (condition 42.8 to 1). The default is untouched; the numbers
+  here are anchored by tests.
+
+### Fixed: Student-t regression was using a Gaussian-error sampler (affects earlier versions)
+
+- `StudentTRegSpec` inherits from `NormalRegSpec`, so S4 dispatch handed
+  it `NormalRegSpec`’s `customizeSamplers`, which installs the exact
+  Normal-Inverse-Gamma Gibbs step on `(betaTilde, s2Tilde)`. That
+  conditional is exact only under a Gaussian likelihood: with
+  `distribution = "studentt"` it drew from the wrong conditional, with
+  no accept/reject to correct it, so the chain targeted the wrong
+  stationary distribution. It affected `method = "fixedk"` (and any
+  engine whose allocation node is `z`); the DPM path was never affected,
+  since its allocation node is `xi` and the method returned early.
+- The symptom was easy to miss: the slopes were barely touched
+  (symmetric errors), and only the scale moved. Measured against a
+  correct `RW_block` reference on the same model and data, `s2` was
+  biased ~17% at `df = 4` (0.99/1.08 vs 0.84/0.91, MCSE 0.003), and the
+  gap shrank to ~1% at `df = 30` – the bias vanishes as t approaches
+  Normal, which pins the mechanism on the likelihood mismatch rather
+  than on Monte Carlo error.
+- `StudentTRegSpec` now keeps NIMBLE’s default samplers, which are
+  correct here (verified: `s2` 0.84/0.91, matching the reference; ESS
+  580 for the coefficients and 1010 for the scale). `normal-reg` and
+  `normal-gamma-reg` are unaffected – they use their own, correct
+  samplers, and the test suite now asserts the dispatch for all three.
+
+### Fixed: random-effect priors are now data-scaled (affects 1.3.0)
+
+- The random-intercept prior shipped in 1.3.0 used fixed bounds
+  `dunif(0.01, 5)` on `tauRE`, which silently broke the offsets whenever
+  the response was on a large scale: with `y` multiplied by 1000 the
+  needed `tauRE` was 771 against a hard ceiling of 5, and
+  `cor(b_hat, truth)` collapsed from 0.992 to 0.091 – no error, no
+  warning, just wrong group effects. The bounds now scale with the data
+  like the rest of nimix’s priors (`tauRE` with `sd(y)`; `tauSlope` with
+  `sd(y)/sd(x)`), and inits scale with them. Verified across a 1000x
+  response rescale (`cor(b_hat, truth)` 0.991, `tauRE` 817 against a
+  realized spread of 772) and a 1000x predictor rescale (`tauSlope`
+  0.000274 against a realized 0.00029, where it previously pinned at its
+  0.01 floor).
+- The existing scale-equivariance lock never caught this because it
+  rescales *predictors* only. A response-rescaling test now closes that
+  gap, and a new `test-prior-scale-invariance.R` locks the invariant per
+  engine.
+- An audit of the remaining priors found no other violation: the
+  `fixedk`, `dpm` and `mrf` engines are *exactly* scale-equivariant in
+  the response (their conjugate samplers reproduce the draws on
+  data-scaled priors), and `hmm` agrees to within Monte Carlo error. The
+  one caveat worth knowing for `hmm` on large-scale data: its adaptive
+  random-walk samplers start from NIMBLE’s default proposal scale of 1
+  regardless of the data, so short chains show a transient adaptation
+  difference (0.08 at 2500 iterations, 0.001 against an MCSE of 0.0013
+  at 8000) – allow adequate burnin rather than reading a short chain as
+  bias.
+
 ## nimix 1.3.0
 
 This release adds a fourth inference engine – hidden-Markov mixtures for
@@ -16,16 +690,20 @@ below.
   and are baked in: (i) **sum-to-zero parameterisation** – with free
   `b`, the component intercepts and `mean(b)` form a pure translation
   ridge (`cor = -0.979`, min ESS 25 of 2500); the constraint restored
-  min ESS to 205-238 with recovery intact
-  (`cor(b_hat, centred truth) = 0.992`, `tau_hat` 0.83 vs 0.8), and the
-  reported `b` are centred with the component intercepts absorbing the
-  group mean. (ii) The **exact NIG Gibbs sampler gains a random-effect
-  offset**: the gate found NIMBLE’s conjugacy detection does handle
-  dynamic indexing in additive *scalar* form, but not the `inprod` form
-  production uses – so the P1 sampler now conditions on the current `b`.
-  The P1 scale-equivariance lock still holds with RE active (measured
-  slope discrepancy 0.0026 under a 1000x rescale), and the test suite
-  asserts it.
+  min ESS to 191-238 with recovery intact
+  (`cor(b_hat, centred truth) = 0.992`, `tau_hat` 0.83 against a
+  realized group spread of 0.77), and the reported `b` are centred with
+  the component intercepts absorbing the group mean. Note `tauRE`
+  estimates the spread of *your* groups: with few groups the realized
+  spread is itself variable (for 12 groups drawn at sigma = 0.8 it spans
+  roughly 0.5-1.1), so judge `tau_hat` against the groups you have, not
+  the population sigma you may have simulated from. (ii) The **exact NIG
+  Gibbs sampler gains a random-effect offset**: the gate found NIMBLE’s
+  conjugacy detection does handle dynamic indexing in additive *scalar*
+  form, but not the `inprod` form production uses – so the P1 sampler
+  now conditions on the current `b`. The P1 scale-equivariance lock
+  still holds with RE active (measured slope discrepancy 0.0026 under a
+  1000x rescale), and the test suite asserts it.
 - Scope: `method = "fixedk"` with `distribution = "normal"`, one
   grouping factor, random intercept. Random slopes and further families
   follow the gated plan; other combinations are refused with a pointed
@@ -65,17 +743,20 @@ below.
   needs continuous emissions. The gate showed nimix’s own kernels
   compile exactly inside the forward pass, which is the path for
   extending the engine to the other emission families – current scope is
-  `"normal"`, `"student-t"`, `"poisson"` (count regimes; lambda
-  2.94/14.98 on truth 3/15, Viterbi 0.993), and the neo-normal skewed
-  families `"msnburr"`, `"msnburr2a"`, `"gmsnburr"` (measured recovery
-  e.g. msnburr2a mu -3.01/2.93, gmsnburr mu -4.12/4.27, Viterbi
-  0.99-1.0) – all univariate; the t family targets heavy-tailed regimes
-  and recovered locations/transitions/decoding on simulated t4 regimes:
-  mu -2.01/2.12 vs truth -2/2, Viterbi accuracy 1.0. further families
-  follow the gated plan one at a time. New emission families implement
-  one density method and one forward kernel; the engine, FFBS, and
+  `"normal"`, `"student-t"`, `"poisson"` (count regimes), and the
+  neo-normal skewed families `"msnburr"`, `"msnburr2a"`, `"gmsnburr"`,
+  `"fssn"`, and `"fsst"` – eight families, all univariate. Measured
+  recovery on simulated regimes: FSSN mu -3.06/3.27 with skew alpha
+  0.63/1.54, and FSST (skewed *and* heavy-tailed at once) mu -4.05/4.18
+  with alpha 0.69/1.51, both decoding at Viterbi 1.0. FSST’s degrees of
+  freedom are deliberately not asserted tightly: nu is weakly identified
+  once the tails are moderate (this run gave 12.8/13.3 against a truth
+  of 6 while everything else landed), which is a property of the family
+  rather than a defect. New emission families implement one density
+  method (`.hmmEmisDens`) and one forward kernel; the engine, FFBS, and
   [`viterbiPath()`](https://madsyair.github.io/nimix/reference/viterbiPath.md)
-  are family-generic.
+  are family-generic, as the Poisson case (a non-location-scale
+  emission) confirms.
 
 - FFBS allocation decoding and Viterbi are now numerically hardened
   against emission underflow: for a thin-tailed family an outlying point

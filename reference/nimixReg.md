@@ -17,11 +17,11 @@ nimixReg(
   K = NULL,
   K_max = NULL,
   distribution = "normal",
-  method = c("dpm", "fixedk", "mrf"),
+  method = c("dpm", "fixedk", "mrf", "hmm"),
   gating = c("constant", "covariate"),
   prior = list(),
   mcmcControl = list(),
-  initMethod = c("kmeans", "single"),
+  initMethod = c("kmeans", "single", "spread"),
   seed = 1L,
   verbose = FALSE,
   spatialWeights = NULL
@@ -40,14 +40,18 @@ nimixReg(
 
 - random:
 
-  Optional one-sided formula naming a single grouping factor for a
-  random intercept, e.g. `random = ~ region`: the linear predictor of
-  every component gains a shared group offset \\b\_{g(i)} \sim N(0,
-  \tau^2)\\ with a sum-to-zero constraint (so the component intercepts
-  absorb the group mean, and the reported `b` are centred – the
-  parameterisation that mixes well; see NEWS for the measured
-  motivation). Currently supported with `method = "fixedk"` and
-  `distribution = "normal"` only.
+  Optional one-sided formula for group-level random effects.
+  `random = ~ region` gives a random intercept: every component's linear
+  predictor gains a shared group offset \\b\_{g(i)} \sim N(0, \tau^2)\\.
+  `random = ~ x | region` additionally gives a random slope for `x`
+  (which must be a term of `formula`); as in `lme4`'s `(x|g)`, the
+  intercept comes along. Both offsets use a sum-to-zero constraint – the
+  parameterisation that mixes well – so the component coefficients
+  absorb the group means and the reported `b` / `sRE` are centred. The
+  two offsets are given independent priors by default. `tauRE` and
+  `tauSlope` estimate the spread of *your* groups, which with few groups
+  is itself variable. Currently supported with `method = "fixedk"` and
+  `distribution = "normal"` or `"studentt"` (heavy-tailed residuals).
 
 - K:
 
@@ -63,15 +67,49 @@ nimixReg(
 
 - distribution:
 
-  Component distribution. Currently `"normal"` (Gaussian linear
-  component). Other GLM families are planned.
+  Component distribution. Gaussian (`"normal"`), heavy-tailed
+  (`"studentt"`, `"normalgamma"`), GLM (`"poisson"`, `"binomial"`), and
+  the nine neo-normal skew families (`"msnburr"`, `"msnburr2a"`,
+  `"gmsnburr"`, `"fssn"`, `"fsst"`, `"sep"`, `"lep"`, `"fossep"`,
+  `"jfst"`) are available; multivariate variants exist for the Gaussian
+  and heavy-tailed families.
+
+  **Non-Gaussian families cost effective sample size.** Only the
+  Gaussian regression has a conjugate coefficient update; every other
+  family (neo-normal, heavy-tailed, GLM) is sampled by NIMBLE's
+  defaults, which mix more slowly. Measured on `"fixedk"` with two
+  components, the Gaussian reaches about 10.7 ESS/s against 1.9 for
+  `"msnburr"` and 1.4 for the three-shape `"gmsnburr"` – roughly a 5–7x
+  factor. Budget proportionally more iterations for a skewed or
+  heavy-tailed fit; the three-shape families (gmsnburr, fsst, fossep,
+  jfst) are the slowest.
 
 - method:
 
-  Engine: `"dpm"` (default; estimate the number of components),
-  `"fixedk"` (fixed `K`), or `"mrf"` (spatially constrained: fixed `K`,
-  Potts smoothing of the labels on a `spatialWeights` graph; Gaussian
-  response, fixed `prior$beta`, default 0.8).
+  Fitting method: `"dpm"`, `"fixedk"`, `"mrf"`, or `"hmm"`.
+
+  `"hmm"` fits a **Markov-switching regression** (Hamilton 1989): the
+  coefficients and error variance switch with a latent first-order
+  Markov regime, so the rows of `data` are a *time series* rather than
+  an exchangeable sample – their order carries meaning here as it does
+  nowhere else in `nimixReg`. Give `K` for the number of regimes, as for
+  `"fixedk"`; the regime path is marginalised out of the likelihood and
+  decoded afterwards, so
+  [`viterbiPath`](https://madsyair.github.io/nimix/reference/viterbiPath.md)
+  gives the most probable regime sequence. Currently
+  `distribution = "normal"` (Gaussian) or `"poisson"` (log-link counts),
+  or `"studentt"` / `"normalgamma"` (heavy-tailed), or `"binomial"`
+  (logit-link proportions, with the number of trials in
+  `prior = list(size = )`).
+
+  **Budget more iterations than for `"fixedk"`.** Marginalising the
+  regime path rules out the conjugate Normal-Inverse-Gamma update, so
+  the coefficients are sampled by NIMBLE's defaults instead. Measured on
+  a two-regime series, that costs roughly four times the effective
+  sample size per second (ESS/s 2.3 against 8.9 for the conjugate
+  `"fixedk"` sampler), even though the marginalised chain has a shorter
+  wall time. A light run gives usably-decoded regimes but wide
+  coefficient intervals; raise `niter` until the intervals settle.
 
 - gating:
 
@@ -83,9 +121,12 @@ nimixReg(
 
   A named list of prior overrides passed to
   [`defaultPrior`](https://madsyair.github.io/nimix/reference/defaultPrior.md)
-  (e.g. `g` for the g-prior factor, `nu0` for the InvGamma shape) plus,
-  for the DPM, optional `concPrior = c(shape, rate)`, or, for the finite
-  mixture, `dirichletConc`.
+  (e.g. `g` for the g-prior factor, `nu0` for the InvGamma shape, and
+  `s2Guess` for its scale – see ‘Reading the error variance’ below; with
+  a multivariate response, `sigmaGuess` plays the same role for the
+  residual covariance) plus, for the DPM, optional
+  `concPrior = c(shape, rate)`, or, for the finite mixture,
+  `dirichletConc`.
 
 - mcmcControl:
 
@@ -127,6 +168,66 @@ A
 per-component regression coefficients and residual variances;
 `predict(fit, newdata)` returns the posterior predictive mean;
 `plot(fit, type = "fitted")` shows observed vs fitted.
+
+## Reading the error variance
+
+The prior on each component's error variance `s2` is centred on the
+residual variance of a *global* OLS fit, which ignores the mixture. For
+separated components that quantity measures the spread *between*
+components as much as the spread within one, so the prior is
+deliberately conservative and `s2` is biased upward. The bias is largest
+exactly where mixtures are most useful – well-separated components at
+moderate sample size – and it disappears as the per-component sample
+size grows: with a prior/truth scale ratio of about 60, the measured
+bias runs near 9x at 25 observations per component, 2.5x at 150, 1.2x at
+1000, and 1.0x by 5000. It is a bias in the safe direction (wider
+predictive intervals), and the coefficients are unaffected.
+
+The conservatism is load-bearing rather than incidental: it also
+regularises against splitting when `K` is over-specified, so it stays
+the default.
+
+If you know the within-component scale – from a pilot study, the
+literature, or domain knowledge – say so directly:
+`prior = list(s2Guess = 0.3)` makes 0.3 the prior mean of `s2`. (`s0`
+sets the raw InvGamma scale instead, for callers who think in those
+terms; give one or the other.) On a simulated benchmark with a true `s2`
+of 0.25 that moved the estimate from 0.78 (3.1x) to 0.36 (1.4x), slopes
+untouched. The override is deliberately absolute: a multiplier on the
+automatic scale would only ever mean "a fraction of a quantity that
+measures the wrong thing", which is a knob, not a statement.
+
+**Where a tighter prior is safe.** A tenfold tighter scale left the
+DPM's recovery of `K` untouched (modal `K` = 2 throughout a benchmark
+with two true components), and is likewise safe for `fixedk` when `K` is
+correct, where it halved the error in `s2`. It is **not** safe for
+`fixedk` with an over-specified `K`: on the same data with `K = 4`
+against two true components, the default occupied two components while a
+tenfold tighter prior occupied three. Wide components make two suffice;
+narrow ones make the model want more. If you are unsure whether `K` is
+over-specified, leave the default alone or use the DPM.
+
+**Recipe: two-stage empirical Bayes.** If you need the scale right and
+have no external knowledge, fit once with the default, read the
+within-component residual variance off that fit, and refit with it as
+`s2Guess`. It costs a second compile-and-run, which is why it is not the
+default, but it needs no guesswork:
+
+
+    fit1 <- nimixReg(y ~ x, df, K = 2, method = "fixedk")
+    fit1 <- relabel(fit1)
+    # residuals of each point under its own MAP component
+    z    <- binderPartition(fit1)$partition
+    cf   <- fit1@relabeled$summary
+    Xm   <- model.matrix(y ~ x, df)
+    res  <- df$y - rowSums(Xm * as.matrix(cf[z, c("(Intercept)", "x")]))
+    s2hat <- sum(res^2) / (nrow(df) - 2 * ncol(Xm))
+
+    fit2 <- nimixReg(y ~ x, df, K = 2, method = "fixedk",
+                     prior = list(s2Guess = s2hat))
+
+The first fit's *allocation* is reliable even where its `s2` is not –
+that is what makes the recipe work.
 
 ## References
 

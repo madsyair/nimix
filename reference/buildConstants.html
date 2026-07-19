@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">nimix</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.5.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -34,7 +34,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Assemble distribution-specific NIMBLE constants for the DPM engine</h1>
-      <small class="dont-index">Source: <a href="https://github.com/madsyair/nimix/blob/main/R/class-DistributionSpec.R" class="external-link"><code>R/class-DistributionSpec.R</code></a>, <a href="https://github.com/madsyair/nimix/blob/main/R/dist-fssn.R" class="external-link"><code>R/dist-fssn.R</code></a>, <a href="https://github.com/madsyair/nimix/blob/main/R/dist-fossep.R" class="external-link"><code>R/dist-fossep.R</code></a>, and 23 more</small>
+      <small class="dont-index">Source: <a href="https://github.com/madsyair/nimix/blob/main/R/class-DistributionSpec.R" class="external-link"><code>R/class-DistributionSpec.R</code></a>, <a href="https://github.com/madsyair/nimix/blob/main/R/dist-fssn.R" class="external-link"><code>R/dist-fssn.R</code></a>, <a href="https://github.com/madsyair/nimix/blob/main/R/dist-fossep.R" class="external-link"><code>R/dist-fossep.R</code></a>, and 24 more</small>
       <div class="d-none name"><code>buildConstants.Rd</code></div>
     </div>
 
@@ -95,6 +95,33 @@
 <span><span class="fu">buildConstants</span><span class="op">(</span><span class="va">spec</span>, <span class="va">prior</span>, <span class="va">n</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S4 method for class 'NormalGammaMvRegSpec'</span></span>
+<span><span class="fu">buildConstants</span><span class="op">(</span><span class="va">spec</span>, <span class="va">prior</span>, <span class="va">n</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'MSNBurrRegSpec'</span></span>
+<span><span class="fu">buildConstants</span><span class="op">(</span><span class="va">spec</span>, <span class="va">prior</span>, <span class="va">n</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'SEPRegSpec'</span></span>
+<span><span class="fu">buildConstants</span><span class="op">(</span><span class="va">spec</span>, <span class="va">prior</span>, <span class="va">n</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'MSNBurr2aRegSpec'</span></span>
+<span><span class="fu">buildConstants</span><span class="op">(</span><span class="va">spec</span>, <span class="va">prior</span>, <span class="va">n</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'FSSNRegSpec'</span></span>
+<span><span class="fu">buildConstants</span><span class="op">(</span><span class="va">spec</span>, <span class="va">prior</span>, <span class="va">n</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'GMSNBurrRegSpec'</span></span>
+<span><span class="fu">buildConstants</span><span class="op">(</span><span class="va">spec</span>, <span class="va">prior</span>, <span class="va">n</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'LEPRegSpec'</span></span>
+<span><span class="fu">buildConstants</span><span class="op">(</span><span class="va">spec</span>, <span class="va">prior</span>, <span class="va">n</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'FSSTRegSpec'</span></span>
+<span><span class="fu">buildConstants</span><span class="op">(</span><span class="va">spec</span>, <span class="va">prior</span>, <span class="va">n</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'FOSSEPRegSpec'</span></span>
+<span><span class="fu">buildConstants</span><span class="op">(</span><span class="va">spec</span>, <span class="va">prior</span>, <span class="va">n</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'JFSTRegSpec'</span></span>
 <span><span class="fu">buildConstants</span><span class="op">(</span><span class="va">spec</span>, <span class="va">prior</span>, <span class="va">n</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S4 method for class 'NormalMvSpec'</span></span>
@@ -186,6 +213,15 @@ number of predictors <code>p</code>, and the NIG hyperparameters).</p></li>
 <li><p><code>buildConstants(NormalMvRegSpec)</code>: Multivariate-regression constants.</p></li>
 <li><p><code>buildConstants(StudentTMvRegSpec)</code>: Multivariate-regression constants plus <code>df</code>.</p></li>
 <li><p><code>buildConstants(NormalGammaMvRegSpec)</code>: Multivariate-regression constants plus <code>df</code>.</p></li>
+<li><p><code>buildConstants(MSNBurrRegSpec)</code>: MSNBurr regression constants.</p></li>
+<li><p><code>buildConstants(SEPRegSpec)</code>: SEP regression constants.</p></li>
+<li><p><code>buildConstants(MSNBurr2aRegSpec)</code>: MSNBurr-IIa regression constants.</p></li>
+<li><p><code>buildConstants(FSSNRegSpec)</code>: FSSN regression constants.</p></li>
+<li><p><code>buildConstants(GMSNBurrRegSpec)</code>: GMSNBurr regression constants.</p></li>
+<li><p><code>buildConstants(LEPRegSpec)</code>: LEP regression constants.</p></li>
+<li><p><code>buildConstants(FSSTRegSpec)</code>: FSST regression constants.</p></li>
+<li><p><code>buildConstants(FOSSEPRegSpec)</code>: FOSSEP regression constants.</p></li>
+<li><p><code>buildConstants(JFSTRegSpec)</code>: JFST regression constants.</p></li>
 <li><p><code>buildConstants(NormalMvSpec)</code>: Multivariate Normal-Inverse-Wishart constants
 (includes the dimension <code>d</code>, mean vector <code>mu0</code> and scale matrix
 <code>S0</code>).</p></li>

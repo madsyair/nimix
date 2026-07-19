@@ -11,7 +11,7 @@ must implement this."><meta property="og:image" content="https://madsyair.github
 
     <a class="navbar-brand me-2" href="../index.html">nimix</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.5.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -38,7 +38,7 @@ must implement this."><meta property="og:image" content="https://madsyair.github
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Validate component parameters or a prior specification</h1>
-      <small class="dont-index">Source: <a href="https://github.com/madsyair/nimix/blob/main/R/class-DistributionSpec.R" class="external-link"><code>R/class-DistributionSpec.R</code></a>, <a href="https://github.com/madsyair/nimix/blob/main/R/dist-fssn.R" class="external-link"><code>R/dist-fssn.R</code></a>, <a href="https://github.com/madsyair/nimix/blob/main/R/dist-fossep.R" class="external-link"><code>R/dist-fossep.R</code></a>, and 22 more</small>
+      <small class="dont-index">Source: <a href="https://github.com/madsyair/nimix/blob/main/R/class-DistributionSpec.R" class="external-link"><code>R/class-DistributionSpec.R</code></a>, <a href="https://github.com/madsyair/nimix/blob/main/R/dist-fssn.R" class="external-link"><code>R/dist-fssn.R</code></a>, <a href="https://github.com/madsyair/nimix/blob/main/R/dist-fossep.R" class="external-link"><code>R/dist-fossep.R</code></a>, and 23 more</small>
       <div class="d-none name"><code>validateParams.Rd</code></div>
     </div>
 
@@ -89,6 +89,33 @@ must implement this.</p>
 <span><span class="fu">validateParams</span><span class="op">(</span><span class="va">spec</span>, <span class="va">params</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S4 method for class 'NormalMvRegSpec'</span></span>
+<span><span class="fu">validateParams</span><span class="op">(</span><span class="va">spec</span>, <span class="va">params</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'MSNBurrRegSpec'</span></span>
+<span><span class="fu">validateParams</span><span class="op">(</span><span class="va">spec</span>, <span class="va">params</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'SEPRegSpec'</span></span>
+<span><span class="fu">validateParams</span><span class="op">(</span><span class="va">spec</span>, <span class="va">params</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'MSNBurr2aRegSpec'</span></span>
+<span><span class="fu">validateParams</span><span class="op">(</span><span class="va">spec</span>, <span class="va">params</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'FSSNRegSpec'</span></span>
+<span><span class="fu">validateParams</span><span class="op">(</span><span class="va">spec</span>, <span class="va">params</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'GMSNBurrRegSpec'</span></span>
+<span><span class="fu">validateParams</span><span class="op">(</span><span class="va">spec</span>, <span class="va">params</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'LEPRegSpec'</span></span>
+<span><span class="fu">validateParams</span><span class="op">(</span><span class="va">spec</span>, <span class="va">params</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'FSSTRegSpec'</span></span>
+<span><span class="fu">validateParams</span><span class="op">(</span><span class="va">spec</span>, <span class="va">params</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'FOSSEPRegSpec'</span></span>
+<span><span class="fu">validateParams</span><span class="op">(</span><span class="va">spec</span>, <span class="va">params</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'JFSTRegSpec'</span></span>
 <span><span class="fu">validateParams</span><span class="op">(</span><span class="va">spec</span>, <span class="va">params</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S4 method for class 'NormalMvSpec'</span></span>
@@ -171,6 +198,15 @@ and enforce \(\dim(b_0) = \dim(B_0) = p\) and \(nu_0 &gt; 2\).</p></li>
 <li><p><code>validateParams(MSNBurrUvSpec)</code>: MSNBurr hyperparameter checks.</p></li>
 <li><p><code>validateParams(MSNBurr2aUvSpec)</code>: MSNBurr-IIa hyperparameter checks.</p></li>
 <li><p><code>validateParams(NormalMvRegSpec)</code>: Validate the multivariate-regression prior.</p></li>
+<li><p><code>validateParams(MSNBurrRegSpec)</code>: MSNBurr regression prior validation.</p></li>
+<li><p><code>validateParams(SEPRegSpec)</code>: SEP regression validation.</p></li>
+<li><p><code>validateParams(MSNBurr2aRegSpec)</code>: MSNBurr-IIa regression validation.</p></li>
+<li><p><code>validateParams(FSSNRegSpec)</code>: FSSN regression validation.</p></li>
+<li><p><code>validateParams(GMSNBurrRegSpec)</code>: GMSNBurr regression validation.</p></li>
+<li><p><code>validateParams(LEPRegSpec)</code>: LEP regression validation.</p></li>
+<li><p><code>validateParams(FSSTRegSpec)</code>: FSST regression validation.</p></li>
+<li><p><code>validateParams(FOSSEPRegSpec)</code>: FOSSEP regression validation.</p></li>
+<li><p><code>validateParams(JFSTRegSpec)</code>: JFST regression validation.</p></li>
 <li><p><code>validateParams(NormalMvSpec)</code>: Validate a Normal-Inverse-Wishart prior list and
   enforce the dimension invariant \(\dim(\mu_0) = \dim(S_0) = d\) and
 \(df_0 &gt; d + 1\) (.b encapsulation,

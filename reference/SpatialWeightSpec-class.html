@@ -17,7 +17,7 @@ field on this graph rather than being independent across observations
 
     <a class="navbar-brand me-2" href="../index.html">nimix</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.5.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -87,15 +87,27 @@ edges, degree range, and weight type.</p></li>
     <h2 id="slots">Slots<a class="anchor" aria-label="anchor" href="#slots"></a></h2>
 
 
-<dl><dt><code>adjacency</code></dt>
-<dd><p>Numeric matrix (n x n): symmetric, zero diagonal,
-non-negative entries. Entry (i, j) &gt; 0 means regions i and j are
-neighbours (with that weight).</p></dd>
+<dl><dt><code>edges</code></dt>
+<dd><p>Integer matrix, one row per undirected edge with endpoints
+<code>i &lt; j</code>, in canonical column-major order (see
+<code><a href="getEdges.html">getEdges</a></code>). This is the canonical representation since
+v1.5.0; the dense matrix is derived on demand and refused for large
+graphs.</p></dd>
+
+
+<dt><code>edgeWeights</code></dt>
+<dd><p>Positive numeric weights, one per edge (1 for binary
+contiguity).</p></dd>
+
+
+<dt><code>nNodes</code></dt>
+<dd><p>Integer number of regions.</p></dd>
 
 
 <dt><code>regionIds</code></dt>
-<dd><p>Character vector of length n naming the regions (defaults
-to row names of the matrix, or <code>"region1"</code>, ... when absent).</p></dd>
+<dd><p>Character vector of length <code>nNodes</code> naming the
+regions (defaults to row names of the matrix, or <code>"region1"</code>, ...
+when absent).</p></dd>
 
 
 </dl></div>

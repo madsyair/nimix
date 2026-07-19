@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">nimix</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.5.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -287,6 +287,78 @@
         </dt>
         <dd>Construct a multivariate-response Normal-Gamma regression spec</dd>
       </dl></div><div class="section level2">
+      <h2 id="neo-normal-regression-component-specs">Neo-normal regression component specs<a class="anchor" aria-label="anchor" href="#neo-normal-regression-component-specs"></a></h2>
+
+      <div class="section-desc"><p>Skew and heavy-tailed mixture-of-regressions: each component’s location is a linear predictor, with per-component scale and shape. Available across the fixed-K, DPM, and HMM (Markov-switching) engines, with random effects under fixed-K and DPM.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="MSNBurrRegSpec-class.html">MSNBurrRegSpec()</a></code>
+
+        </dt>
+        <dd>MSNBurr regression specification</dd>
+
+        <dt>
+
+          <code><a href="MSNBurr2aRegSpec-class.html">MSNBurr2aRegSpec()</a></code>
+
+        </dt>
+        <dd>MSNBurr-IIa regression specification</dd>
+
+        <dt>
+
+          <code><a href="GMSNBurrRegSpec-class.html">GMSNBurrRegSpec()</a></code>
+
+        </dt>
+        <dd>GMSNBurr regression specification</dd>
+
+        <dt>
+
+          <code><a href="FSSNRegSpec-class.html">FSSNRegSpec()</a></code>
+
+        </dt>
+        <dd>FSSN regression specification</dd>
+
+        <dt>
+
+          <code><a href="FSSTRegSpec-class.html">FSSTRegSpec()</a></code>
+
+        </dt>
+        <dd>FSST regression specification</dd>
+
+        <dt>
+
+          <code><a href="SEPRegSpec-class.html">SEPRegSpec()</a></code>
+
+        </dt>
+        <dd>SEP regression specification</dd>
+
+        <dt>
+
+          <code><a href="LEPRegSpec-class.html">LEPRegSpec()</a></code>
+
+        </dt>
+        <dd>LEP regression specification</dd>
+
+        <dt>
+
+          <code><a href="FOSSEPRegSpec-class.html">FOSSEPRegSpec()</a></code>
+
+        </dt>
+        <dd>FOSSEP regression specification</dd>
+
+        <dt>
+
+          <code><a href="JFSTRegSpec-class.html">JFSTRegSpec()</a></code>
+
+        </dt>
+        <dd>JFST regression specification</dd>
+      </dl></div><div class="section level2">
       <h2 id="extension-api-generics-">Extension API (generics)<a class="anchor" aria-label="anchor" href="#extension-api-generics-"></a></h2>
 
       <div class="section-desc"><p>The public S4 contract a component spec implements so a new family plugs into every engine without engine edits.</p></div>
@@ -298,7 +370,7 @@
 
       <dl><dt>
 
-          <code><a href="buildModelCode.html">buildModelCode()</a></code>
+          <code><a href="buildModelCode.html">buildModelCode()</a></code> <code><a href="buildModelCode.html">.glmRegREPriorLines()</a></code>
 
         </dt>
         <dd>Build the NIMBLE model code for a (distribution, engine) pair</dd>
@@ -361,6 +433,34 @@
 
         <dt>
 
+          <code><a href="nimixForecast.html">nimixForecast()</a></code>
+
+        </dt>
+        <dd>Forecast ahead from a regime-switching (HMM) fit</dd>
+
+        <dt>
+
+          <code><a href="posteriorLinpred.html">posteriorLinpred()</a></code>
+
+        </dt>
+        <dd>Per-component linear predictors</dd>
+
+        <dt>
+
+          <code><a href="posteriorEpred.html">posteriorEpred()</a></code>
+
+        </dt>
+        <dd>Expected value of the posterior predictive</dd>
+
+        <dt>
+
+          <code><a href="posteriorPredictive.html">posteriorPredictive()</a></code>
+
+        </dt>
+        <dd>Draws from the posterior predictive distribution</dd>
+
+        <dt>
+
           <code><a href="isRegressionSpec.html">isRegressionSpec()</a></code>
 
         </dt>
@@ -372,6 +472,13 @@
 
         </dt>
         <dd>Inverse link for a regression component</dd>
+
+        <dt>
+
+          <code><a href="responseRng.html">responseRng()</a></code>
+
+        </dt>
+        <dd>Draw a response given linear predictors and error scale</dd>
       </dl></div><div class="section level2">
       <h2 id="s-class-definitions">S4 class definitions<a class="anchor" aria-label="anchor" href="#s-class-definitions"></a></h2>
 
@@ -782,6 +889,13 @@
 
         <dt>
 
+          <code><a href="spacetimeAdjacency.html">spacetimeAdjacency()</a></code>
+
+        </dt>
+        <dd>Build a space-time adjacency for spatio-temporal mixtures</dd>
+
+        <dt>
+
           <code><a href="nRegions.html">nRegions()</a></code>
 
         </dt>
@@ -955,6 +1069,20 @@
 
         </dt>
         <dd>Clear the compiled-model cache</dd>
+
+        <dt>
+
+          <code><a href="dmvt_nimix.html">dmvt_nimix()</a></code> <code><a href="dmvt_nimix.html">rmvt_nimix()</a></code>
+
+        </dt>
+        <dd>Multivariate Student-t log density (nimbleFunction)</dd>
+
+        <dt>
+
+          <code><a href="getEdges.html">getEdges()</a></code>
+
+        </dt>
+        <dd>Edge list of a spatial weight structure</dd>
       </dl></div><div class="section level2">
       <h2 id="datasets">Datasets<a class="anchor" aria-label="anchor" href="#datasets"></a></h2>
 

@@ -25,7 +25,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">nimix</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.5.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -123,9 +123,19 @@ Markov prior binds to.</p>
 <p><code>K</code> is the number of states (fixed, like
 <code>method = "fixedk"</code>); current emission families are
 univariate Gaussian, Student-t (heavy-tailed regimes such as financial
-returns), Poisson (regime-switching counts), and the neo-normal skewed
-families MSNBurr, MSNBurr-IIa and GMSNBurr, with further families
-following the gated roadmap.</p>
+returns), Poisson (regime-switching counts), Binomial (regime-switching
+proportions with a known number of trials, via
+<code>prior = list(size = )</code>; measured recovery 0.150/0.597
+against a truth of 0.15/0.6 at Viterbi 1.0), and nine neo-normal / skew
+families: MSNBurr, MSNBurr-IIa, GMSNBurr, FSSN, FSST, SEP, LEP, FOSSEP,
+and JFST – thirteen in all, completing the planned univariate set. FSST
+and JFST give regimes that are skewed <em>and</em> heavy-tailed at once,
+which is often what asset returns actually look like; SEP/LEP’s
+tail-shape parameter is well identified in practice (measured 1.30/3.48
+against a truth of 1.2/3.5). <code>normal-gamma</code> is excluded by
+design – its augmented representation is exactly what the marginalised
+forward kernel avoids, and direct Student-t serves the heavy-tail
+case.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nimixClust.html">nimixClust</a></span><span class="op">(</span><span class="va">y</span>, K <span class="op">=</span> <span class="fl">2</span>, method <span class="op">=</span> <span class="st">"hmm"</span>,</span>
 <span>                  mcmcControl <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>niter <span class="op">=</span> <span class="fl">4000</span>, nburnin <span class="op">=</span> <span class="fl">1500</span>,</span>

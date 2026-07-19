@@ -20,6 +20,9 @@ customizeSamplers(spec, conf, model, ...)
 # S4 method for class 'NormalRegSpec'
 customizeSamplers(spec, conf, model, ...)
 
+# S4 method for class 'StudentTRegSpec'
+customizeSamplers(spec, conf, model, ...)
+
 # S4 method for class 'NormalGammaRegSpec'
 customizeSamplers(spec, conf, model, ...)
 
@@ -103,6 +106,10 @@ The (possibly modified) `conf`, invisibly.
 - `customizeSamplers(NormalRegSpec)`: Replace RW samplers on `betaTilde`
   and `s2Tilde` with the exact Normal-Inverse-Gamma conditional (FixedK
   path only; the DPM path already receives the conjugate CRP wrapper).
+
+- `customizeSamplers(StudentTRegSpec)`: Student-t regression keeps
+  NIMBLE's default samplers: the inherited exact NIG Gibbs step is only
+  valid for Gaussian errors.
 
 - `customizeSamplers(NormalGammaRegSpec)`: Slice-sample the latent
   precision multipliers.

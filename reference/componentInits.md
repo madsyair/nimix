@@ -52,6 +52,33 @@ componentInits(spec, prior, data, count, initMethod = "kmeans", ...)
 # S4 method for class 'NormalGammaMvRegSpec'
 componentInits(spec, prior, data, count, initMethod = "kmeans", ...)
 
+# S4 method for class 'MSNBurrRegSpec'
+componentInits(spec, prior, data, count, initMethod = "kmeans", ...)
+
+# S4 method for class 'SEPRegSpec'
+componentInits(spec, prior, data, count, initMethod = "kmeans", ...)
+
+# S4 method for class 'MSNBurr2aRegSpec'
+componentInits(spec, prior, data, count, initMethod = "kmeans", ...)
+
+# S4 method for class 'FSSNRegSpec'
+componentInits(spec, prior, data, count, initMethod = "kmeans", ...)
+
+# S4 method for class 'GMSNBurrRegSpec'
+componentInits(spec, prior, data, count, initMethod = "kmeans", ...)
+
+# S4 method for class 'LEPRegSpec'
+componentInits(spec, prior, data, count, initMethod = "kmeans", ...)
+
+# S4 method for class 'FSSTRegSpec'
+componentInits(spec, prior, data, count, initMethod = "kmeans", ...)
+
+# S4 method for class 'FOSSEPRegSpec'
+componentInits(spec, prior, data, count, initMethod = "kmeans", ...)
+
+# S4 method for class 'JFSTRegSpec'
+componentInits(spec, prior, data, count, initMethod = "kmeans", ...)
+
 # S4 method for class 'NormalMvSpec'
 componentInits(spec, prior, data, count, initMethod = "kmeans", ...)
 
@@ -114,7 +141,11 @@ componentInits(spec, prior, data, count, initMethod = "kmeans", ...)
 
 - initMethod:
 
-  `"kmeans"` (default) or `"single"`.
+  `"kmeans"` (default), `"single"`, or `"spread"`. `"spread"` is
+  univariate-only and seeds clusters by bands of `|y - median(y)|`,
+  separating components by scale rather than location; it helps the one
+  case k-means seeds poorly (heterogeneous variance with overlapping
+  means) and falls back to k-means for a multivariate response.
 
 - ...:
 
@@ -166,6 +197,25 @@ list of component-parameter initial values).
 
 - `componentInits(NormalGammaMvRegSpec)`: Global multivariate-OLS start
   plus unit `omega`.
+
+- `componentInits(MSNBurrRegSpec)`: MSNBurr regression initial values.
+
+- `componentInits(SEPRegSpec)`: SEP regression initial values.
+
+- `componentInits(MSNBurr2aRegSpec)`: MSNBurr-IIa regression initial
+  values.
+
+- `componentInits(FSSNRegSpec)`: FSSN regression initial values.
+
+- `componentInits(GMSNBurrRegSpec)`: GMSNBurr regression initial values.
+
+- `componentInits(LEPRegSpec)`: LEP regression initial values.
+
+- `componentInits(FSSTRegSpec)`: FSST regression initial values.
+
+- `componentInits(FOSSEPRegSpec)`: FOSSEP regression initial values.
+
+- `componentInits(JFSTRegSpec)`: JFST regression initial values.
 
 - `componentInits(NormalMvSpec)`: k-means dispersed start for the
   multivariate DPM.

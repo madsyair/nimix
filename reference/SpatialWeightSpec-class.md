@@ -35,16 +35,26 @@ component distribution.
 
 ## Slots
 
-- `adjacency`:
+- `edges`:
 
-  Numeric matrix (n x n): symmetric, zero diagonal, non-negative
-  entries. Entry (i, j) \> 0 means regions i and j are neighbours (with
-  that weight).
+  Integer matrix, one row per undirected edge with endpoints `i < j`, in
+  canonical column-major order (see
+  [`getEdges`](https://madsyair.github.io/nimix/reference/getEdges.md)).
+  This is the canonical representation since v1.5.0; the dense matrix is
+  derived on demand and refused for large graphs.
+
+- `edgeWeights`:
+
+  Positive numeric weights, one per edge (1 for binary contiguity).
+
+- `nNodes`:
+
+  Integer number of regions.
 
 - `regionIds`:
 
-  Character vector of length n naming the regions (defaults to row names
-  of the matrix, or `"region1"`, ... when absent).
+  Character vector of length `nNodes` naming the regions (defaults to
+  row names of the matrix, or `"region1"`, ... when absent).
 
 ## References
 

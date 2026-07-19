@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">nimix</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.5.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -54,7 +54,8 @@
 <span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span></span>
 <span>  <span class="va">x</span>,</span>
 <span>  <span class="va">y</span>,</span>
-<span>  type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"K"</span>, <span class="st">"trace_raw"</span>, <span class="st">"trace_relabeled"</span>, <span class="st">"density"</span>, <span class="st">"cluster"</span>, <span class="st">"fitted"</span><span class="op">)</span>,</span>
+<span>  type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"K"</span>, <span class="st">"trace_raw"</span>, <span class="st">"trace_relabeled"</span>, <span class="st">"density"</span>, <span class="st">"cluster"</span>, <span class="st">"fitted"</span>, <span class="st">"series"</span>,</span>
+<span>    <span class="st">"regime"</span>, <span class="st">"forecast"</span><span class="op">)</span>,</span>
 <span>  <span class="va">...</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -71,7 +72,9 @@
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>
-<dd><p>Passed to <code><a href="relabel.html">relabel</a></code> when relabelling is triggered.</p></dd>
+<dd><p>Passed to the underlying plot. For <code>type = "forecast"</code>,
+also <code>h</code>, <code>newdata</code>, <code>lags</code>, <code>draws</code> and
+<code>level</code>, as in <code><a href="nimixForecast.html">nimixForecast</a></code>.</p></dd>
 
 
 <dt id="arg-x">x<a class="anchor" aria-label="anchor" href="#arg-x"></a></dt>
@@ -83,13 +86,22 @@
 
 
 <dt id="arg-type">type<a class="anchor" aria-label="anchor" href="#arg-type"></a></dt>
-<dd><p>One of <code>"K"</code> (posterior of #clusters), <code>"trace_raw"</code>
-(raw cluster-parameter traces; zig-zags reveal label switching),
-<code>"trace_relabeled"</code> (traces after relabelling), <code>"density"</code>
-(univariate clustering only: data histogram with posterior predictive
-overlay), <code>"cluster"</code> (multivariate clustering, \(d \ge 2\): scatter
-coloured by MAP cluster), or <code>"fitted"</code> (regression only: observed
-response vs posterior predictive mean).</p></dd>
+<dd><p>Which view to draw. <code>"K"</code>, <code>"trace_raw"</code>,
+  <code>"trace_relabeled"</code>, <code>"density"</code>, <code>"cluster"</code> and
+  <code>"fitted"</code> are the mixture views.</p>
+<p><code>"series"</code>, <code>"regime"</code> and <code>"forecast"</code> are the
+  <strong>time-series views</strong>, for <code>method = "hmm"</code> only. A density
+  plot of a regime-switching series is the wrong picture twice over: it
+  discards the axis the model is about, and it shows a bimodal smear where
+  the story is "the series sat in one regime, then moved".
+  <code>"series"</code> draws the data with its decoded regimes shaded as
+  blocks (blocks, because that is what the Markov chain models);
+  <code>"regime"</code> draws the smoothed \(P(\mathrm{regime} \mid
+  \mathrm{data})\) through time, which is the honest companion to the
+  Viterbi path – where the bands are mixed, the decode is a guess; and
+  <code>"forecast"</code> draws the predictive fan past the end of the series
+  (see <code><a href="nimixForecast.html">nimixForecast</a></code> for what that fan can and cannot
+  mean).</p></dd>
 
 
 <dt id="arg-newdata">newdata<a class="anchor" aria-label="anchor" href="#arg-newdata"></a></dt>

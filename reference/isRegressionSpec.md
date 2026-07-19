@@ -22,6 +22,33 @@ isRegressionSpec(spec, ...)
 
 # S4 method for class 'NormalMvRegSpec'
 isRegressionSpec(spec, ...)
+
+# S4 method for class 'MSNBurrRegSpec'
+isRegressionSpec(spec)
+
+# S4 method for class 'SEPRegSpec'
+isRegressionSpec(spec)
+
+# S4 method for class 'MSNBurr2aRegSpec'
+isRegressionSpec(spec)
+
+# S4 method for class 'FSSNRegSpec'
+isRegressionSpec(spec)
+
+# S4 method for class 'GMSNBurrRegSpec'
+isRegressionSpec(spec)
+
+# S4 method for class 'LEPRegSpec'
+isRegressionSpec(spec)
+
+# S4 method for class 'FSSTRegSpec'
+isRegressionSpec(spec)
+
+# S4 method for class 'FOSSEPRegSpec'
+isRegressionSpec(spec)
+
+# S4 method for class 'JFSTRegSpec'
+isRegressionSpec(spec)
 ```
 
 ## Arguments
@@ -54,3 +81,25 @@ Logical scalar.
 
 - `isRegressionSpec(NormalMvRegSpec)`: Multivariate-response regression
   spec.
+
+- `isRegressionSpec(MSNBurrRegSpec)`: MSNBurr regression is a regression
+  spec.
+
+- `isRegressionSpec(SEPRegSpec)`: SEP regression is a regression spec.
+
+- `isRegressionSpec(MSNBurr2aRegSpec)`: MSNBurr-IIa regression is a
+  regression spec.
+
+- `isRegressionSpec(FSSNRegSpec)`: FSSN regression is a regression spec.
+
+- `isRegressionSpec(GMSNBurrRegSpec)`: GMSNBurr regression is a
+  regression spec.
+
+- `isRegressionSpec(LEPRegSpec)`: LEP regression is a regression spec.
+
+- `isRegressionSpec(FSSTRegSpec)`: FSST regression is a regression spec.
+
+- `isRegressionSpec(FOSSEPRegSpec)`: FOSSEP regression is a regression
+  spec.
+
+- `isRegressionSpec(JFSTRegSpec)`: JFST regression is a regression spec.

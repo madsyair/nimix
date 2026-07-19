@@ -13,7 +13,7 @@ engine or the spec base class."><meta property="og:image" content="https://madsy
 
     <a class="navbar-brand me-2" href="../index.html">nimix</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.5.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -40,7 +40,7 @@ engine or the spec base class."><meta property="og:image" content="https://madsy
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Build the NIMBLE model code for a (distribution, engine) pair</h1>
-      <small class="dont-index">Source: <a href="https://github.com/madsyair/nimix/blob/main/R/class-DistributionSpec.R" class="external-link"><code>R/class-DistributionSpec.R</code></a>, <a href="https://github.com/madsyair/nimix/blob/main/R/dist-fssn.R" class="external-link"><code>R/dist-fssn.R</code></a>, <a href="https://github.com/madsyair/nimix/blob/main/R/dist-fossep.R" class="external-link"><code>R/dist-fossep.R</code></a>, and 26 more</small>
+      <small class="dont-index">Source: <a href="https://github.com/madsyair/nimix/blob/main/R/class-DistributionSpec.R" class="external-link"><code>R/class-DistributionSpec.R</code></a>, <a href="https://github.com/madsyair/nimix/blob/main/R/dist-fssn.R" class="external-link"><code>R/dist-fssn.R</code></a>, <a href="https://github.com/madsyair/nimix/blob/main/R/dist-fossep.R" class="external-link"><code>R/dist-fossep.R</code></a>, and 27 more</small>
       <div class="d-none name"><code>buildModelCode.Rd</code></div>
     </div>
 
@@ -76,14 +76,16 @@ engine or the spec base class.</p>
 <span><span class="co"># S4 method for class 'PoissonRegSpec,DPMEngine'</span></span>
 <span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
+<span><span class="fu">.glmRegREPriorLines</span><span class="op">(</span>reSlope <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span></span>
 <span><span class="co"># S4 method for class 'PoissonRegSpec,FixedKEngine'</span></span>
-<span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
+<span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, re <span class="op">=</span> <span class="cn">FALSE</span>, reSlope <span class="op">=</span> <span class="cn">FALSE</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S4 method for class 'BinomialRegSpec,DPMEngine'</span></span>
 <span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S4 method for class 'BinomialRegSpec,FixedKEngine'</span></span>
-<span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
+<span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, re <span class="op">=</span> <span class="cn">FALSE</span>, reSlope <span class="op">=</span> <span class="cn">FALSE</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S4 method for class 'GMSNBurrUvSpec,FixedKEngine'</span></span>
 <span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
@@ -98,7 +100,7 @@ engine or the spec base class.</p>
 <span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S4 method for class 'StudentTRegSpec,FixedKEngine'</span></span>
-<span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
+<span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, re <span class="op">=</span> <span class="cn">FALSE</span>, reSlope <span class="op">=</span> <span class="cn">FALSE</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S4 method for class 'NormalGammaRegSpec,DPMEngine'</span></span>
 <span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
@@ -153,6 +155,33 @@ engine or the spec base class.</p>
 <span></span>
 <span><span class="co"># S4 method for class 'NormalGammaMvRegSpec,FixedKEngine'</span></span>
 <span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'MSNBurrRegSpec,FixedKEngine'</span></span>
+<span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, re <span class="op">=</span> <span class="cn">FALSE</span>, reSlope <span class="op">=</span> <span class="cn">FALSE</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'SEPRegSpec,FixedKEngine'</span></span>
+<span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, re <span class="op">=</span> <span class="cn">FALSE</span>, reSlope <span class="op">=</span> <span class="cn">FALSE</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'MSNBurr2aRegSpec,FixedKEngine'</span></span>
+<span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, re <span class="op">=</span> <span class="cn">FALSE</span>, reSlope <span class="op">=</span> <span class="cn">FALSE</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'FSSNRegSpec,FixedKEngine'</span></span>
+<span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, re <span class="op">=</span> <span class="cn">FALSE</span>, reSlope <span class="op">=</span> <span class="cn">FALSE</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'GMSNBurrRegSpec,FixedKEngine'</span></span>
+<span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, re <span class="op">=</span> <span class="cn">FALSE</span>, reSlope <span class="op">=</span> <span class="cn">FALSE</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'LEPRegSpec,FixedKEngine'</span></span>
+<span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, re <span class="op">=</span> <span class="cn">FALSE</span>, reSlope <span class="op">=</span> <span class="cn">FALSE</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'FSSTRegSpec,FixedKEngine'</span></span>
+<span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, re <span class="op">=</span> <span class="cn">FALSE</span>, reSlope <span class="op">=</span> <span class="cn">FALSE</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'FOSSEPRegSpec,FixedKEngine'</span></span>
+<span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, re <span class="op">=</span> <span class="cn">FALSE</span>, reSlope <span class="op">=</span> <span class="cn">FALSE</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'JFSTRegSpec,FixedKEngine'</span></span>
+<span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, re <span class="op">=</span> <span class="cn">FALSE</span>, reSlope <span class="op">=</span> <span class="cn">FALSE</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S4 method for class 'NormalMvSpec,DPMEngine'</span></span>
 <span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
@@ -221,7 +250,7 @@ engine or the spec base class.</p>
 <span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S4 method for class 'NormalRegSpec,FixedKEngine'</span></span>
-<span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, re <span class="op">=</span> <span class="cn">FALSE</span>, <span class="va">...</span><span class="op">)</span></span>
+<span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, re <span class="op">=</span> <span class="cn">FALSE</span>, reSlope <span class="op">=</span> <span class="cn">FALSE</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S4 method for class 'StudentTUvSpec,FixedKEngine'</span></span>
 <span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
@@ -247,16 +276,46 @@ engine or the spec base class.</p>
 <span><span class="co"># S4 method for class 'StudentTUvSpec,HMMEngine'</span></span>
 <span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># S4 method for class 'PoissonSpec,HMMEngine'</span></span>
-<span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># S4 method for class 'MSNBurrUvSpec,HMMEngine'</span></span>
-<span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
-<span></span>
 <span><span class="co"># S4 method for class 'MSNBurr2aUvSpec,HMMEngine'</span></span>
 <span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S4 method for class 'GMSNBurrUvSpec,HMMEngine'</span></span>
+<span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'FSSNUvSpec,HMMEngine'</span></span>
+<span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'FSSTUvSpec,HMMEngine'</span></span>
+<span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'SEPUvSpec,HMMEngine'</span></span>
+<span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'LEPUvSpec,HMMEngine'</span></span>
+<span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'FOSSEPUvSpec,HMMEngine'</span></span>
+<span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'JFSTUvSpec,HMMEngine'</span></span>
+<span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'BinomialSpec,HMMEngine'</span></span>
+<span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'StudentTRegSpec,HMMEngine'</span></span>
+<span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'NormalGammaRegSpec,HMMEngine'</span></span>
+<span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'BinomialRegSpec,HMMEngine'</span></span>
+<span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'PoissonRegSpec,HMMEngine'</span></span>
+<span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># S4 method for class 'NormalRegSpec,HMMEngine'</span></span>
 <span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># S4 method for class 'MSNBurrUvSpec,HMMEngine'</span></span>
@@ -293,6 +352,12 @@ engine or the spec base class.</p>
 <dd><p>Reserved for methods.</p></dd>
 
 
+<dt id="arg-reslope">reSlope<a class="anchor" aria-label="anchor" href="#arg-reslope"></a></dt>
+<dd><p>Logical; regression + FixedK method only – when
+<code>TRUE</code> (with <code>re = TRUE</code>), also emit sum-to-zero
+random-slope offsets <code>sRE</code> plus <code>tauSlope</code>.</p></dd>
+
+
 <dt id="arg-re">re<a class="anchor" aria-label="anchor" href="#arg-re"></a></dt>
 <dd><p>Logical; regression + FixedK method only – when <code>TRUE</code>,
 emit the random-intercept variant of the model code (sum-to-zero
@@ -315,7 +380,9 @@ emit the random-intercept variant of the model code (sum-to-zero
 <li><p><code>buildModelCode(spec = FSSTUvSpec, engine = FixedKEngine)</code>: FSST finite mixture (fixed K).</p></li>
 <li><p><code>buildModelCode(spec = FSSTUvSpec, engine = DPMEngine)</code>: FSST DPM mixture.</p></li>
 <li><p><code>buildModelCode(spec = PoissonRegSpec, engine = DPMEngine)</code>: Poisson GLM regression DPM code (log link).</p></li>
-<li><p><code>buildModelCode(spec = PoissonRegSpec, engine = FixedKEngine)</code>: Poisson GLM regression fixed-K code (log link).</p></li>
+<li><p><code>.glmRegREPriorLines()</code>: Poisson GLM regression fixed-K code (log link).</p></li>
+<li><p><code>buildModelCode(spec = PoissonRegSpec, engine = FixedKEngine)</code>: Poisson regression finite mixture (fixed K), with
+an optional random effect inside the log link (GLMM).</p></li>
 <li><p><code>buildModelCode(spec = BinomialRegSpec, engine = DPMEngine)</code>: Binomial GLM regression DPM code (logit link).</p></li>
 <li><p><code>buildModelCode(spec = BinomialRegSpec, engine = FixedKEngine)</code>: Binomial GLM regression fixed-K code (logit link).</p></li>
 <li><p><code>buildModelCode(spec = GMSNBurrUvSpec, engine = FixedKEngine)</code>: GMSNBurr finite mixture (fixed K).</p></li>
@@ -354,6 +421,15 @@ conjugate coefficients conditional on <code>omega</code>).</p></li>
 code (scale mixture; conjugate cluster updates).</p></li>
 <li><p><code>buildModelCode(spec = NormalGammaMvRegSpec, engine = FixedKEngine)</code>: Multivariate-response Normal-Gamma regression
 fixed-K code.</p></li>
+<li><p><code>buildModelCode(spec = MSNBurrRegSpec, engine = FixedKEngine)</code>: MSNBurr regression finite mixture (fixed K).</p></li>
+<li><p><code>buildModelCode(spec = SEPRegSpec, engine = FixedKEngine)</code>: SEP regression finite mixture (fixed K).</p></li>
+<li><p><code>buildModelCode(spec = MSNBurr2aRegSpec, engine = FixedKEngine)</code>: MSNBurr-IIa regression finite mixture (fixed K).</p></li>
+<li><p><code>buildModelCode(spec = FSSNRegSpec, engine = FixedKEngine)</code>: FSSN regression finite mixture (fixed K).</p></li>
+<li><p><code>buildModelCode(spec = GMSNBurrRegSpec, engine = FixedKEngine)</code>: GMSNBurr regression finite mixture (fixed K).</p></li>
+<li><p><code>buildModelCode(spec = LEPRegSpec, engine = FixedKEngine)</code>: LEP regression finite mixture (fixed K).</p></li>
+<li><p><code>buildModelCode(spec = FSSTRegSpec, engine = FixedKEngine)</code>: FSST regression finite mixture (fixed K).</p></li>
+<li><p><code>buildModelCode(spec = FOSSEPRegSpec, engine = FixedKEngine)</code>: FOSSEP regression finite mixture (fixed K).</p></li>
+<li><p><code>buildModelCode(spec = JFSTRegSpec, engine = FixedKEngine)</code>: JFST regression finite mixture (fixed K).</p></li>
 <li><p><code>buildModelCode(spec = NormalMvSpec, engine = DPMEngine)</code>: Multivariate Gaussian DPM model code (dCRP) with a
   conjugate Normal-Inverse-Wishart cluster base measure.</p>
 <p>Builds NIMBLE code for
@@ -410,13 +486,35 @@ finite-mixture code (fixed K).</p></li>
 (states marginalised by the forward algorithm; no allocation node).</p></li>
 <li><p><code>buildModelCode(spec = StudentTUvSpec, engine = HMMEngine)</code>: Univariate Student-t regime-switching HMM code
 (fixed df; states marginalised by the forward algorithm).</p></li>
-<li><p><code>buildModelCode(spec = PoissonSpec, engine = HMMEngine)</code>: Poisson regime-switching HMM code (count data;
-states marginalised by the forward algorithm).</p></li>
-<li><p><code>buildModelCode(spec = MSNBurrUvSpec, engine = HMMEngine)</code>: MSNBurr (neo-normal, skewed) regime-switching
-HMM code (states marginalised by the forward algorithm).</p></li>
 <li><p><code>buildModelCode(spec = MSNBurr2aUvSpec, engine = HMMEngine)</code>: MSNBurr-IIa regime-switching HMM code.</p></li>
 <li><p><code>buildModelCode(spec = GMSNBurrUvSpec, engine = HMMEngine)</code>: GMSNBurr (four-parameter, skewed) regime-switching
 HMM code.</p></li>
+<li><p><code>buildModelCode(spec = FSSNUvSpec, engine = HMMEngine)</code>: FSSN (Ferreira-Steel skew normal)
+regime-switching HMM code.</p></li>
+<li><p><code>buildModelCode(spec = FSSTUvSpec, engine = HMMEngine)</code>: FSST (Ferreira-Steel skew t) regime-switching
+HMM code – heavy-tailed and skewed regimes at once.</p></li>
+<li><p><code>buildModelCode(spec = SEPUvSpec, engine = HMMEngine)</code>: SEP (skew exponential power) regime-switching HMM code.</p></li>
+<li><p><code>buildModelCode(spec = LEPUvSpec, engine = HMMEngine)</code>: LEP regime-switching HMM code.</p></li>
+<li><p><code>buildModelCode(spec = FOSSEPUvSpec, engine = HMMEngine)</code>: FOSSEP regime-switching HMM code.</p></li>
+<li><p><code>buildModelCode(spec = JFSTUvSpec, engine = HMMEngine)</code>: JFST (Jones-Faddy skew t) regime-switching HMM code.</p></li>
+<li><p><code>buildModelCode(spec = BinomialSpec, engine = HMMEngine)</code>: Binomial regime-switching HMM code
+(regime-specific success probabilities, known <code>size</code>).</p></li>
+<li><p><code>buildModelCode(spec = StudentTRegSpec, engine = HMMEngine)</code>: Markov-switching Student-t (heavy-tail)
+regression HMM code: location coefficients and scale switch with the
+regime, df a fixed hyperparameter.</p></li>
+<li><p><code>buildModelCode(spec = NormalGammaRegSpec, engine = HMMEngine)</code>: Markov-switching Normal-Gamma regression HMM
+code: same Student-t marginal as the direct parameterisation, so the same
+kernel. Defined explicitly because the two heavy-tail specs are siblings
+under NormalRegSpec, not parent and child (9.29/9.41).</p></li>
+<li><p><code>buildModelCode(spec = BinomialRegSpec, engine = HMMEngine)</code>: Markov-switching Binomial (proportion)
+regression HMM code: logit-link coefficients switch with the regime,
+known number of trials <code>size</code>.</p></li>
+<li><p><code>buildModelCode(spec = PoissonRegSpec, engine = HMMEngine)</code>: Markov-switching Poisson (count) regression HMM
+code: log-link coefficients switch with a latent Markov regime, no
+error-variance parameter.</p></li>
+<li><p><code>buildModelCode(spec = NormalRegSpec, engine = HMMEngine)</code>: Markov-switching regression HMM code: the
+regression coefficients and error variance switch with a latent
+first-order Markov regime (Hamilton 1989).</p></li>
 <li><p><code>buildModelCode(spec = MSNBurrUvSpec, engine = HMMEngine)</code>: MSNBurr regime-switching HMM code (skewed
 regimes; states marginalised by the forward algorithm).</p></li>
 <li><p><code>buildModelCode(spec = PoissonSpec, engine = HMMEngine)</code>: Poisson regime-switching HMM code (count
