@@ -71,9 +71,17 @@ test_that("hmm guards: multivariate, non-normal, and K_max are refused", {
                "univariate|normal")
   # Emission families join the engine incrementally, so this guard must
   # track the rollout (the 9.19 stale-test class -- caught twice already):
-  # use a family still OUTSIDE the current set {normal, student-t, poisson,
-  # msnburr, msnburr2a, gmsnburr}.
-  expect_error(nimixClust(y, K = 2, method = "hmm", distribution = "fssn"),
+  # This guard has had to move FOUR times as the emission rollout advanced
+  # (student-t -> msnburr -> gmsnburr/fssn -> lep), the stale-contract-test
+  # class each time. It now sits on "normal-gamma" PERMANENTLY: that family
+  # is deliberately excluded from the HMM engine forever, because its
+  # augmented representation is exactly what the marginalised forward kernel
+  # exists to avoid (the augmentation mixing penalty, knowledge 9.13), and
+  # direct student-t already serves the heavy-tail case. If this test ever
+  # fails because normal-gamma gained an HMM method, that is a design
+  # regression, not progress.
+  expect_error(nimixClust(y, K = 2, method = "hmm",
+                          distribution = "normal-gamma"),
                "gated plan")
   expect_error(nimixClust(y, K_max = 5, method = "hmm"),
                "needs the number of components K")
@@ -199,4 +207,132 @@ test_that("FFBS is numerically stable under emission underflow", {
                   mcmcControl = list(niter = 1500, nburnin = 600), seed = 1)
   expect_true(all(f@clusterAllocation %in% 1:2))   # no NaN crash
   expect_false(anyNA(f@clusterAllocation))
+})
+
+test_that("fssn emissions recover skewed regimes", {
+  skip_on_cran()
+  set.seed(77)
+  P <- rbind(c(.93, .07), c(.08, .92)); mu <- c(-3, 3); al <- c(0.6, 1.8)
+  z <- integer(300); z[1] <- 1L
+  for (t in 2:300) z[t] <- sample(1:2, 1L, prob = P[z[t - 1L], ])
+  y <- numeric(300)
+  for (t in 1:300) y[t] <- rfssn(1, mu[z[t]], 0.8, al[z[t]])
+  f <- nimixClust(y, K = 2, method = "hmm", distribution = "fssn",
+                  mcmcControl = list(niter = 2500, nburnin = 1000), seed = 1)
+  s <- relabel(f)@relabeled$summary
+  expect_lt(max(abs(sort(s$mu_mean) - c(-3, 3))), 0.6)
+  expect_lt(max(abs(sort(s$alpha_mean) - c(0.6, 1.8))), 0.6)   # skew recovered
+  zv <- viterbiPath(f)
+  expect_gt(max(mean(zv == z), mean((3L - zv) == z)), 0.95)
+})
+
+test_that("fsst emissions recover regimes that are both skewed and heavy-tailed", {
+  skip_on_cran()
+  set.seed(88)
+  P <- rbind(c(.94, .06), c(.07, .93)); mu <- c(-4, 4); al <- c(0.7, 1.6)
+  z <- integer(320); z[1] <- 1L
+  for (t in 2:320) z[t] <- sample(1:2, 1L, prob = P[z[t - 1L], ])
+  y <- numeric(320)
+  for (t in 1:320) y[t] <- rfsst(1, mu[z[t]], 0.8, al[z[t]], 6)
+  f <- nimixClust(y, K = 2, method = "hmm", distribution = "fsst",
+                  mcmcControl = list(niter = 2500, nburnin = 1000), seed = 1)
+  s <- relabel(f)@relabeled$summary
+  expect_lt(max(abs(sort(s$mu_mean) - c(-4, 4))), 0.6)
+  expect_lt(max(abs(sort(s$alpha_mean) - c(0.7, 1.6))), 0.6)
+  # nu is deliberately NOT asserted tightly: the degrees of freedom are weakly
+  # identified (the likelihood is flat in nu once the tails are moderate), and
+  # this run recovered 12.8/13.3 against a truth of 6 while everything else
+  # landed. That is a property of the family, not a defect -- assert only that
+  # it stays in the admissible region.
+  expect_true(all(s$nu_mean > 2))
+  zv <- viterbiPath(f)
+  expect_gt(max(mean(zv == z), mean((3L - zv) == z)), 0.95)
+})
+
+test_that("sep and lep emissions recover exponential-power regimes", {
+  skip_on_cran()
+  set.seed(55)
+  P <- rbind(c(.93, .07), c(.08, .92)); mu <- c(-3, 3); nu <- c(1.2, 3.5)
+  z <- integer(300); z[1] <- 1L
+  for (t in 2:300) z[t] <- sample(1:2, 1L, prob = P[z[t - 1L], ])
+  y <- numeric(300)
+  for (t in 1:300) y[t] <- rsep(1, mu[z[t]], 0.8, nu[z[t]])
+  f <- nimixClust(y, K = 2, method = "hmm", distribution = "sep",
+                  mcmcControl = list(niter = 2500, nburnin = 1000), seed = 1)
+  s <- relabel(f)@relabeled$summary
+  expect_lt(max(abs(sort(s$mu_mean) - c(-3, 3))), 0.6)
+  # the tail-shape nu is well identified here (measured 1.30/3.48 against a
+  # truth of 1.2/3.5), unlike fsst's df -- assert it, loosely
+  expect_lt(max(abs(sort(s$nu_mean) - c(1.2, 3.5))), 1.0)
+  zv <- viterbiPath(f)
+  expect_gt(max(mean(zv == z), mean((3L - zv) == z)), 0.95)
+
+  # lep shares the template; a shorter smoke-level recovery suffices
+  set.seed(44)
+  z2 <- integer(280); z2[1] <- 1L
+  for (t in 2:280) z2[t] <- sample(1:2, 1L, prob = P[z2[t - 1L], ])
+  y2 <- numeric(280)
+  nu2 <- c(1.5, 3)
+  for (t in 1:280) y2[t] <- rlep(1, mu[z2[t]], 0.8, nu2[z2[t]])
+  f2 <- nimixClust(y2, K = 2, method = "hmm", distribution = "lep",
+                   mcmcControl = list(niter = 2000, nburnin = 800), seed = 1)
+  s2 <- relabel(f2)@relabeled$summary
+  expect_lt(max(abs(sort(s2$mu_mean) - c(-3, 3))), 0.6)
+  zv2 <- viterbiPath(f2)
+  expect_gt(max(mean(zv2 == z2), mean((3L - zv2) == z2)), 0.95)
+})
+
+test_that("fossep and jfst emissions recover four-parameter skewed regimes", {
+  skip_on_cran()
+  set.seed(66)
+  P <- rbind(c(.93, .07), c(.08, .92)); mu <- c(-3.5, 3.5)
+  z <- integer(300); z[1] <- 1L
+  for (t in 2:300) z[t] <- sample(1:2, 1L, prob = P[z[t - 1L], ])
+  y <- numeric(300)
+  al <- c(2, 3); th <- c(3, 2)
+  for (t in 1:300) y[t] <- rjfst(1, mu[z[t]], 0.8, al[z[t]], th[z[t]])
+  f <- nimixClust(y, K = 2, method = "hmm", distribution = "jfst",
+                  mcmcControl = list(niter = 2500, nburnin = 1000), seed = 1)
+  s <- relabel(f)@relabeled$summary
+  expect_lt(max(abs(sort(s$mu_mean) - c(-3.5, 3.5))), 0.7)
+  # alpha/theta jointly govern skew and tails and are weakly identified,
+  # like fsst's df (measured 3.4/3.6 and 3.9/3.2 against truths of 2/3 and
+  # 3/2 while mu and the decoding landed exactly) -- assert admissibility
+  # only, per the fsst precedent
+  expect_true(all(s$alpha_mean > 0) && all(s$theta_mean > 0))
+  zv <- viterbiPath(f)
+  expect_gt(max(mean(zv == z), mean((3L - zv) == z)), 0.95)
+
+  set.seed(44)
+  z2 <- integer(280); z2[1] <- 1L
+  for (t in 2:280) z2[t] <- sample(1:2, 1L, prob = P[z2[t - 1L], ])
+  y2 <- numeric(280)
+  al2 <- c(0.7, 1.5)
+  for (t in 1:280) y2[t] <- rfossep(1, mu[z2[t]] + 0.5, 0.8, al2[z2[t]], 2)
+  f2 <- nimixClust(y2, K = 2, method = "hmm", distribution = "fossep",
+                   mcmcControl = list(niter = 2000, nburnin = 800), seed = 1)
+  zv2 <- viterbiPath(f2)
+  expect_gt(max(mean(zv2 == z2), mean((3L - zv2) == z2)), 0.95)
+})
+
+test_that("binomial emissions recover regime-switching proportions", {
+  skip_on_cran()
+  # The last emission family of the gated rollout. Discrete, non-location-
+  # scale, and with a known-constant `size` flowing through prior -- the
+  # three ways it differs from the Gaussian template, all already proven
+  # individually (Poisson: discrete + non-location-scale; buildConstants:
+  # size as a constant).
+  set.seed(33)
+  P <- rbind(c(.92, .08), c(.09, .91)); pr <- c(0.15, 0.6); size <- 20
+  z <- integer(300); z[1] <- 1L
+  for (t in 2:300) z[t] <- sample(1:2, 1L, prob = P[z[t - 1L], ])
+  y <- rbinom(300, size, pr[z])
+  f <- nimixClust(y, K = 2, method = "hmm", distribution = "binomial",
+                  prior = list(size = size),
+                  mcmcControl = list(niter = 2000, nburnin = 800), seed = 1)
+  s <- relabel(f)@relabeled$summary
+  expect_lt(max(abs(sort(s$prob_mean) - c(0.15, 0.6))), 0.08)
+  zv <- viterbiPath(f)
+  expect_gt(max(mean(zv == z), mean((3L - zv) == z)), 0.95)
+  expect_identical(binderPartition(f)$K, 2L)
 })

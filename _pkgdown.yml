@@ -53,6 +53,23 @@ reference:
   - StudentTMvRegSpec
   - NormalGammaMvRegSpec
 
+- title: Neo-normal regression component specs
+  desc: >
+    Skew and heavy-tailed mixture-of-regressions: each component's location is
+    a linear predictor, with per-component scale and shape. Available across the
+    fixed-K, DPM, and HMM (Markov-switching) engines, with random effects under
+    fixed-K and DPM.
+  contents:
+  - MSNBurrRegSpec-class
+  - MSNBurr2aRegSpec-class
+  - GMSNBurrRegSpec-class
+  - FSSNRegSpec-class
+  - FSSTRegSpec-class
+  - SEPRegSpec-class
+  - LEPRegSpec-class
+  - FOSSEPRegSpec-class
+  - JFSTRegSpec-class
+
 - title: Extension API (generics)
   desc: >
     The public S4 contract a component spec implements so a new family plugs
@@ -67,8 +84,13 @@ reference:
   - binderPartition
   - clusterValidity
   - viterbiPath
+  - nimixForecast
+  - posteriorLinpred
+  - posteriorEpred
+  - posteriorPredictive
   - isRegressionSpec
   - linkInv
+  - responseRng
 
 - title: S4 class definitions
   desc: >
@@ -143,6 +165,7 @@ reference:
   contents:
   - spatialWeights
   - gridAdjacency
+  - spacetimeAdjacency
   - nRegions
   - getAdjacency
   - neighborsOf
@@ -179,6 +202,8 @@ reference:
 - title: Utilities
   contents:
   - nimixClearCache
+  - dmvt_nimix
+  - getEdges
 
 - title: Datasets
   contents:

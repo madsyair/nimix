@@ -16,7 +16,8 @@
 \S4method{plot}{FitResult,missing}(
   x,
   y,
-  type = c("K", "trace_raw", "trace_relabeled", "density", "cluster", "fitted"),
+  type = c("K", "trace_raw", "trace_relabeled", "density", "cluster", "fitted", "series",
+    "regime", "forecast"),
   ...
 )
 
@@ -25,19 +26,31 @@
 \arguments{
 \item{object}{A \code{FitResult}.}
 
-\item{...}{Passed to \code{\link{relabel}} when relabelling is triggered.}
+\item{...}{Passed to the underlying plot. For \code{type = "forecast"},
+also \code{h}, \code{newdata}, \code{lags}, \code{draws} and
+\code{level}, as in \code{\link{nimixForecast}}.}
 
 \item{x}{A \code{FitResult}.}
 
 \item{y}{Ignored.}
 
-\item{type}{One of \code{"K"} (posterior of #clusters), \code{"trace_raw"}
-(raw cluster-parameter traces; zig-zags reveal label switching),
-\code{"trace_relabeled"} (traces after relabelling), \code{"density"}
-(univariate clustering only: data histogram with posterior predictive
-overlay), \code{"cluster"} (multivariate clustering, \eqn{d \ge 2}: scatter
-coloured by MAP cluster), or \code{"fitted"} (regression only: observed
-response vs posterior predictive mean).}
+\item{type}{Which view to draw. \code{"K"}, \code{"trace_raw"},
+  \code{"trace_relabeled"}, \code{"density"}, \code{"cluster"} and
+  \code{"fitted"} are the mixture views.
+
+  \code{"series"}, \code{"regime"} and \code{"forecast"} are the
+  \strong{time-series views}, for \code{method = "hmm"} only. A density
+  plot of a regime-switching series is the wrong picture twice over: it
+  discards the axis the model is about, and it shows a bimodal smear where
+  the story is "the series sat in one regime, then moved".
+  \code{"series"} draws the data with its decoded regimes shaded as
+  blocks (blocks, because that is what the Markov chain models);
+  \code{"regime"} draws the smoothed \eqn{P(\mathrm{regime} \mid
+  \mathrm{data})} through time, which is the honest companion to the
+  Viterbi path -- where the bands are mixed, the decode is a guess; and
+  \code{"forecast"} draws the predictive fan past the end of the series
+  (see \code{\link{nimixForecast}} for what that fan can and cannot
+  mean).}
 
 \item{newdata}{Points at which to evaluate: a numeric vector (univariate
 clustering), a matrix with \code{d} columns (multivariate clustering), or a

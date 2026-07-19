@@ -8,6 +8,7 @@
 \alias{customizeSamplers}
 \alias{customizeSamplers,DistributionSpec-method}
 \alias{customizeSamplers,NormalRegSpec-method}
+\alias{customizeSamplers,StudentTRegSpec-method}
 \alias{customizeSamplers,NormalGammaRegSpec-method}
 \alias{customizeSamplers,NormalGammaMvRegSpec-method}
 \alias{customizeSamplers,NormalGammaMvSpec-method}
@@ -32,6 +33,8 @@ customizeSamplers(spec, conf, model, ...)
 \S4method{customizeSamplers}{DistributionSpec}(spec, conf, model, ...)
 
 \S4method{customizeSamplers}{NormalRegSpec}(spec, conf, model, ...)
+
+\S4method{customizeSamplers}{StudentTRegSpec}(spec, conf, model, ...)
 
 \S4method{customizeSamplers}{NormalGammaRegSpec}(spec, conf, model, ...)
 
@@ -93,6 +96,10 @@ markedly better than the default random walk.
 \item \code{customizeSamplers(NormalRegSpec)}: Replace RW samplers on \code{betaTilde} and
 \code{s2Tilde} with the exact Normal-Inverse-Gamma conditional (FixedK
 path only; the DPM path already receives the conjugate CRP wrapper).
+
+\item \code{customizeSamplers(StudentTRegSpec)}: Student-t regression keeps NIMBLE's default
+samplers: the inherited exact NIG Gibbs step is only valid for Gaussian
+errors.
 
 \item \code{customizeSamplers(NormalGammaRegSpec)}: Slice-sample the latent precision multipliers.
 

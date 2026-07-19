@@ -2,9 +2,9 @@
 % Please edit documentation in R/class-DistributionSpec.R, R/dist-fssn.R,
 %   R/dist-fossep.R, R/dist-fsst.R, R/dist-glm-reg.R, R/dist-gmsnburr.R,
 %   R/dist-normal-reg.R, R/dist-heavytail-reg.R, R/dist-jfst.R, R/dist-sep.R,
-%   R/dist-lep.R, R/dist-msnburr.R, R/dist-mv-reg.R, R/dist-normal-mv.R,
-%   R/dist-normal-gamma-mv.R, R/dist-normal-uv.R, R/dist-normal-gamma.R,
-%   R/dist-poisson-binomial.R, R/dist-skewnormal-mv.R,
+%   R/dist-lep.R, R/dist-msnburr.R, R/dist-mv-reg.R, R/dist-neonormal-reg.R,
+%   R/dist-normal-mv.R, R/dist-normal-gamma-mv.R, R/dist-normal-uv.R,
+%   R/dist-normal-gamma.R, R/dist-poisson-binomial.R, R/dist-skewnormal-mv.R,
 %   R/dist-skewnormal-mv-o.R, R/dist-skewistudent-mv.R,
 %   R/dist-skewistudent-mv-o.R, R/dist-skewnormal-mv-og.R,
 %   R/dist-skewistudent-mv-og.R, R/dist-student-t.R
@@ -25,6 +25,15 @@
 \alias{componentInits,MSNBurr2aUvSpec-method}
 \alias{componentInits,NormalMvRegSpec-method}
 \alias{componentInits,NormalGammaMvRegSpec-method}
+\alias{componentInits,MSNBurrRegSpec-method}
+\alias{componentInits,SEPRegSpec-method}
+\alias{componentInits,MSNBurr2aRegSpec-method}
+\alias{componentInits,FSSNRegSpec-method}
+\alias{componentInits,GMSNBurrRegSpec-method}
+\alias{componentInits,LEPRegSpec-method}
+\alias{componentInits,FSSTRegSpec-method}
+\alias{componentInits,FOSSEPRegSpec-method}
+\alias{componentInits,JFSTRegSpec-method}
 \alias{componentInits,NormalMvSpec-method}
 \alias{componentInits,NormalGammaMvSpec-method}
 \alias{componentInits,NormalUvSpec-method}
@@ -72,6 +81,24 @@ componentInits(spec, prior, data, count, initMethod = "kmeans", ...)
 
 \S4method{componentInits}{NormalGammaMvRegSpec}(spec, prior, data, count, initMethod = "kmeans", ...)
 
+\S4method{componentInits}{MSNBurrRegSpec}(spec, prior, data, count, initMethod = "kmeans", ...)
+
+\S4method{componentInits}{SEPRegSpec}(spec, prior, data, count, initMethod = "kmeans", ...)
+
+\S4method{componentInits}{MSNBurr2aRegSpec}(spec, prior, data, count, initMethod = "kmeans", ...)
+
+\S4method{componentInits}{FSSNRegSpec}(spec, prior, data, count, initMethod = "kmeans", ...)
+
+\S4method{componentInits}{GMSNBurrRegSpec}(spec, prior, data, count, initMethod = "kmeans", ...)
+
+\S4method{componentInits}{LEPRegSpec}(spec, prior, data, count, initMethod = "kmeans", ...)
+
+\S4method{componentInits}{FSSTRegSpec}(spec, prior, data, count, initMethod = "kmeans", ...)
+
+\S4method{componentInits}{FOSSEPRegSpec}(spec, prior, data, count, initMethod = "kmeans", ...)
+
+\S4method{componentInits}{JFSTRegSpec}(spec, prior, data, count, initMethod = "kmeans", ...)
+
 \S4method{componentInits}{NormalMvSpec}(spec, prior, data, count, initMethod = "kmeans", ...)
 
 \S4method{componentInits}{NormalGammaMvSpec}(spec, prior, data, count, initMethod = "kmeans", ...)
@@ -108,7 +135,12 @@ componentInits(spec, prior, data, count, initMethod = "kmeans", ...)
 \item{count}{Integer number of component slots (K_max for the DPM, K for
 the finite mixture).}
 
-\item{initMethod}{\code{"kmeans"} (default) or \code{"single"}.}
+\item{initMethod}{\code{"kmeans"} (default), \code{"single"}, or
+\code{"spread"}. \code{"spread"} is univariate-only and seeds clusters by
+bands of \code{|y - median(y)|}, separating components by scale rather
+than location; it helps the one case k-means seeds poorly (heterogeneous
+variance with overlapping means) and falls back to k-means for a
+multivariate response.}
 
 \item{...}{Reserved for methods.}
 }
@@ -151,6 +183,24 @@ coefficients per cluster (dispersed start).
 \item \code{componentInits(NormalMvRegSpec)}: Global multivariate-OLS start, k-means allocation.
 
 \item \code{componentInits(NormalGammaMvRegSpec)}: Global multivariate-OLS start plus unit \code{omega}.
+
+\item \code{componentInits(MSNBurrRegSpec)}: MSNBurr regression initial values.
+
+\item \code{componentInits(SEPRegSpec)}: SEP regression initial values.
+
+\item \code{componentInits(MSNBurr2aRegSpec)}: MSNBurr-IIa regression initial values.
+
+\item \code{componentInits(FSSNRegSpec)}: FSSN regression initial values.
+
+\item \code{componentInits(GMSNBurrRegSpec)}: GMSNBurr regression initial values.
+
+\item \code{componentInits(LEPRegSpec)}: LEP regression initial values.
+
+\item \code{componentInits(FSSTRegSpec)}: FSST regression initial values.
+
+\item \code{componentInits(FOSSEPRegSpec)}: FOSSEP regression initial values.
+
+\item \code{componentInits(JFSTRegSpec)}: JFST regression initial values.
 
 \item \code{componentInits(NormalMvSpec)}: k-means dispersed start for the multivariate DPM.
 

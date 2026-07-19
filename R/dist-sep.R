@@ -142,11 +142,10 @@ setMethod("relabelComponents", "SEPUvSpec",
   k0 <- min(k0, max(1L, nUnique))
   alloc <- rep(1L, n); centers <- mean(y)
   sds <- stats::sd(y); if (!is.finite(sds) || sds <= 0) sds <- 1
-  if (identical(initMethod, "kmeans") && k0 >= 2L && nUnique >= k0) {
-    km <- tryCatch(stats::kmeans(y, centers = k0, nstart = 5L),
-                   error = function(e) NULL)
-    if (!is.null(km)) {
-      alloc <- as.integer(km$cluster); centers <- as.numeric(km$centers)
+  if (!identical(initMethod, "single") && k0 >= 2L && nUnique >= k0) {
+    cl <- .initClusters(y, k0, initMethod)
+    if (!is.null(cl)) {
+      alloc <- cl; centers <- vapply(sort(unique(cl)), function(j) mean(y[cl == j]), numeric(1))
       sds <- vapply(seq_len(k0), function(j) {
         s <- stats::sd(y[alloc == j]); if (!is.finite(s) || s <= 0) 1 else s
       }, numeric(1))

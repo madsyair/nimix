@@ -2,9 +2,9 @@
 % Please edit documentation in R/class-DistributionSpec.R, R/dist-fssn.R,
 %   R/dist-fossep.R, R/dist-fsst.R, R/dist-glm-reg.R, R/dist-gmsnburr.R,
 %   R/dist-normal-reg.R, R/dist-heavytail-reg.R, R/dist-jfst.R, R/dist-sep.R,
-%   R/dist-lep.R, R/dist-msnburr.R, R/dist-mv-reg.R, R/dist-normal-mv.R,
-%   R/dist-normal-gamma-mv.R, R/dist-normal-uv.R, R/dist-normal-gamma.R,
-%   R/dist-poisson-binomial.R, R/dist-skewnormal-mv.R,
+%   R/dist-lep.R, R/dist-msnburr.R, R/dist-mv-reg.R, R/dist-neonormal-reg.R,
+%   R/dist-normal-mv.R, R/dist-normal-gamma-mv.R, R/dist-normal-uv.R,
+%   R/dist-normal-gamma.R, R/dist-poisson-binomial.R, R/dist-skewnormal-mv.R,
 %   R/dist-skewnormal-mv-o.R, R/dist-skewistudent-mv.R,
 %   R/dist-skewistudent-mv-o.R, R/dist-skewnormal-mv-og.R,
 %   R/dist-skewistudent-mv-og.R, R/dist-student-t-mv.R, R/dist-student-t.R
@@ -27,6 +27,15 @@
 \alias{buildConstants,NormalMvRegSpec-method}
 \alias{buildConstants,StudentTMvRegSpec-method}
 \alias{buildConstants,NormalGammaMvRegSpec-method}
+\alias{buildConstants,MSNBurrRegSpec-method}
+\alias{buildConstants,SEPRegSpec-method}
+\alias{buildConstants,MSNBurr2aRegSpec-method}
+\alias{buildConstants,FSSNRegSpec-method}
+\alias{buildConstants,GMSNBurrRegSpec-method}
+\alias{buildConstants,LEPRegSpec-method}
+\alias{buildConstants,FSSTRegSpec-method}
+\alias{buildConstants,FOSSEPRegSpec-method}
+\alias{buildConstants,JFSTRegSpec-method}
 \alias{buildConstants,NormalMvSpec-method}
 \alias{buildConstants,NormalGammaMvSpec-method}
 \alias{buildConstants,NormalUvSpec-method}
@@ -78,6 +87,24 @@ buildConstants(spec, prior, n, ...)
 \S4method{buildConstants}{StudentTMvRegSpec}(spec, prior, n, ...)
 
 \S4method{buildConstants}{NormalGammaMvRegSpec}(spec, prior, n, ...)
+
+\S4method{buildConstants}{MSNBurrRegSpec}(spec, prior, n, ...)
+
+\S4method{buildConstants}{SEPRegSpec}(spec, prior, n, ...)
+
+\S4method{buildConstants}{MSNBurr2aRegSpec}(spec, prior, n, ...)
+
+\S4method{buildConstants}{FSSNRegSpec}(spec, prior, n, ...)
+
+\S4method{buildConstants}{GMSNBurrRegSpec}(spec, prior, n, ...)
+
+\S4method{buildConstants}{LEPRegSpec}(spec, prior, n, ...)
+
+\S4method{buildConstants}{FSSTRegSpec}(spec, prior, n, ...)
+
+\S4method{buildConstants}{FOSSEPRegSpec}(spec, prior, n, ...)
+
+\S4method{buildConstants}{JFSTRegSpec}(spec, prior, n, ...)
 
 \S4method{buildConstants}{NormalMvSpec}(spec, prior, n, ...)
 
@@ -159,6 +186,24 @@ number of predictors \code{p}, and the NIG hyperparameters).
 \item \code{buildConstants(StudentTMvRegSpec)}: Multivariate-regression constants plus \code{df}.
 
 \item \code{buildConstants(NormalGammaMvRegSpec)}: Multivariate-regression constants plus \code{df}.
+
+\item \code{buildConstants(MSNBurrRegSpec)}: MSNBurr regression constants.
+
+\item \code{buildConstants(SEPRegSpec)}: SEP regression constants.
+
+\item \code{buildConstants(MSNBurr2aRegSpec)}: MSNBurr-IIa regression constants.
+
+\item \code{buildConstants(FSSNRegSpec)}: FSSN regression constants.
+
+\item \code{buildConstants(GMSNBurrRegSpec)}: GMSNBurr regression constants.
+
+\item \code{buildConstants(LEPRegSpec)}: LEP regression constants.
+
+\item \code{buildConstants(FSSTRegSpec)}: FSST regression constants.
+
+\item \code{buildConstants(FOSSEPRegSpec)}: FOSSEP regression constants.
+
+\item \code{buildConstants(JFSTRegSpec)}: JFST regression constants.
 
 \item \code{buildConstants(NormalMvSpec)}: Multivariate Normal-Inverse-Wishart constants
 (includes the dimension \code{d}, mean vector \code{mu0} and scale matrix

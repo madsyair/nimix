@@ -94,13 +94,48 @@ setMethod("defaultPrior", "NormalRegSpec",
     XtXinv <- solve(XtX + diag(ridge, p))
     B0 <- g * XtXinv
 
-    # global OLS residual variance -> data-scaled InvGamma mean
-    bOls <- as.numeric(XtXinv %*% crossprod(X, y))
-    resid <- y - as.numeric(X %*% bOls)
-    sigma2hat <- sum(resid^2) / max(1, n - p)
-    if (!is.finite(sigma2hat) || sigma2hat <= 0) sigma2hat <- stats::var(y)
-    if (!is.finite(sigma2hat) || sigma2hat <= 0) sigma2hat <- 1
-    s0 <- sigma2hat * (nu0 - 1)
+    # Scale reference for the InvGamma prior on s2. The default is the global
+    # OLS residual variance, which for a mixture measures the BETWEEN-component
+    # spread as much as the within-component one, so it is deliberately
+    # conservative: it biases s2 upward (measured 2-5x for well-separated
+    # components at moderate n, vanishing as n_j grows -- see ?nimixReg). That
+    # conservatism is load-bearing, not incidental: it regularises against
+    # over-splitting when K is over-specified, so the default stays.
+    #
+    # A user who knows the within-component scale (pilot study, literature,
+    # domain knowledge) can now say so:
+    #   control$s2Guess -- your prior mean for s2. This is the form to reach
+    #                      for: it asks for a quantity practitioners actually
+    #                      know, not a hyper-parameter of the InvGamma.
+    #   control$s0      -- the raw InvGamma scale, for callers who think in
+    #                      those terms (mean = s0 / (nu0 - 1)).
+    # The override is deliberately ABSOLUTE only. A relative multiplier on the
+    # automatic scale was considered and rejected: that scale measures the
+    # wrong quantity for a mixture, so "a tenth of it" is not a statement a
+    # user can defend, only a knob to twiddle. Someone with real knowledge of
+    # the within-component variance should say what it is.
+    if (!is.null(control$s2Guess)) {
+      sigma2hat <- control$s2Guess
+      if (length(sigma2hat) != 1L || !is.finite(sigma2hat) || sigma2hat <= 0)
+        stop("prior$s2Guess must be a positive scalar: it is your prior mean ",
+             "for the component error variance s2.", call. = FALSE)
+    } else {
+      bOls <- as.numeric(XtXinv %*% crossprod(X, y))
+      resid <- y - as.numeric(X %*% bOls)
+      sigma2hat <- sum(resid^2) / max(1, n - p)
+      if (!is.finite(sigma2hat) || sigma2hat <= 0) sigma2hat <- stats::var(y)
+      if (!is.finite(sigma2hat) || sigma2hat <= 0) sigma2hat <- 1
+    }
+    s0 <- if (!is.null(control$s0)) {
+      if (!is.null(control$s2Guess))
+        stop("Give either prior$s2Guess (your prior mean for s2) or ",
+             "prior$s0 (the raw InvGamma scale), not both.", call. = FALSE)
+      if (length(control$s0) != 1L || !is.finite(control$s0) ||
+          control$s0 <= 0)
+        stop("prior$s0 must be a positive scalar (the InvGamma scale; the ",
+             "prior mean of s2 is s0 / (nu0 - 1)).", call. = FALSE)
+      control$s0
+    } else sigma2hat * (nu0 - 1)
 
     list(b0 = rep(0, p), B0 = B0, nu0 = nu0, s0 = s0,
          p = p, g = g, X = X)
@@ -222,6 +257,12 @@ setMethod("buildConstants", "NormalRegSpec",
       out$grp    <- prior$reGrp
       out$G      <- prior$reG
       out$tauMax <- prior$tauMax
+      out$tauMin <- prior$tauMin
+      if (isTRUE(prior$hasRESlope)) {
+        out$xRE         <- prior$reSlopeX
+        out$tauMaxSlope <- prior$tauMaxSlope
+        out$tauMinSlope <- prior$tauMinSlope
+      }
     }
     out
   }
@@ -260,7 +301,7 @@ setMethod("componentInits", "NormalRegSpec",
     feats <- if (p > 1L) cbind(scale(X[, -1, drop = FALSE]), scale(y)) else
       cbind(scale(y))
     feats[!is.finite(feats)] <- 0
-    if (identical(initMethod, "kmeans") && k0 >= 2L &&
+    if (!identical(initMethod, "single") && k0 >= 2L &&
         nrow(unique(feats)) >= k0) {
       km <- tryCatch(stats::kmeans(feats, centers = k0, nstart = 5L),
                      error = function(e) NULL)
@@ -499,6 +540,73 @@ setMethod("isRegressionSpec", "NormalRegSpec", function(spec, ...) TRUE)
   methods = list(reset = function() {})
 )
 
+# Random-intercept + random-slope variant. A THIRD separate nimbleFunction,
+# for the same reason as the second (NIMBLE compiles every branch of run(),
+# so a reference to sRE would break models without that node). Gate F5.2
+# measured the design: the effective response subtracts BOTH offsets, and the
+# slope offset enters multiplied by its covariate -- a different structure
+# from the intercept-only case.
+.betaS2ConjSamplerRES <- nimble::nimbleFunction(
+  contains = nimble::sampler_BASE,
+  setup = function(model, mvSaved, target, control) {
+    j     <- control$j
+    X     <- control$X
+    yv    <- control$y
+    grp   <- control$grp
+    xREv  <- control$xRE
+    b0    <- control$b0
+    B0inv <- control$B0inv
+    nu0   <- control$nu0
+    s0    <- control$s0
+    p     <- ncol(X)
+    n     <- nrow(X)
+    betaNode <- paste0("betaTilde[", j, ", 1:", p, "]")
+    s2Node   <- paste0("s2Tilde[", j, "]")
+    calcNodes <- model$getDependencies(c(betaNode, s2Node))
+    B0invb0 <- (B0inv %*% asCol(b0))[, 1]
+    b0Qb0 <- inprod(b0, B0invb0)
+  },
+  run = function() {
+    z <- model[["z"]]
+    bcur <- model[["b"]]
+    scur <- model[["sRE"]]
+    XtX <- matrix(0, p, p)
+    Xty <- numeric(p)
+    yty <- 0
+    nj  <- 0
+    for (i in 1:n) {
+      if (z[i] == j) {
+        nj <- nj + 1
+        ri <- yv[i] - bcur[grp[i]] - scur[grp[i]] * xREv[i]
+        yty <- yty + ri * ri
+        for (r in 1:p) {
+          Xty[r] <- Xty[r] + X[i, r] * ri
+          for (c in 1:p) XtX[r, c] <- XtX[r, c] + X[i, r] * X[i, c]
+        }
+      }
+    }
+    Vninv <- B0inv + XtX
+    Vn <- inverse(Vninv)
+    rhs <- B0invb0 + Xty
+    bn <- (Vn %*% asCol(rhs))[, 1]
+    quad <- yty + b0Qb0 - inprod(bn, rhs)
+    if (quad < 0) quad <- 0
+    shape <- nu0 + nj / 2
+    scale <- s0 + quad / 2
+    s2new <- 1 / rgamma(1, shape = shape, rate = scale)
+    zdraw <- numeric(p)
+    for (r in 1:p) zdraw[r] <- rnorm(1, 0, 1)
+    UvVn <- chol(Vn)
+    bnew <- bn + sqrt(s2new) * (t(UvVn) %*% asCol(zdraw))[, 1]
+    values(model, s2Node) <<- c(s2new)
+    values(model, betaNode) <<- bnew
+    model$calculate(calcNodes)
+    copy(from = model, to = mvSaved, row = 1, nodes = calcNodes,
+         logProb = TRUE)
+  },
+  methods = list(reset = function() {})
+)
+
 #' @describeIn customizeSamplers Replace RW samplers on \code{betaTilde} and
 #'   \code{s2Tilde} with the exact Normal-Inverse-Gamma conditional (FixedK
 #'   path only; the DPM path already receives the conjugate CRP wrapper).
@@ -514,16 +622,20 @@ setMethod("customizeSamplers", "NormalRegSpec",
     yv <- model[["y"]]
     cn <- model$getConstants()
     B0inv <- solve(cn$B0)
-    hasRE <- "b" %in% model$getVarNames()
+    vn <- model$getVarNames()
+    hasRE  <- "b" %in% vn
+    hasRES <- "sRE" %in% vn
     conf$removeSamplers("betaTilde")
     conf$removeSamplers("s2Tilde")
     for (j in seq_len(K))
       conf$addSampler(target = paste0("betaTilde[", j, ", 1:", ncol(X), "]"),
-                      type = if (hasRE) .betaS2ConjSamplerRE
+                      type = if (hasRES) .betaS2ConjSamplerRES
+                             else if (hasRE) .betaS2ConjSamplerRE
                              else .betaS2ConjSampler,
                       control = c(list(j = j, X = X, y = yv, b0 = cn$b0,
                                        B0inv = B0inv, nu0 = cn$nu0,
                                        s0 = cn$s0),
-                                  if (hasRE) list(grp = cn$grp)))
+                                  if (hasRE) list(grp = cn$grp),
+                                  if (hasRES) list(xRE = cn$xRE)))
     invisible(conf)
   })

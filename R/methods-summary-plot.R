@@ -104,13 +104,26 @@ setMethod("summary", "FitResult", function(object, ...) {
 #' @describeIn FitResult Diagnostic and result plots.
 #' @param x A \code{FitResult}.
 #' @param y Ignored.
-#' @param type One of \code{"K"} (posterior of #clusters), \code{"trace_raw"}
-#'   (raw cluster-parameter traces; zig-zags reveal label switching),
-#'   \code{"trace_relabeled"} (traces after relabelling), \code{"density"}
-#'   (univariate clustering only: data histogram with posterior predictive
-#'   overlay), \code{"cluster"} (multivariate clustering, \eqn{d \ge 2}: scatter
-#'   coloured by MAP cluster), or \code{"fitted"} (regression only: observed
-#'   response vs posterior predictive mean).
+#' @param type Which view to draw. \code{"K"}, \code{"trace_raw"},
+#'   \code{"trace_relabeled"}, \code{"density"}, \code{"cluster"} and
+#'   \code{"fitted"} are the mixture views.
+#'
+#'   \code{"series"}, \code{"regime"} and \code{"forecast"} are the
+#'   \strong{time-series views}, for \code{method = "hmm"} only. A density
+#'   plot of a regime-switching series is the wrong picture twice over: it
+#'   discards the axis the model is about, and it shows a bimodal smear where
+#'   the story is "the series sat in one regime, then moved".
+#'   \code{"series"} draws the data with its decoded regimes shaded as
+#'   blocks (blocks, because that is what the Markov chain models);
+#'   \code{"regime"} draws the smoothed \eqn{P(\mathrm{regime} \mid
+#'   \mathrm{data})} through time, which is the honest companion to the
+#'   Viterbi path -- where the bands are mixed, the decode is a guess; and
+#'   \code{"forecast"} draws the predictive fan past the end of the series
+#'   (see \code{\link{nimixForecast}} for what that fan can and cannot
+#'   mean).
+#' @param ... Passed to the underlying plot. For \code{type = "forecast"},
+#'   also \code{h}, \code{newdata}, \code{lags}, \code{draws} and
+#'   \code{level}, as in \code{\link{nimixForecast}}.
 #' @export
 #' @return Invisibly, a tidy data frame of exactly what was drawn (e.g.
 #'   \code{iteration}/\code{component}/\code{value} for traces,
@@ -119,8 +132,20 @@ setMethod("summary", "FitResult", function(object, ...) {
 #'   them.
 setMethod("plot", signature(x = "FitResult", y = "missing"),
   function(x, y, type = c("K", "trace_raw", "trace_relabeled", "density",
-                          "cluster", "fitted"), ...) {
+                          "cluster", "fitted", "series", "regime",
+                          "forecast"), ...) {
     type <- match.arg(type)
+    # The time-series views. A density plot of a regime-switching series is
+    # the wrong picture twice over: it throws away the axis the model is
+    # ABOUT, and it shows a bimodal smear where the story is "the series sat
+    # in one regime, then moved". These three put time back on the x-axis.
+    if (type %in% c("series", "regime", "forecast")) {
+      if (!identical(x@engineUsed, "hmm"))
+        stop("plot(type = '", type, "') is for regime-switching fits ",
+             "(method = 'hmm'); this one used '", x@engineUsed, "'. Without ",
+             "a time axis there is no series to draw.", call. = FALSE)
+      return(invisible(.plotHMM(x, type, ...)))
+    }
     d <- .dataDimOf(x@data)
     isReg <- isRegressionSpec(x@distSpec)
 
@@ -310,6 +335,14 @@ setMethod("predict", "FitResult", function(object, newdata, maxDraws = 500L,
     nd <- NULL
   } else {
     tt <- stats::delete.response(prior$terms)
+    # Same trap as in posteriorLinpred(): a name missing from `newdata` gets
+    # resolved against the formula's environment, i.e. the fitted data. This
+    # used to surface downstream as "replacement has n rows, data has 1",
+    # which is true but tells the caller nothing.
+    miss <- setdiff(all.vars(tt), names(newdata))
+    if (length(miss))
+      stop("`newdata` is missing predictor(s): ", paste(miss, collapse = ", "),
+           ".", call. = FALSE)
     mf <- stats::model.frame(tt, newdata, na.action = stats::na.pass)
     Xnew <- stats::model.matrix(tt, mf)
     nd <- newdata
@@ -355,4 +388,83 @@ setMethod("predict", "FitResult", function(object, newdata, maxDraws = 500L,
   out <- if (!is.null(nd)) as.data.frame(nd) else as.data.frame(Xnew)
   out$.fitted <- fitted
   out
+}
+
+# --- time-series views for regime-switching fits -------------------------------
+#
+# Base graphics only, and every branch returns the tidy data frame it drew --
+# same contract as the other plot types, so a caller who wants ggplot2 has the
+# numbers without nimix depending on it.
+.plotHMM <- function(x, type, h = 12L, newdata = NULL, lags = NULL,
+                     draws = 400L, level = 0.9, ...) {
+  y <- x@data
+  Tn <- length(y)
+  K <- x@Kmax
+  tt <- seq_len(Tn)
+
+  if (type == "series") {
+    # The series with its decoded regimes. Shading beats colouring points:
+    # what the eye should pick up is the BLOCKS, since that is what the Markov
+    # chain models.
+    z <- viterbiPath(x)
+    pal <- grDevices::hcl.colors(K, "Set 2", alpha = 0.35)
+    graphics::plot(tt, y, type = "n", xlab = "time", ylab = "y",
+                   main = "Series and decoded regimes", ...)
+    rl <- rle(z)
+    ends <- cumsum(rl$lengths); starts <- ends - rl$lengths + 1L
+    usr <- graphics::par("usr")
+    for (i in seq_along(rl$values))
+      graphics::rect(starts[i] - 0.5, usr[3L], ends[i] + 0.5, usr[4L],
+                     col = pal[rl$values[i]], border = NA)
+    graphics::lines(tt, y, col = "grey20")
+    graphics::points(tt, y, pch = 16, cex = 0.5, col = "grey20")
+    graphics::legend("topright", bty = "n", horiz = TRUE,
+                     fill = pal, legend = paste("regime", seq_len(K)))
+    return(data.frame(time = tt, y = y, regime = z))
+  }
+
+  if (type == "regime") {
+    # P(regime | all data) through time, from the FFBS allocation draws. This
+    # is the honest companion to the Viterbi path: where the bands are mixed,
+    # the decode is a guess.
+    alloc <- x@clusterAllocation
+    prob <- vapply(seq_len(K), function(k) colMeans(alloc == k), numeric(Tn))
+    graphics::matplot(tt, prob, type = "l", lty = 1, lwd = 2,
+                      col = grDevices::hcl.colors(K, "Set 2"),
+                      ylim = c(0, 1), xlab = "time",
+                      ylab = "P(regime | data)",
+                      main = "Smoothed regime probabilities", ...)
+    graphics::abline(h = 0.5, col = "grey70", lty = 3)
+    graphics::legend("right", bty = "n", lty = 1, lwd = 2,
+                     col = grDevices::hcl.colors(K, "Set 2"),
+                     legend = paste("regime", seq_len(K)))
+    out <- data.frame(time = tt, prob)
+    names(out)[-1L] <- paste0("regime", seq_len(K))
+    return(out)
+  }
+
+  # type == "forecast": the fan, with the series it continues.
+  # `lags` must ride through: without it an MS-AR cannot be forecast at all,
+  # and the failure is an error about the lag column being "non-lagged" --
+  # confusing precisely when the user did the right thing.
+  fc <- nimixForecast(x, h = h, newdata = newdata, lags = lags, draws = draws,
+                      level = level)
+  ft <- Tn + seq_len(h)
+  graphics::plot(c(tt, ft), c(y, fc$summary$median), type = "n",
+                 xlab = "time", ylab = "y",
+                 main = paste0("Forecast (h = ", h, ", ", round(100 * level),
+                               "% interval)"), ...)
+  graphics::polygon(c(ft, rev(ft)),
+                    c(fc$summary$lower, rev(fc$summary$upper)),
+                    col = grDevices::adjustcolor("steelblue", 0.25),
+                    border = NA)
+  graphics::lines(tt, y, col = "grey20")
+  graphics::lines(ft, fc$summary$median, col = "steelblue", lwd = 2)
+  graphics::abline(v = Tn + 0.5, col = "grey60", lty = 2)
+  # The caveat that matters, drawn rather than only documented: the median
+  # reverts to the stationary mixture, so the fan is not a trend.
+  graphics::legend("topleft", bty = "n", lty = c(1, 1), lwd = c(1, 2),
+                   col = c("grey20", "steelblue"),
+                   legend = c("observed", "forecast median"))
+  cbind(fc$summary, fc$regime)
 }

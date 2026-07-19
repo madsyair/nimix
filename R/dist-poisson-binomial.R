@@ -248,11 +248,10 @@ setMethod("relabelComponents", "BinomialSpec",
   k0 <- max(1L, min(as.integer(floor(initRatio * count)), as.integer(ceiling(sqrt(n)))))
   k0 <- min(k0, max(1L, nUnique))
   xiInit <- rep(1L, n); centers <- mean(y)
-  if (identical(initMethod, "kmeans") && k0 >= 2L && nUnique >= k0) {
-    km <- tryCatch(stats::kmeans(y, centers = k0, nstart = 5L),
-                   error = function(e) NULL)
-    if (!is.null(km)) { xiInit <- as.integer(km$cluster)
-                        centers <- as.numeric(km$centers) }
+  if (!identical(initMethod, "single") && k0 >= 2L && nUnique >= k0) {
+    cl <- .initClusters(y, k0, initMethod)
+    if (!is.null(cl)) { xiInit <- cl
+                        centers <- vapply(sort(unique(cl)), function(j) mean(y[cl == j]), numeric(1)) }
   }
   par <- rep(transform(priorMean), count)
   occ <- sort(unique(xiInit))

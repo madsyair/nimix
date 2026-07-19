@@ -77,6 +77,20 @@ NormalMvSpec <- function() new("NormalMvSpec")
 #' default \code{cLoc = 2}) and \code{df0} (inverse-Wishart degrees of freedom,
 #' default \code{d + 2}, must exceed \code{d + 1} for a finite, non-singular
 #' prior covariance on empty components).
+#'
+#' \code{sigmaGuess} sets the prior mean of a component's covariance directly:
+#' a positive scalar (read as isotropic) or a \eqn{d \times d}
+#' positive-definite matrix. The default reference is \code{cov(data)}, the
+#' \emph{global} covariance, which for separated components is inflated only
+#' along the direction that separates them -- so the prior ellipse has the
+#' wrong shape, not merely the wrong size. Measured on isotropic components
+#' separated along a vector v: 37.6x along v against 0.9x across it, a
+#' condition number of 42.8 where the truth is a circle. The InverseWishart
+#' default absorbs this well (\code{df0 = d + 2} makes the prior worth exactly
+#' one observation for every \eqn{d}; the fitted covariance came back at 1.2x
+#' with condition 1.4), so it stays. \code{sigmaGuess} is for callers who know
+#' the within-component shape -- most often \code{sigmaGuess = s} for an
+#' isotropic component of variance \code{s}.
 #' @export
 setMethod("defaultPrior", "NormalMvSpec",
   function(spec, data, control = list(), ...) {
@@ -95,7 +109,41 @@ setMethod("defaultPrior", "NormalMvSpec",
     kappa0 <- 1 / (cLoc^2)
     # Covariance ~ InverseWishart(S0, df0) has E[Sigma] = S0 / (df0 - d - 1).
     # Target E[Sigma] = cov(data)  ==>  S0 = cov(data) * (df0 - d - 1).
-    S0 <- Sy * (df0 - d - 1)
+    #
+    # cov(data) is the GLOBAL covariance, so for separated components it is
+    # inflated -- and inflated ANISOTROPICALLY, along the direction separating
+    # them. Measured on two components separated along v with isotropic
+    # within-covariance: 37.6x along v, 0.9x across it, a prior ellipse of
+    # condition number 42.8 where the truth is a circle. The posterior mostly
+    # overcomes it (measured 1.2x, condition 1.4) because the InverseWishart
+    # default is light: df0 = d + 2 makes the prior worth exactly ONE
+    # observation, for every d. So the default stays.
+    #
+    # What it cannot express is SHAPE. A user who knows the components are
+    # isotropic within (a common assumption) had no way to say so and simply
+    # inherited the condition-42.8 ellipse. sigmaGuess is that route: give the
+    # prior mean of each component's covariance directly.
+    S0 <- if (!is.null(control$sigmaGuess)) {
+      SG <- control$sigmaGuess
+      if (is.matrix(SG)) {
+        if (nrow(SG) != d || ncol(SG) != d)
+          stop("prior$sigmaGuess must be a ", d, " x ", d, " matrix (or a ",
+               "positive scalar for an isotropic guess).", call. = FALSE)
+      } else if (length(SG) == 1L && is.finite(SG) && SG > 0) {
+        SG <- diag(as.numeric(SG), d)     # scalar = isotropic guess
+      } else {
+        stop("prior$sigmaGuess must be a positive scalar (isotropic) or a ",
+             d, " x ", d, " covariance matrix: it is your prior mean for a ",
+             "component's covariance.", call. = FALSE)
+      }
+      SG <- (SG + t(SG)) / 2
+      evg <- tryCatch(min(eigen(SG, symmetric = TRUE,
+                                only.values = TRUE)$values),
+                      error = function(e) -1)
+      if (!is.finite(evg) || evg <= 0)
+        stop("prior$sigmaGuess must be positive definite.", call. = FALSE)
+      SG * (df0 - d - 1)
+    } else Sy * (df0 - d - 1)
     ev <- tryCatch(min(eigen((S0 + t(S0)) / 2, symmetric = TRUE,
                              only.values = TRUE)$values),
                    error = function(e) NA_real_)
@@ -265,7 +313,7 @@ setMethod("componentInits", "NormalMvSpec",
     centers <- matrix(prior$mu0, nrow = 1L)
     covList <- list(priorMeanCov)
 
-    if (identical(initMethod, "kmeans") && k0 >= 2L && nUnique >= k0) {
+    if (!identical(initMethod, "single") && k0 >= 2L && nUnique >= k0) {
       km <- tryCatch(stats::kmeans(Y, centers = k0, nstart = 5L),
                      error = function(e) NULL)
       if (!is.null(km)) {

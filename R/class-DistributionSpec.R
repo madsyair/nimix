@@ -94,6 +94,9 @@ setGeneric("defaultPrior", function(spec, data, control = list(), ...) {
 #' @param re Logical; regression + FixedK method only -- when \code{TRUE},
 #'   emit the random-intercept variant of the model code (sum-to-zero
 #'   \code{b} offsets plus \code{tauRE}).
+#' @param reSlope Logical; regression + FixedK method only -- when
+#'   \code{TRUE} (with \code{re = TRUE}), also emit sum-to-zero
+#'   random-slope offsets \code{sRE} plus \code{tauSlope}.
 #' @param ... Reserved for methods.
 #' @return A list with elements \code{code} (a \code{nimbleCode} object),
 #'   \code{monitors} (character vector), and \code{paramNodes}
@@ -170,7 +173,12 @@ setGeneric("buildDataList", function(spec, data, ...) {
 #' @param data The observed data.
 #' @param count Integer number of component slots (K_max for the DPM, K for
 #'   the finite mixture).
-#' @param initMethod \code{"kmeans"} (default) or \code{"single"}.
+#' @param initMethod \code{"kmeans"} (default), \code{"single"}, or
+#'   \code{"spread"}. \code{"spread"} is univariate-only and seeds clusters by
+#'   bands of \code{|y - median(y)|}, separating components by scale rather
+#'   than location; it helps the one case k-means seeds poorly (heterogeneous
+#'   variance with overlapping means) and falls back to k-means for a
+#'   multivariate response.
 #' @param ... Reserved for methods.
 #' @return A list with \code{alloc} (an integer allocation vector) and
 #'   \code{params} (a named list of component-parameter initial values).
@@ -276,3 +284,30 @@ setGeneric("linkInv", function(spec, eta, prior = NULL, ...) {
 #' @export
 setMethod("linkInv", "DistributionSpec",
   function(spec, eta, prior = NULL, ...) eta)
+
+#' Draw a response given linear predictors and error scale
+#'
+#' The family-specific tail of \code{\link{posteriorPredictive}}: given the
+#' per-observation linear predictor(s) and (for a Normal) the error variance,
+#' draw one response each. Defaults to the Gaussian
+#' \eqn{y \sim N(\eta, \sigma^2)}; Poisson and Binomial override it with
+#' their own link and sampler, so a predictive draw from a count model is a
+#' count, not a Gaussian jitter around the mean.
+#'
+#' @param spec A distribution spec.
+#' @param eta Numeric vector of linear predictors.
+#' @param s2 Numeric vector of error variances (Normal only; ignored
+#'   elsewhere).
+#' @param prior Optional prior list (e.g. Binomial \code{size}).
+#' @param ... Unused.
+#' @return A numeric vector of draws, one per element of \code{eta}.
+#' @export
+setGeneric("responseRng",
+  function(spec, eta, s2 = NULL, prior = NULL, ...)
+    standardGeneric("responseRng"))
+
+#' @describeIn responseRng Gaussian: identity link, Normal noise.
+#' @export
+setMethod("responseRng", "DistributionSpec",
+  function(spec, eta, s2 = NULL, prior = NULL, ...)
+    stats::rnorm(length(eta), eta, sqrt(s2)))

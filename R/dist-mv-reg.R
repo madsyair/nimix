@@ -40,6 +40,46 @@ NULL
   resid <- Y - X %*% Bols
   Sg <- stats::cov(resid); if (any(!is.finite(Sg))) Sg <- diag(d)
   df0 <- d + 2
+  # cov(resid) is the covariance of the GLOBAL OLS residuals, so it carries
+  # the between-component variation as well as the within-component one --
+  # the multivariate face of the univariate regression scale problem, which
+  # centres s2 on the same global quantity. Measured on two components
+  # differing only in their coefficients, with isotropic within-covariance
+  # 0.25 I: the prior mean of Sigma came out at 22.4x the truth in trace,
+  # with condition number 40 where the truth is a circle. Wrong size AND
+  # wrong shape.
+  #
+  # It survives anyway, and for the reason the clustering case does: the
+  # InverseWishart default is worth exactly ONE observation (df0 - d - 1 = 1,
+  # for every d), where the univariate InvGamma is worth four. The fitted
+  # covariance came back at 1.5x with condition ~2 against a prior that was
+  # off by 22x. So the default stays.
+  #
+  # sigmaGuess is for callers who know the within-component residual scale --
+  # most often sigmaGuess = s for isotropic residuals of variance s. It is
+  # the multivariate sibling of prior$s2Guess, and like it the override is
+  # deliberately absolute.
+  if (!is.null(control$sigmaGuess)) {
+    SG <- control$sigmaGuess
+    if (is.matrix(SG)) {
+      if (nrow(SG) != d || ncol(SG) != d)
+        stop("prior$sigmaGuess must be a ", d, " x ", d, " matrix (or a ",
+             "positive scalar for an isotropic guess).", call. = FALSE)
+    } else if (length(SG) == 1L && is.finite(SG) && SG > 0) {
+      SG <- diag(as.numeric(SG), d)
+    } else {
+      stop("prior$sigmaGuess must be a positive scalar (isotropic) or a ", d,
+           " x ", d, " covariance matrix: it is your prior mean for a ",
+           "component's residual covariance.", call. = FALSE)
+    }
+    SG <- (SG + t(SG)) / 2
+    evg <- tryCatch(min(eigen(SG, symmetric = TRUE,
+                              only.values = TRUE)$values),
+                    error = function(e) -1)
+    if (!is.finite(evg) || evg <= 0)
+      stop("prior$sigmaGuess must be positive definite.", call. = FALSE)
+    Sg <- SG
+  }
   # matrix-Normal-Inverse-Wishart coefficient prior (Backlund & Hobert 2020):
   # each coefficient row l has prior covariance v0[l] * Sigma, with the among-row
   # scale a g-prior, v0 = g * diag((X'X)^{-1}); this keeps the cluster updates
@@ -124,7 +164,31 @@ NormalMvRegSpec <- function() new("NormalMvRegSpec")
 #' @export
 setMethod("isRegressionSpec", "NormalMvRegSpec", function(spec, ...) TRUE)
 
-#' @describeIn defaultPrior Inverse-Wishart on Sigma + matrix-normal coefficients.
+#' @describeIn defaultPrior Inverse-Wishart on Sigma + matrix-normal
+#'   coefficients.
+#'
+#'   Control overrides: \code{g} (the coefficient g-prior scale, default
+#'   \code{n}) and \code{sigmaGuess}, the prior mean of a component's
+#'   residual covariance -- a positive scalar (read as isotropic) or a
+#'   \eqn{d \times d} positive-definite matrix.
+#'
+#'   \code{sigmaGuess} exists because the automatic reference is
+#'   \code{cov()} of the \emph{global} OLS residuals, which carry the
+#'   between-component variation as well as the within-component one. This is
+#'   the multivariate face of the univariate problem behind
+#'   \code{\link{nimixReg}}'s \code{s2Guess}. Measured on two components
+#'   differing only in their coefficients, with isotropic within-covariance:
+#'   the prior mean of Sigma was 22.4x the truth in trace, with condition
+#'   number 40 where the truth is a circle -- wrong size and wrong shape.
+#'
+#'   It stays the default anyway, for the reason the clustering case does:
+#'   \code{df0 = d + 2} makes the InverseWishart prior worth exactly one
+#'   observation for every \eqn{d} (the univariate InvGamma is worth four),
+#'   so the fitted covariance came back at about 1.5x with condition ~2
+#'   against a prior off by 22x. Reach for \code{sigmaGuess} when you know
+#'   the residual scale -- most often \code{sigmaGuess = s} for isotropic
+#'   residuals of variance \code{s}. \code{"studentt"} and
+#'   \code{"normalgamma"} inherit it.
 #' @export
 setMethod("defaultPrior", "NormalMvRegSpec",
   function(spec, data, control = list(), ...) .mvRegPrior(data, control))

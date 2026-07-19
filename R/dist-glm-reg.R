@@ -138,6 +138,12 @@ setMethod("isRegressionSpec", "PoissonRegSpec", function(spec, ...) TRUE)
 setMethod("linkInv", "PoissonRegSpec",
   function(spec, eta, prior = NULL, ...) exp(eta))
 
+#' @describeIn responseRng Poisson: log link, Poisson draw.
+#' @export
+setMethod("responseRng", "PoissonRegSpec",
+  function(spec, eta, s2 = NULL, prior = NULL, ...)
+    stats::rpois(length(eta), exp(eta)))
+
 #' @describeIn defaultPrior g-prior on the coefficients.
 #' @export
 setMethod("defaultPrior", "PoissonRegSpec",
@@ -178,26 +184,89 @@ setMethod("buildModelCode", signature("PoissonRegSpec", "DPMEngine"),
 
 #' @describeIn buildModelCode Poisson GLM regression fixed-K code (log link).
 #' @export
+# Random-effect block for GLM regressions. Unlike the location-scale families,
+# a GLM random effect enters INSIDE the link -- log(mu) or logit(p) gains
+# + b[grp[i]] -- so the group offset is multiplicative on the response scale,
+# not additive. This is the genuine GLMM case flagged in the design study: the
+# structure (sum-to-zero, tauRE) is the same, but the placement is inside the
+# linear predictor before the inverse link, which changes interpretation.
+# Returns the sum-to-zero prior lines shared by both link families.
+.glmRegREPriorLines <- function(reSlope = FALSE) {
+  if (reSlope)
+    paste("      for (g in 1:(G - 1)) {",
+          "        bf[g] ~ dnorm(0, sd = tauRE)",
+          "        sf[g] ~ dnorm(0, sd = tauSlope)",
+          "      }",
+          "      b[1:(G - 1)] <- bf[1:(G - 1)]",
+          "      b[G] <- -sum(bf[1:(G - 1)])",
+          "      sRE[1:(G - 1)] <- sf[1:(G - 1)]",
+          "      sRE[G] <- -sum(sf[1:(G - 1)])",
+          "      tauRE ~ dunif(tauMin, tauMax)",
+          "      tauSlope ~ dunif(tauMinSlope, tauMaxSlope)", sep = "\n")
+  else
+    paste("      for (g in 1:(G - 1)) bf[g] ~ dnorm(0, sd = tauRE)",
+          "      b[1:(G - 1)] <- bf[1:(G - 1)]",
+          "      b[G] <- -sum(bf[1:(G - 1)])",
+          "      tauRE ~ dunif(tauMin, tauMax)", sep = "\n")
+}
+
+# GLM regression model code with an optional random effect inside the link.
+# `linkLine` is a sprintf template with one %s for the linear-predictor
+# expression, e.g. "log(mu[i]) <- %s" or "logit(pp[i]) <- %s".
+# Append RE constants for a GLM regression (identical to the neo-normal helper;
+# the group structure does not depend on the emission family).
+.glmRegREConstants <- function(out, prior) {
+  if (isTRUE(prior$hasRE)) {
+    out$grp <- prior$reGrp; out$G <- prior$reG
+    out$tauMin <- prior$tauMin; out$tauMax <- prior$tauMax
+    if (isTRUE(prior$hasRESlope)) {
+      out$xRE <- prior$reSlopeX
+      out$tauMinSlope <- prior$tauMinSlope
+      out$tauMaxSlope <- prior$tauMaxSlope
+    }
+  }
+  out
+}
+
+.glmRegFixedKCode <- function(linkLine, respLine, re = FALSE, reSlope = FALSE) {
+  eta <- "inprod(X[i, 1:p], betaObs[i, 1:p])"
+  if (re) eta <- paste0(eta, " + b[grp[i]]")
+  if (re && reSlope) eta <- paste0(eta, " + sRE[grp[i]] * xRE[i]")
+  reBlock <- if (re) paste0("\n", .glmRegREPriorLines(reSlope)) else ""
+  tmpl <- sprintf("{
+    for (i in 1:n) {
+      z[i] ~ dcat(weights[1:K])
+      betaObs[i, 1:p] <- betaTilde[z[i], 1:p]
+      %s
+      %s
+    }
+    weights[1:K] ~ ddirch(alphaVec[1:K])
+    for (j in 1:K) betaTilde[j, 1:p] ~ dmnorm(b0[1:p], cov = B0[1:p, 1:p])%s
+  }", sprintf(linkLine, eta), respLine, reBlock)
+  str2lang(tmpl)
+}
+
+#' @describeIn buildModelCode Poisson regression finite mixture (fixed K), with
+#'   an optional random effect inside the log link (GLMM).
+#' @export
 setMethod("buildModelCode", signature("PoissonRegSpec", "FixedKEngine"),
-  function(spec, engine, n, L, ...) {
-    code <- nimble::nimbleCode({
-      for (i in 1:n) {
-        z[i] ~ dcat(weights[1:K])
-        betaObs[i, 1:p] <- betaTilde[z[i], 1:p]
-        log(mu[i]) <- inprod(X[i, 1:p], betaObs[i, 1:p])
-        y[i] ~ dpois(mu[i])
-      }
-      weights[1:K] ~ ddirch(alphaVec[1:K])
-      for (j in 1:K) betaTilde[j, 1:p] ~ dmnorm(b0[1:p], cov = B0[1:p, 1:p])
-    })
-    list(code = code, monitors = c("z", "betaTilde", "weights"),
+  function(spec, engine, n, L, re = FALSE, reSlope = FALSE, ...) {
+    code <- .glmRegFixedKCode("log(mu[i]) <- %s", "y[i] ~ dpois(mu[i])",
+                              re = isTRUE(re),
+                              reSlope = isTRUE(re) && isTRUE(reSlope))
+    list(code = code,
+         monitors = c("z", "betaTilde", "weights",
+                      if (isTRUE(re)) c("b", "tauRE"),
+                      if (isTRUE(re) && isTRUE(reSlope)) c("sRE", "tauSlope")),
          paramNodes = c(beta = "betaTilde"), allocNode = "z")
   })
 
 #' @describeIn buildConstants Poisson regression constants.
 setMethod("buildConstants", "PoissonRegSpec",
-  function(spec, prior, n, ...)
-    list(n = n, p = prior$p, X = prior$X, b0 = prior$b0, B0 = prior$B0))
+  function(spec, prior, n, ...) {
+    out <- list(n = n, p = prior$p, X = prior$X, b0 = prior$b0, B0 = prior$B0)
+    .glmRegREConstants(out, prior)
+  })
 
 #' @describeIn buildDataList Response and design matrix.
 setMethod("buildDataList", "PoissonRegSpec",
@@ -248,6 +317,17 @@ setMethod("linkInv", "BinomialRegSpec",
   function(spec, eta, prior = NULL, ...) {
     sz <- if (!is.null(prior$size)) prior$size else 1
     sz * stats::plogis(eta)
+  })
+
+#' @describeIn responseRng Binomial: logit link, Binomial draw.
+#' @export
+setMethod("responseRng", "BinomialRegSpec",
+  function(spec, eta, s2 = NULL, prior = NULL, ...) {
+    size <- prior$size
+    if (is.null(size))
+      stop("Binomial prediction needs the number of trials in ",
+           "prior = list(size = ).", call. = FALSE)
+    stats::rbinom(length(eta), size, stats::plogis(eta))
   })
 
 #' @describeIn defaultPrior g-prior on the coefficients; needs \code{size}.
@@ -302,26 +382,24 @@ setMethod("buildModelCode", signature("BinomialRegSpec", "DPMEngine"),
 #' @describeIn buildModelCode Binomial GLM regression fixed-K code (logit link).
 #' @export
 setMethod("buildModelCode", signature("BinomialRegSpec", "FixedKEngine"),
-  function(spec, engine, n, L, ...) {
-    code <- nimble::nimbleCode({
-      for (i in 1:n) {
-        z[i] ~ dcat(weights[1:K])
-        betaObs[i, 1:p] <- betaTilde[z[i], 1:p]
-        logit(pp[i]) <- inprod(X[i, 1:p], betaObs[i, 1:p])
-        y[i] ~ dbin(pp[i], size)
-      }
-      weights[1:K] ~ ddirch(alphaVec[1:K])
-      for (j in 1:K) betaTilde[j, 1:p] ~ dmnorm(b0[1:p], cov = B0[1:p, 1:p])
-    })
-    list(code = code, monitors = c("z", "betaTilde", "weights"),
+  function(spec, engine, n, L, re = FALSE, reSlope = FALSE, ...) {
+    code <- .glmRegFixedKCode("logit(pp[i]) <- %s", "y[i] ~ dbin(pp[i], size)",
+                              re = isTRUE(re),
+                              reSlope = isTRUE(re) && isTRUE(reSlope))
+    list(code = code,
+         monitors = c("z", "betaTilde", "weights",
+                      if (isTRUE(re)) c("b", "tauRE"),
+                      if (isTRUE(re) && isTRUE(reSlope)) c("sRE", "tauSlope")),
          paramNodes = c(beta = "betaTilde"), allocNode = "z")
   })
 
 #' @describeIn buildConstants Binomial regression constants plus \code{size}.
 setMethod("buildConstants", "BinomialRegSpec",
-  function(spec, prior, n, ...)
-    list(n = n, p = prior$p, X = prior$X, b0 = prior$b0, B0 = prior$B0,
-         size = prior$size))
+  function(spec, prior, n, ...) {
+    out <- list(n = n, p = prior$p, X = prior$X, b0 = prior$b0, B0 = prior$B0,
+                size = prior$size)
+    .glmRegREConstants(out, prior)
+  })
 
 #' @describeIn buildDataList Response and design matrix.
 setMethod("buildDataList", "BinomialRegSpec",

@@ -2,9 +2,9 @@
 % Please edit documentation in R/class-DistributionSpec.R, R/dist-fssn.R,
 %   R/dist-fossep.R, R/dist-fsst.R, R/dist-glm-reg.R, R/dist-gmsnburr.R,
 %   R/dist-normal-reg.R, R/dist-heavytail-reg.R, R/dist-jfst.R, R/dist-sep.R,
-%   R/dist-lep.R, R/dist-msnburr.R, R/dist-mv-reg.R, R/dist-normal-mv.R,
-%   R/dist-normal-gamma-mv.R, R/dist-normal-uv.R, R/dist-normal-gamma.R,
-%   R/dist-poisson-binomial.R, R/dist-skewnormal-mv.R,
+%   R/dist-lep.R, R/dist-msnburr.R, R/dist-mv-reg.R, R/dist-neonormal-reg.R,
+%   R/dist-normal-mv.R, R/dist-normal-gamma-mv.R, R/dist-normal-uv.R,
+%   R/dist-normal-gamma.R, R/dist-poisson-binomial.R, R/dist-skewnormal-mv.R,
 %   R/dist-skewnormal-mv-o.R, R/dist-skewistudent-mv.R,
 %   R/dist-skewistudent-mv-o.R, R/dist-skewnormal-mv-og.R,
 %   R/dist-skewistudent-mv-og.R, R/dist-student-t-mv.R, R/dist-student-t.R
@@ -27,6 +27,15 @@
 \alias{defaultPrior,NormalMvRegSpec-method}
 \alias{defaultPrior,StudentTMvRegSpec-method}
 \alias{defaultPrior,NormalGammaMvRegSpec-method}
+\alias{defaultPrior,MSNBurrRegSpec-method}
+\alias{defaultPrior,SEPRegSpec-method}
+\alias{defaultPrior,MSNBurr2aRegSpec-method}
+\alias{defaultPrior,FSSNRegSpec-method}
+\alias{defaultPrior,GMSNBurrRegSpec-method}
+\alias{defaultPrior,LEPRegSpec-method}
+\alias{defaultPrior,FSSTRegSpec-method}
+\alias{defaultPrior,FOSSEPRegSpec-method}
+\alias{defaultPrior,JFSTRegSpec-method}
 \alias{defaultPrior,NormalMvSpec-method}
 \alias{defaultPrior,NormalGammaMvSpec-method}
 \alias{defaultPrior,NormalUvSpec-method}
@@ -78,6 +87,24 @@ defaultPrior(spec, data, control = list(), ...)
 \S4method{defaultPrior}{StudentTMvRegSpec}(spec, data, control = list(), ...)
 
 \S4method{defaultPrior}{NormalGammaMvRegSpec}(spec, data, control = list(), ...)
+
+\S4method{defaultPrior}{MSNBurrRegSpec}(spec, data, control = list(), ...)
+
+\S4method{defaultPrior}{SEPRegSpec}(spec, data, control = list(), ...)
+
+\S4method{defaultPrior}{MSNBurr2aRegSpec}(spec, data, control = list(), ...)
+
+\S4method{defaultPrior}{FSSNRegSpec}(spec, data, control = list(), ...)
+
+\S4method{defaultPrior}{GMSNBurrRegSpec}(spec, data, control = list(), ...)
+
+\S4method{defaultPrior}{LEPRegSpec}(spec, data, control = list(), ...)
+
+\S4method{defaultPrior}{FSSTRegSpec}(spec, data, control = list(), ...)
+
+\S4method{defaultPrior}{FOSSEPRegSpec}(spec, data, control = list(), ...)
+
+\S4method{defaultPrior}{JFSTRegSpec}(spec, data, control = list(), ...)
 
 \S4method{defaultPrior}{NormalMvSpec}(spec, data, control = list(), ...)
 
@@ -161,11 +188,54 @@ prior variance).
 
 \item \code{defaultPrior(MSNBurr2aUvSpec)}: Data-scaled MSNBurr-IIa prior.
 
-\item \code{defaultPrior(NormalMvRegSpec)}: Inverse-Wishart on Sigma + matrix-normal coefficients.
+\item \code{defaultPrior(NormalMvRegSpec)}: Inverse-Wishart on Sigma + matrix-normal
+  coefficients.
+
+  Control overrides: \code{g} (the coefficient g-prior scale, default
+  \code{n}) and \code{sigmaGuess}, the prior mean of a component's
+  residual covariance -- a positive scalar (read as isotropic) or a
+  \eqn{d \times d} positive-definite matrix.
+
+  \code{sigmaGuess} exists because the automatic reference is
+  \code{cov()} of the \emph{global} OLS residuals, which carry the
+  between-component variation as well as the within-component one. This is
+  the multivariate face of the univariate problem behind
+  \code{\link{nimixReg}}'s \code{s2Guess}. Measured on two components
+  differing only in their coefficients, with isotropic within-covariance:
+  the prior mean of Sigma was 22.4x the truth in trace, with condition
+  number 40 where the truth is a circle -- wrong size and wrong shape.
+
+  It stays the default anyway, for the reason the clustering case does:
+  \code{df0 = d + 2} makes the InverseWishart prior worth exactly one
+  observation for every \eqn{d} (the univariate InvGamma is worth four),
+  so the fitted covariance came back at about 1.5x with condition ~2
+  against a prior off by 22x. Reach for \code{sigmaGuess} when you know
+  the residual scale -- most often \code{sigmaGuess = s} for isotropic
+  residuals of variance \code{s}. \code{"studentt"} and
+  \code{"normalgamma"} inherit it.
 
 \item \code{defaultPrior(StudentTMvRegSpec)}: Inverse-Wishart + matrix-normal plus a fixed \code{df}.
 
 \item \code{defaultPrior(NormalGammaMvRegSpec)}: Inverse-Wishart + matrix-normal plus a fixed \code{df}.
+
+\item \code{defaultPrior(MSNBurrRegSpec)}: MSNBurr regression prior.
+
+\item \code{defaultPrior(SEPRegSpec)}: SEP regression prior.
+
+\item \code{defaultPrior(MSNBurr2aRegSpec)}: MSNBurr-IIa regression prior (shares the MSNBurr
+scale/shape prior).
+
+\item \code{defaultPrior(FSSNRegSpec)}: FSSN regression prior (log-normal skewness).
+
+\item \code{defaultPrior(GMSNBurrRegSpec)}: GMSNBurr regression prior.
+
+\item \code{defaultPrior(LEPRegSpec)}: LEP regression prior.
+
+\item \code{defaultPrior(FSSTRegSpec)}: FSST regression prior.
+
+\item \code{defaultPrior(FOSSEPRegSpec)}: FOSSEP regression prior.
+
+\item \code{defaultPrior(JFSTRegSpec)}: JFST regression prior.
 
 \item \code{defaultPrior(NormalMvSpec)}: Data-scaled Normal-Inverse-Wishart prior (multivariate).
 
@@ -174,6 +244,20 @@ of \code{mu} is \code{Sigma / kappa0} with \code{kappa0 = 1 / cLoc^2},
 default \code{cLoc = 2}) and \code{df0} (inverse-Wishart degrees of freedom,
 default \code{d + 2}, must exceed \code{d + 1} for a finite, non-singular
 prior covariance on empty components).
+
+\code{sigmaGuess} sets the prior mean of a component's covariance directly:
+a positive scalar (read as isotropic) or a \eqn{d \times d}
+positive-definite matrix. The default reference is \code{cov(data)}, the
+\emph{global} covariance, which for separated components is inflated only
+along the direction that separates them -- so the prior ellipse has the
+wrong shape, not merely the wrong size. Measured on isotropic components
+separated along a vector v: 37.6x along v against 0.9x across it, a
+condition number of 42.8 where the truth is a circle. The InverseWishart
+default absorbs this well (\code{df0 = d + 2} makes the prior worth exactly
+one observation for every \eqn{d}; the fitted covariance came back at 1.2x
+with condition 1.4), so it stays. \code{sigmaGuess} is for callers who know
+the within-component shape -- most often \code{sigmaGuess = s} for an
+isotropic component of variance \code{s}.
 
 \item \code{defaultPrior(NormalGammaMvSpec)}: Normal-Inverse-Wishart prior plus a fixed \code{df}
 (default 5, must exceed 2 for a finite component covariance).

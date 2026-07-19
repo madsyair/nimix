@@ -11,11 +11,11 @@ nimixReg(
   K = NULL,
   K_max = NULL,
   distribution = "normal",
-  method = c("dpm", "fixedk", "mrf"),
+  method = c("dpm", "fixedk", "mrf", "hmm"),
   gating = c("constant", "covariate"),
   prior = list(),
   mcmcControl = list(),
-  initMethod = c("kmeans", "single"),
+  initMethod = c("kmeans", "single", "spread"),
   seed = 1L,
   verbose = FALSE,
   spatialWeights = NULL
@@ -26,14 +26,20 @@ nimixReg(
 
 \item{data}{A data frame containing the formula variables.}
 
-\item{random}{Optional one-sided formula naming a single grouping factor
-for a random intercept, e.g. \code{random = ~ region}: the linear
-predictor of every component gains a shared group offset
-\eqn{b_{g(i)} \sim N(0, \tau^2)} with a sum-to-zero constraint (so the
-component intercepts absorb the group mean, and the reported \code{b}
-are centred -- the parameterisation that mixes well; see NEWS for the
-measured motivation). Currently supported with
-\code{method = "fixedk"} and \code{distribution = "normal"} only.}
+\item{random}{Optional one-sided formula for group-level random effects.
+\code{random = ~ region} gives a random intercept: every component's
+linear predictor gains a shared group offset
+\eqn{b_{g(i)} \sim N(0, \tau^2)}. \code{random = ~ x | region}
+additionally gives a random slope for \code{x} (which must be a term of
+\code{formula}); as in \code{lme4}'s \code{(x|g)}, the intercept comes
+along. Both offsets use a sum-to-zero constraint -- the parameterisation
+that mixes well -- so the component coefficients absorb the group means
+and the reported \code{b} / \code{sRE} are centred. The two offsets are
+given independent priors by default. \code{tauRE} and \code{tauSlope}
+estimate the spread of \emph{your} groups, which with few groups is
+itself variable. Currently supported with \code{method = "fixedk"} and
+\code{distribution = "normal"} or \code{"studentt"} (heavy-tailed
+residuals).}
 
 \item{K}{Integer number of components for the finite mixture
 (\code{method = "fixedk"}). Required for that method.}
@@ -43,14 +49,45 @@ it must sit comfortably above the expected number of clusters, since the
 dCRP sampler errors if the occupied-cluster count ever needs to exceed it.
 A generous data-aware default (with headroom) is used when missing.}
 
-\item{distribution}{Component distribution. Currently \code{"normal"}
-(Gaussian linear component). Other GLM families are planned.}
+\item{distribution}{Component distribution. Gaussian (\code{"normal"}),
+  heavy-tailed (\code{"studentt"}, \code{"normalgamma"}), GLM
+  (\code{"poisson"}, \code{"binomial"}), and the nine neo-normal skew
+  families (\code{"msnburr"}, \code{"msnburr2a"}, \code{"gmsnburr"},
+  \code{"fssn"}, \code{"fsst"}, \code{"sep"}, \code{"lep"}, \code{"fossep"},
+  \code{"jfst"}) are available; multivariate variants exist for the Gaussian
+  and heavy-tailed families.
 
-\item{method}{Engine: \code{"dpm"} (default; estimate the number of
-components), \code{"fixedk"} (fixed \code{K}), or \code{"mrf"}
-(spatially constrained: fixed \code{K}, Potts smoothing of the labels on
-a \code{spatialWeights} graph; Gaussian response, fixed
-\code{prior$beta}, default 0.8).}
+  \strong{Non-Gaussian families cost effective sample size.} Only the
+  Gaussian regression has a conjugate coefficient update; every other family
+  (neo-normal, heavy-tailed, GLM) is sampled by NIMBLE's defaults, which mix
+  more slowly. Measured on \code{"fixedk"} with two components, the Gaussian
+  reaches about 10.7 ESS/s against 1.9 for \code{"msnburr"} and 1.4 for the
+  three-shape \code{"gmsnburr"} -- roughly a 5--7x factor. Budget
+  proportionally more iterations for a skewed or heavy-tailed fit; the
+  three-shape families (gmsnburr, fsst, fossep, jfst) are the slowest.}
+
+\item{method}{Fitting method: \code{"dpm"}, \code{"fixedk"},
+  \code{"mrf"}, or \code{"hmm"}.
+
+  \code{"hmm"} fits a \strong{Markov-switching regression} (Hamilton
+  1989): the coefficients and error variance switch with a latent
+  first-order Markov regime, so the rows of \code{data} are a
+  \emph{time series} rather than an exchangeable sample -- their order
+  carries meaning here as it does nowhere else in \code{nimixReg}. Give
+  \code{K} for the number of regimes, as for \code{"fixedk"}; the regime
+  path is marginalised out of the likelihood and decoded afterwards, so
+  \code{\link{viterbiPath}} gives the most probable regime sequence.
+  Currently \code{distribution = "normal"} (Gaussian) or \code{"poisson"} (log-link counts), or \code{"studentt"} / \code{"normalgamma"} (heavy-tailed), or \code{"binomial"} (logit-link
+  proportions, with the number of trials in \code{prior = list(size = )}).
+
+  \strong{Budget more iterations than for \code{"fixedk"}.} Marginalising
+  the regime path rules out the conjugate Normal-Inverse-Gamma update, so
+  the coefficients are sampled by NIMBLE's defaults instead. Measured on a
+  two-regime series, that costs roughly four times the effective sample
+  size per second (ESS/s 2.3 against 8.9 for the conjugate \code{"fixedk"}
+  sampler), even though the marginalised chain has a shorter wall time. A
+  light run gives usably-decoded regimes but wide coefficient intervals;
+  raise \code{niter} until the intervals settle.}
 
 \item{gating}{Mixing-weight model: \code{"constant"} (default; weights do not
 depend on covariates). \code{"covariate"} (concomitant gating) is a planned
@@ -58,9 +95,12 @@ opt-in and currently errors.}
 
 \item{prior}{A named list of prior overrides passed to
 \code{\link{defaultPrior}} (e.g. \code{g} for the g-prior factor,
-\code{nu0} for the InvGamma shape) plus, for the DPM, optional
-\code{concPrior = c(shape, rate)}, or, for the finite mixture,
-\code{dirichletConc}.}
+\code{nu0} for the InvGamma shape, and \code{s2Guess} for its scale --
+see \sQuote{Reading the error variance} below; with a multivariate
+response, \code{sigmaGuess} plays the same role for the residual
+covariance) plus,
+for the DPM, optional \code{concPrior = c(shape, rate)}, or, for the
+finite mixture, \code{dirichletConc}.}
 
 \item{mcmcControl}{A named list of MCMC controls: \code{niter},
 \code{nburnin}, \code{thin}, and the optional \code{initRatio} -- the
@@ -98,6 +138,70 @@ with a Dirichlet Process Mixture (\code{method = "dpm"}, using \code{K_max})
 or fixed (\code{method = "fixedk"}, using \code{K}). Gating is constant: the
 mixing weights do not depend on the covariates.
 }
+\section{Reading the error variance}{
+
+The prior on each component's error variance \code{s2} is centred on the
+residual variance of a \emph{global} OLS fit, which ignores the mixture.
+For separated components that quantity measures the spread \emph{between}
+components as much as the spread within one, so the prior is deliberately
+conservative and \code{s2} is biased upward. The bias is largest exactly
+where mixtures are most useful -- well-separated components at moderate
+sample size -- and it disappears as the per-component sample size grows:
+with a prior/truth scale ratio of about 60, the measured bias runs near
+9x at 25 observations per component, 2.5x at 150, 1.2x at 1000, and 1.0x
+by 5000. It is a bias in the safe direction (wider predictive intervals),
+and the coefficients are unaffected.
+
+The conservatism is load-bearing rather than incidental: it also
+regularises against splitting when \code{K} is over-specified, so it
+stays the default.
+
+If you know the within-component scale -- from a pilot study, the
+literature, or domain knowledge -- say so directly:
+\code{prior = list(s2Guess = 0.3)} makes 0.3 the prior mean of \code{s2}.
+(\code{s0} sets the raw InvGamma scale instead, for callers who think in
+those terms; give one or the other.) On a simulated benchmark with a true
+\code{s2} of 0.25 that moved the estimate from 0.78 (3.1x) to 0.36
+(1.4x), slopes untouched. The override is deliberately absolute: a
+multiplier on the automatic scale would only ever mean "a fraction of a
+quantity that measures the wrong thing", which is a knob, not a
+statement.
+
+\strong{Where a tighter prior is safe.} A tenfold tighter scale left the
+DPM's recovery of \code{K} untouched (modal \code{K} = 2 throughout a
+benchmark with two true components), and is likewise safe for
+\code{fixedk} when \code{K} is correct, where it halved the error in
+\code{s2}. It is \strong{not} safe for \code{fixedk} with an
+over-specified \code{K}: on the same data with \code{K = 4} against two
+true components, the default occupied two components while a tenfold
+tighter prior occupied three. Wide components make two suffice; narrow
+ones make the model want more. If you are unsure whether \code{K} is
+over-specified, leave the default alone or use the DPM.
+
+\strong{Recipe: two-stage empirical Bayes.} If you need the scale right
+and have no external knowledge, fit once with the default, read the
+within-component residual variance off that fit, and refit with it as
+\code{s2Guess}. It costs a second compile-and-run, which is why it is not
+the default, but it needs no guesswork:
+
+\preformatted{
+fit1 <- nimixReg(y ~ x, df, K = 2, method = "fixedk")
+fit1 <- relabel(fit1)
+# residuals of each point under its own MAP component
+z    <- binderPartition(fit1)$partition
+cf   <- fit1@relabeled$summary
+Xm   <- model.matrix(y ~ x, df)
+res  <- df$y - rowSums(Xm * as.matrix(cf[z, c("(Intercept)", "x")]))
+s2hat <- sum(res^2) / (nrow(df) - 2 * ncol(Xm))
+
+fit2 <- nimixReg(y ~ x, df, K = 2, method = "fixedk",
+                 prior = list(s2Guess = s2hat))
+}
+
+The first fit's \emph{allocation} is reliable even where its \code{s2} is
+not -- that is what makes the recipe work.
+}
+
 \examples{
 \donttest{
 set.seed(1)

@@ -371,3 +371,45 @@
     -sum(p * log(p))
   })
 }
+
+# --- initial-allocation helpers ------------------------------------------------
+#
+# Shared across every componentInits method so that a new init strategy is
+# written once, not eleven times. .initClusters returns a hard allocation
+# vector (integer, one label per row) or NULL on failure -- exactly the
+# contract the inline kmeans blocks already expect, so callers keep their
+# center/variance extraction unchanged.
+#
+# initMethod:
+#   "kmeans"  -> stats::kmeans (the default; unchanged behaviour)
+#   "spread"  -> univariate only: split by |y - median(y)| quantiles, which
+#                separates components by SCALE rather than location. This is
+#                the one case measured to defeat k-means (heterogeneous
+#                variance, overlapping means; see kajian_inisialisasi_*). For
+#                a multivariate response it has no natural analogue, so it
+#                falls back to kmeans rather than guessing.
+#   "single"  -> handled by the caller (all-one-cluster); never reaches here.
+.initClusters <- function(y, k0, initMethod = "kmeans") {
+  if (k0 < 2L) return(NULL)
+  isMv <- is.matrix(y) && ncol(y) > 1L
+
+  if (identical(initMethod, "spread") && !isMv) {
+    yv <- as.numeric(y)
+    dev <- abs(yv - stats::median(yv))
+    # k0 bands of increasing deviation from the centre: band 1 is the tight
+    # core, band k0 the diffuse tail. Ties in dev are broken by rank so every
+    # band is populated whenever there are enough distinct values.
+    br <- stats::quantile(dev, probs = seq(0, 1, length.out = k0 + 1L),
+                          names = FALSE)
+    br[1L] <- -Inf; br[length(br)] <- Inf
+    cl <- as.integer(cut(dev, breaks = br, labels = FALSE,
+                         include.lowest = TRUE))
+    if (length(unique(cl)) < k0) return(NULL)   # too few distinct: let caller fall back
+    return(cl)
+  }
+
+  # default / multivariate spread fallback: kmeans
+  km <- tryCatch(stats::kmeans(y, centers = k0, nstart = 5L),
+                 error = function(e) NULL)
+  if (is.null(km)) NULL else as.integer(km$cluster)
+}

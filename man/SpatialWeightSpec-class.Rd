@@ -33,12 +33,20 @@ edges, degree range, and weight type.
 \section{Slots}{
 
 \describe{
-\item{\code{adjacency}}{Numeric matrix (n x n): symmetric, zero diagonal,
-non-negative entries. Entry (i, j) > 0 means regions i and j are
-neighbours (with that weight).}
+\item{\code{edges}}{Integer matrix, one row per undirected edge with endpoints
+\code{i < j}, in canonical column-major order (see
+\code{\link{getEdges}}). This is the canonical representation since
+v1.5.0; the dense matrix is derived on demand and refused for large
+graphs.}
 
-\item{\code{regionIds}}{Character vector of length n naming the regions (defaults
-to row names of the matrix, or \code{"region1"}, ... when absent).}
+\item{\code{edgeWeights}}{Positive numeric weights, one per edge (1 for binary
+contiguity).}
+
+\item{\code{nNodes}}{Integer number of regions.}
+
+\item{\code{regionIds}}{Character vector of length \code{nNodes} naming the
+regions (defaults to row names of the matrix, or \code{"region1"}, ...
+when absent).}
 }}
 
 \references{

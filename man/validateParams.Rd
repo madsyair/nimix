@@ -2,9 +2,9 @@
 % Please edit documentation in R/class-DistributionSpec.R, R/dist-fssn.R,
 %   R/dist-fossep.R, R/dist-fsst.R, R/dist-glm-reg.R, R/dist-gmsnburr.R,
 %   R/dist-normal-reg.R, R/dist-jfst.R, R/dist-sep.R, R/dist-lep.R,
-%   R/dist-msnburr.R, R/dist-mv-reg.R, R/dist-normal-mv.R,
-%   R/dist-normal-gamma-mv.R, R/dist-normal-uv.R, R/dist-normal-gamma.R,
-%   R/dist-poisson-binomial.R, R/dist-skewnormal-mv.R,
+%   R/dist-msnburr.R, R/dist-mv-reg.R, R/dist-neonormal-reg.R,
+%   R/dist-normal-mv.R, R/dist-normal-gamma-mv.R, R/dist-normal-uv.R,
+%   R/dist-normal-gamma.R, R/dist-poisson-binomial.R, R/dist-skewnormal-mv.R,
 %   R/dist-skewnormal-mv-o.R, R/dist-skewistudent-mv.R,
 %   R/dist-skewistudent-mv-o.R, R/dist-skewnormal-mv-og.R,
 %   R/dist-skewistudent-mv-og.R, R/dist-student-t-mv.R, R/dist-student-t.R
@@ -23,6 +23,15 @@
 \alias{validateParams,MSNBurrUvSpec-method}
 \alias{validateParams,MSNBurr2aUvSpec-method}
 \alias{validateParams,NormalMvRegSpec-method}
+\alias{validateParams,MSNBurrRegSpec-method}
+\alias{validateParams,SEPRegSpec-method}
+\alias{validateParams,MSNBurr2aRegSpec-method}
+\alias{validateParams,FSSNRegSpec-method}
+\alias{validateParams,GMSNBurrRegSpec-method}
+\alias{validateParams,LEPRegSpec-method}
+\alias{validateParams,FSSTRegSpec-method}
+\alias{validateParams,FOSSEPRegSpec-method}
+\alias{validateParams,JFSTRegSpec-method}
 \alias{validateParams,NormalMvSpec-method}
 \alias{validateParams,NormalGammaMvSpec-method}
 \alias{validateParams,NormalUvSpec-method}
@@ -66,6 +75,24 @@ validateParams(spec, params, ...)
 \S4method{validateParams}{MSNBurr2aUvSpec}(spec, params, ...)
 
 \S4method{validateParams}{NormalMvRegSpec}(spec, params, ...)
+
+\S4method{validateParams}{MSNBurrRegSpec}(spec, params, ...)
+
+\S4method{validateParams}{SEPRegSpec}(spec, params, ...)
+
+\S4method{validateParams}{MSNBurr2aRegSpec}(spec, params, ...)
+
+\S4method{validateParams}{FSSNRegSpec}(spec, params, ...)
+
+\S4method{validateParams}{GMSNBurrRegSpec}(spec, params, ...)
+
+\S4method{validateParams}{LEPRegSpec}(spec, params, ...)
+
+\S4method{validateParams}{FSSTRegSpec}(spec, params, ...)
+
+\S4method{validateParams}{FOSSEPRegSpec}(spec, params, ...)
+
+\S4method{validateParams}{JFSTRegSpec}(spec, params, ...)
 
 \S4method{validateParams}{NormalMvSpec}(spec, params, ...)
 
@@ -138,6 +165,24 @@ and enforce \eqn{\dim(b_0) = \dim(B_0) = p} and \eqn{nu_0 > 2}.
 \item \code{validateParams(MSNBurr2aUvSpec)}: MSNBurr-IIa hyperparameter checks.
 
 \item \code{validateParams(NormalMvRegSpec)}: Validate the multivariate-regression prior.
+
+\item \code{validateParams(MSNBurrRegSpec)}: MSNBurr regression prior validation.
+
+\item \code{validateParams(SEPRegSpec)}: SEP regression validation.
+
+\item \code{validateParams(MSNBurr2aRegSpec)}: MSNBurr-IIa regression validation.
+
+\item \code{validateParams(FSSNRegSpec)}: FSSN regression validation.
+
+\item \code{validateParams(GMSNBurrRegSpec)}: GMSNBurr regression validation.
+
+\item \code{validateParams(LEPRegSpec)}: LEP regression validation.
+
+\item \code{validateParams(FSSTRegSpec)}: FSST regression validation.
+
+\item \code{validateParams(FOSSEPRegSpec)}: FOSSEP regression validation.
+
+\item \code{validateParams(JFSTRegSpec)}: JFST regression validation.
 
 \item \code{validateParams(NormalMvSpec)}: Validate a Normal-Inverse-Wishart prior list and
   enforce the dimension invariant \eqn{\dim(\mu_0) = \dim(S_0) = d} and

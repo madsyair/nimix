@@ -217,7 +217,7 @@ setMethod("componentInits", "SkewNormalMvSpec",
                       as.integer(ceiling(sqrt(n)))))
     k0 <- min(k0, max(1L, nUnique))
     alloc <- rep(1L, n); centers <- matrix(colMeans(Y), 1, d)
-    if (identical(initMethod, "kmeans") && k0 >= 2L && nUnique >= k0) {
+    if (!identical(initMethod, "single") && k0 >= 2L && nUnique >= k0) {
       km <- tryCatch(stats::kmeans(Y, centers = k0, nstart = 5L),
                      error = function(e) NULL)
       if (!is.null(km)) { alloc <- as.integer(km$cluster); centers <- km$centers }

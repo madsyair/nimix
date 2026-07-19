@@ -70,8 +70,41 @@ setMethod("buildModelCode", signature("NormalMvSpec", "FixedKEngine"),
 #'   (fixed K).
 #' @export
 setMethod("buildModelCode", signature("NormalRegSpec", "FixedKEngine"),
-  function(spec, engine, n, L, re = FALSE, ...) {
-    code <- if (!re) nimble::nimbleCode({
+  function(spec, engine, n, L, re = FALSE, reSlope = FALSE, ...) {
+    code <- if (re && reSlope) nimble::nimbleCode({
+      # Random intercept AND random slope. Both use the sum-to-zero
+      # parameterisation: gate F5.2 measured free offsets giving two ridges
+      # (cor(beta1, mean(s)) = -0.929, cor(beta0, mean(b)) = -0.953) with min
+      # ESS 52, against 226 under the constraint -- and notably the free
+      # version got CONJUGATE samplers and still lost, i.e. posterior geometry
+      # beats sampler class. The offsets are independent by design: with
+      # correlated truth (rho = 0.92) the independent model still recovered
+      # both (cor 0.97) and the correlation itself came back empirically.
+      for (i in 1:n) {
+        z[i] ~ dcat(weights[1:K])
+        betaObs[i, 1:p] <- betaTilde[z[i], 1:p]
+        mu[i] <- inprod(X[i, 1:p], betaObs[i, 1:p]) + b[grp[i]] +
+                 sRE[grp[i]] * xRE[i]
+        s2Obs[i] <- s2Tilde[z[i]]
+        y[i] ~ dnorm(mu[i], var = s2Obs[i])
+      }
+      weights[1:K] ~ ddirch(alphaVec[1:K])
+      for (j in 1:K) {
+        s2Tilde[j] ~ dinvgamma(shape = nu0, scale = s0)
+        covBeta[j, 1:p, 1:p] <- s2Tilde[j] * B0[1:p, 1:p]
+        betaTilde[j, 1:p] ~ dmnorm(b0[1:p], cov = covBeta[j, 1:p, 1:p])
+      }
+      for (g in 1:(G - 1)) {
+        bf[g] ~ dnorm(0, sd = tauRE)
+        sf[g] ~ dnorm(0, sd = tauSlope)
+      }
+      b[1:(G - 1)] <- bf[1:(G - 1)]
+      b[G] <- -sum(bf[1:(G - 1)])
+      sRE[1:(G - 1)] <- sf[1:(G - 1)]
+      sRE[G] <- -sum(sf[1:(G - 1)])
+      tauRE ~ dunif(tauMin, tauMax)
+      tauSlope ~ dunif(tauMinSlope, tauMaxSlope)
+    }) else if (!re) nimble::nimbleCode({
       for (i in 1:n) {
         z[i] ~ dcat(weights[1:K])
         betaObs[i, 1:p] <- betaTilde[z[i], 1:p]
@@ -106,11 +139,12 @@ setMethod("buildModelCode", signature("NormalRegSpec", "FixedKEngine"),
       for (g in 1:(G - 1)) bf[g] ~ dnorm(0, sd = tauRE)
       b[1:(G - 1)] <- bf[1:(G - 1)]
       b[G] <- -sum(bf[1:(G - 1)])
-      tauRE ~ dunif(0.01, tauMax)
+      tauRE ~ dunif(tauMin, tauMax)
     })
     list(code = code,
          monitors  = c("z", "betaTilde", "s2Tilde", "weights",
-                       if (re) c("b", "tauRE")),
+                       if (re) c("b", "tauRE"),
+                       if (re && reSlope) c("sRE", "tauSlope")),
          paramNodes = c(beta = "betaTilde", s2 = "s2Tilde"),
          allocNode  = "z")
   }
@@ -175,14 +209,22 @@ setMethod("runEngine", "FixedKEngine",
     d     <- .dataDimOf(data)
 
     hasRE <- isTRUE(prior$hasRE)
-    mc <- buildModelCode(spec, engine, n = n, L = K, d = d, re = hasRE)
+    hasRES <- isTRUE(prior$hasRESlope)
+    mc <- buildModelCode(spec, engine, n = n, L = K, d = d, re = hasRE,
+                         reSlope = hasRES)
     dataList <- buildDataList(spec, data)
     initRatio <- .resolveInitRatio(mcmcControl)
     initsFn <- function(s) {
       ci <- .withSeed(s, function() componentInits(spec, prior, data, K,
                       initMethod = initMethod, initRatio = initRatio))
-      reInits <- if (hasRE) list(bf = rep(0, prior$reG - 1L), tauRE = 1)
-                 else NULL
+      # Inits must sit inside the data-scaled tau prior: a fixed tauRE = 1
+      # would fall outside dunif(tauMin, tauMax) whenever the response scale
+      # is small.
+      reInits <- if (hasRE)
+        c(list(bf = rep(0, prior$reG - 1L), tauRE = prior$tauMax / 10),
+          if (hasRES) list(sf = rep(0, prior$reG - 1L),
+                           tauSlope = prior$tauMaxSlope / 10))
+        else NULL
       if (K == 1L) c(reInits, ci$params)
       else c(list(z = ci$alloc, weights = rep(1 / K, K)), reInits, ci$params)
     }

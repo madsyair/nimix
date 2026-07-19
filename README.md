@@ -48,16 +48,28 @@ Selected with `method`:
   for model comparison).
 - `"mrf"` — spatially coupled allocations via a Potts prior over a
   user-supplied adjacency (`spatialWeights`; `gridAdjacency()` builds regular
-  grids).
+  grids). `spacetimeAdjacency(W, nTime)` expands that graph over time, giving
+  **spatio-temporal** mixtures with no other change: on a 5x5 grid over 8
+  times with overlapping components, a plain mixture failed outright
+  (accuracy 0.50), the spatial graph reached 0.95, and the space-time graph
+  0.995.
 - `"hmm"` — regime switching in time: labels follow a first-order Markov
   chain, the state path is marginalised out by the forward algorithm
   (measured: min ESS/sec 456 vs 144 for naive latent-state sampling), and
   exact allocation draws are recovered post hoc by FFBS -- so `relabel()`,
   `psm()`, `binderPartition()` and the plots work unchanged.
   `viterbiPath(fit)` decodes the jointly most probable state sequence.
-  Current emissions (univariate): Gaussian, Student-t (heavy tails),
-  Poisson (count regimes), and the neo-normal skewed families MSNBurr,
-  MSNBurr-IIa and GMSNBurr; further families follow the gated roadmap.
+  Emissions (univariate, complete at 13): Gaussian, Student-t (heavy
+  tails), Poisson (count regimes), Binomial (regime-switching proportions,
+  known `size`), and nine neo-normal / skew families (MSNBurr, MSNBurr-IIa,
+  GMSNBurr, FSSN, FSST, SEP, LEP, FOSSEP, JFST). `normal-gamma` is excluded
+  by design: its augmentation is what the marginalised forward kernel
+  exists to avoid.
+  In `nimixReg` the same method gives a **Markov-switching regression**
+  (Hamilton 1989): the coefficients and error variance switch with the
+  regime, and the rows are a time series rather than an exchangeable sample.
+  Measured on two regimes with opposing slopes: intercepts 1.96/-1.96
+  against 2/-2, decoding 0.98.
 
 All 32 families run under the dpm, fixedk and mrf engines.
 
@@ -162,8 +174,10 @@ reg <- nimixReg(y ~ x, df, K = 2, method = "fixedk",
                 verbose = FALSE)
 summary(reg)
 
-## ... with a random intercept for grouped data (fixedk + normal)
-# nimixReg(y ~ x, df, random = ~ region, K = 2, method = "fixedk")
+## ... with random effects for grouped data (fixedk + normal)
+# nimixReg(y ~ x, df, random = ~ region, K = 2, method = "fixedk")      # intercept
+# nimixReg(y ~ x, df, random = ~ x | region, K = 2, method = "fixedk")  # + slope
+# ... add distribution = "studentt" for heavy-tailed residuals
 
 ## Hand the fit to bayesplot (if installed)
 # bayesplot::mcmc_trace(drawsArray(fit))               # invariant functionals

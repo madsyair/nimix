@@ -84,6 +84,64 @@ fs <- nimixReg(y ~ x, data.frame(y = y, x = x), K_max = 8,
 summary(relabel(fs))    # recovers slopes near +2 and -2, weights near 0.8/0.2
 ```
 
+## Reading the error variance
+
+One number deserves a caveat: the component error variance `s2`. Its prior is
+centred on the residual variance of a *global* OLS fit, which ignores the
+mixture — so for separated components it measures the spread *between*
+components as much as the spread within one, and `s2` comes out too large.
+
+The bias is largest exactly where mixtures earn their keep. At 150
+observations per component it is about 1.0x for overlapping components and
+4.7x for well-separated ones; against sample size it runs ~9x at 25
+observations per component and fades to 1.0x by 5000. It is in the safe
+direction — predictive intervals come out wider, not narrower — and the
+coefficients are untouched.
+
+The conservatism is deliberate: it also regularises against splitting when
+`K` is over-specified. Shrinking it makes an over-specified fit occupy more
+components than it should. So it stays the default — but if you know the
+within-component scale, say so:
+
+```{r priorscale, eval = FALSE}
+nimixReg(y ~ x, df, K = 2, method = "fixedk",
+         prior = list(s2Guess = 0.3))   # your prior mean for s2
+```
+
+On a simulated benchmark with a true `s2` of 0.25, that moved the estimate
+from 0.78 to 0.36 while leaving the slopes where they were. The override
+asks for an absolute value on purpose: a multiplier on the automatic scale
+could only ever mean "a fraction of a quantity that measures the wrong
+thing" — a knob rather than a statement.
+
+Tightening the prior is safe with the DPM, and with `fixedk` when `K` is
+right. It is *not* safe when `K` is over-specified: on the same data with
+`K = 4` against two true components, the default kept two components
+occupied while a tenfold tighter prior filled a third. If you are unsure
+about `K`, leave the default alone or use the DPM.
+
+### Recipe: two-stage empirical Bayes
+
+If you need the scale right and have no external knowledge, let the first fit
+tell you. Its *allocation* is reliable even where its `s2` is not — which is
+exactly what makes this work:
+
+```{r ebrecipe, eval = FALSE}
+fit1 <- relabel(nimixReg(y ~ x, df, K = 2, method = "fixedk"))
+
+z    <- binderPartition(fit1)$partition          # MAP component per point
+cf   <- fit1@relabeled$summary
+Xm   <- model.matrix(y ~ x, df)
+res  <- df$y - rowSums(Xm * as.matrix(cf[z, c("(Intercept)", "x")]))
+s2hat <- sum(res^2) / (nrow(df) - 2 * ncol(Xm)) # within-component residual var
+
+fit2 <- nimixReg(y ~ x, df, K = 2, method = "fixedk",
+                 prior = list(s2Guess = s2hat))
+```
+
+It costs a second compile-and-run, which is why it is not the default. Note
+the same caveat as above: only reach for it when `K` is not over-specified.
+
 ## Prediction
 
 ```{r predict}
@@ -118,6 +176,47 @@ absorb the group mean. And the exact conjugate coefficient sampler is
 extended to condition on the current offsets, which keeps the fit
 scale-equivariant in the predictors even with the random effect active.
 
-Current scope: `method = "fixedk"`, `distribution = "normal"`, one grouping
-factor, random intercept. Random slopes and further families follow the
-gated roadmap.
+Reading `tauRE` needs one caution. It estimates the spread of *your* group
+offsets, and with few groups that spread is itself a lottery: twelve offsets
+drawn from a population with $\sigma = 0.8$ have a realized standard
+deviation anywhere between about 0.5 and 1.1. So an apparent "miss" against
+a population value is usually the draw, not the estimator -- judge `tauRE`
+against the groups you actually have.
+
+Groups need not be balanced across components. With groups sitting almost
+entirely in one component (a case that could plausibly let the offsets
+absorb a component intercept), the coefficients still separate cleanly and
+the offsets stay identified; the test suite asserts this.
+
+### Random slopes
+
+`random = ~ x | g` lets the slope of `x` vary by group as well (the intercept
+comes along, as in `lme4`'s `(x|g)`):
+
+```{r reslope, eval = FALSE}
+reg <- nimixReg(y ~ x, df, random = ~ x | g, K = 2, method = "fixedk",
+                mcmcControl = list(niter = 3000, nburnin = 1200), seed = 1)
+```
+
+There is an obvious worry here: components in a mixture of regressions are
+distinguished *by* their slopes, so group-varying slopes might fight with
+component identification. A prototype pushed this deliberately hard --
+group slope deviations spanning $-2.05$ to $1.43$ against a component
+separation of 4, so one group's effective slope landed exactly between the
+two components -- and it held: group slopes recovered at `cor` = 0.997 and
+component allocation at 95.3% accuracy.
+
+The same sum-to-zero logic applies, so the component slopes absorb
+`mean(s_g)` and the reported `sRE` are centred. The two sets of offsets get
+independent priors; that was checked against correlated truth
+($\rho = 0.92$), where the independent model still recovered both and the
+correlation reappeared in the estimates anyway. With very few observations
+per group the prior does more work and a correlated prior would matter more.
+
+Both work with heavy-tailed residuals too — `distribution = "studentt"`
+accepts the same `random =` argument, which is often what grouped data with
+occasional outliers actually needs.
+
+Current scope: `method = "fixedk"`, `distribution = "normal"` or
+`"studentt"`, one grouping factor, random intercept and one random slope.
+Further families follow the gated roadmap.

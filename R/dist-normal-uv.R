@@ -208,12 +208,11 @@ setMethod("componentInits", "NormalUvSpec",
     vars <- stats::var(y)
     if (!is.finite(vars) || vars <= 0) vars <- 1
 
-    if (identical(initMethod, "kmeans") && k0 >= 2L && nUnique >= k0) {
-      km <- tryCatch(stats::kmeans(y, centers = k0, nstart = 5L),
-                     error = function(e) NULL)
-      if (!is.null(km)) {
-        xiInit  <- as.integer(km$cluster)
-        centers <- as.numeric(km$centers)
+    if (!identical(initMethod, "single") && k0 >= 2L && nUnique >= k0) {
+      cl <- .initClusters(y, k0, initMethod)
+      if (!is.null(cl)) {
+        xiInit  <- cl
+        centers <- vapply(sort(unique(cl)), function(j) mean(y[cl == j]), numeric(1))
         vars <- vapply(seq_len(k0), function(j) {
           v <- stats::var(y[xiInit == j])
           if (!is.finite(v) || v <= 0) prior$s0 / (prior$nu0 - 1) else v

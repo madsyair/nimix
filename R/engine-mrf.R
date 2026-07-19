@@ -108,22 +108,28 @@ setMethod("runEngine", "MRFEngine",
            "degenerate); use method = 'fixedk' for a single component.",
            call. = FALSE)
 
-    A <- getAdjacency(engine@spatial)
-    if (nrow(A) != n)
-      stop("spatialWeights has ", nrow(A), " regions but the data has ", n,
+    nReg <- nRegions(engine@spatial)
+    if (nReg != n)
+      stop("spatialWeights has ", nReg, " regions but the data has ", n,
            " observations; they must match one-to-one.", call. = FALSE)
 
-    # edge list + neighbour matrix (structural constants for dPotts + sampler)
-    ut <- which(upper.tri(A) & A > 0, arr.ind = TRUE)
-    if (nrow(ut) == 0L)
+    # Edge list + neighbour matrix (structural constants for dPotts +
+    # sampler), taken sparsely: getEdges() is canonically ordered to match
+    # the column-major which(upper.tri(A) & A > 0) of the old dense path, so
+    # e1/e2/deg/nbrs -- and therefore fits under a fixed seed -- are
+    # identical, without ever allocating an n x n matrix.
+    E <- getEdges(engine@spatial)
+    if (nrow(E) == 0L)
       stop("spatialWeights has no edges; use method = 'fixedk' for an ",
            "unstructured finite mixture.", call. = FALSE)
-    e1 <- as.numeric(ut[, 1L]); e2 <- as.numeric(ut[, 2L])
-    deg <- as.integer(rowSums(A > 0))
+    e1 <- as.numeric(E[, 1L]); e2 <- as.numeric(E[, 2L])
+    deg <- tabulate(c(E[, 1L], E[, 2L]), nbins = n)
     nbrs <- matrix(0, n, max(deg))
-    for (i in seq_len(n)) {
-      nb <- which(A[i, ] > 0)
-      if (length(nb)) nbrs[i, seq_along(nb)] <- nb
+    cnt <- integer(n)
+    for (k in seq_len(nrow(E))) {
+      a <- E[k, 1L]; b <- E[k, 2L]
+      cnt[a] <- cnt[a] + 1L; nbrs[a, cnt[a]] <- b
+      cnt[b] <- cnt[b] + 1L; nbrs[b, cnt[b]] <- a
     }
 
     mc <- buildModelCode(spec, engine, n = n, L = K, d = d)

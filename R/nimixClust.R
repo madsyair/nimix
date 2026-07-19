@@ -166,7 +166,8 @@ NULL
 #'   default 0.8).
 #' @param prior A named list of prior overrides passed to
 #'   \code{\link{defaultPrior}} (univariate: \code{cLoc}, \code{nu0};
-#'   multivariate: \code{cLoc}, \code{df0}) plus, for the DPM, optional
+#'   multivariate: \code{cLoc}, \code{df0}, \code{sigmaGuess}) plus, for the
+#'   DPM, optional
 #'   \code{concPrior = c(shape, rate)} for the concentration, or, for the finite
 #'   mixture, \code{dirichletConc} for the Dirichlet weight prior.
 #' @param mcmcControl A named list of MCMC controls: \code{niter},
@@ -253,7 +254,7 @@ nimixClust <- function(data,
                        method = c("dpm", "fixedk", "mrf", "hmm"),
                        prior = list(),
                        mcmcControl = list(),
-                       initMethod = c("kmeans", "single"),
+                       initMethod = c("kmeans", "single", "spread"),
                        seed = 1L,
                        verbose = FALSE,
                        spatialWeights = NULL) {

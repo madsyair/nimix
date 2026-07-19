@@ -323,7 +323,10 @@ setMethod("runEngine", "DPMEngine",
     n     <- .nObs(data)
     d     <- .dataDimOf(data)
 
-    mc <- buildModelCode(spec, engine, n = n, L = L, d = d)
+    hasRE <- isTRUE(prior$hasRE)
+    hasRES <- isTRUE(prior$hasRESlope)
+    mc <- buildModelCode(spec, engine, n = n, L = L, d = d,
+                         re = hasRE, reSlope = hasRES)
     constants <- c(buildConstants(spec, prior, n),
                    list(L = L,
                         aAlpha = engine@concPrior[1],
