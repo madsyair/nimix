@@ -10,7 +10,7 @@ Description: Implements Bayesian mixture models and mixture regression
     using 'nimble' (de Valpine et al., 2017) <doi:10.1080/10618600.2016.1172487>.
     The package supports Binomial, Poisson, Gaussian, heavy-tailed,
     and neo-normal distributions, including the 'MSNBurr' family
-    (Iriawan, 2000; Choir, 2020, ISBN:978-602-5539-45-4), together with
+    (Iriawan, 2000; Choir, 2020), together with
     distributions from the GAMLSS (Generalized Additive Models for Location,
     Scale and Shape) framework (Rigby et al., 2019)
     <doi:10.1201/9780429298547>. Four inference methods are available: finite
