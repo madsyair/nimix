@@ -1,6 +1,6 @@
 # These tests compile NIMBLE models (C++), so they are slow and skipped on CRAN
 # and when nimble is unavailable. They form the Layer-3 smoke test of the
-# engineering harness (project knowledge Section 8.1).
+# engineering harness.
 
 test_that("DPM smoke test: compiles and runs a short chain", {
   skip_on_cran()
@@ -21,7 +21,7 @@ test_that("DPM smoke test: compiles and runs a short chain", {
 test_that("empty components: K_max >> K_true runs without numeric error", {
   skip_on_cran()
   skip_if_not_installed("nimble")
-  # project knowledge Section 9.3 explicit scenario
+  # the test plan explicit scenario
   set.seed(2)
   y <- c(rnorm(50, -5, 1), rnorm(50, 5, 1))   # K_true = 2
   expect_error(

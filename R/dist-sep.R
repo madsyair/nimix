@@ -53,10 +53,10 @@ setMethod("validateParams", "SEPUvSpec", function(spec, params, ...) {
 })
 
 #' @describeIn simulateParams Draw SEP component parameters from the prior.
-setMethod("simulateParams", "SEPUvSpec", function(spec, prior, K, ...) {
-  list(mu = stats::rnorm(K, prior$mu0, prior$muSd),
-       sigma = 1 / stats::rgamma(K, prior$aSig, rate = prior$bSig),
-       nu = stats::rgamma(K, prior$aNu, rate = prior$bNu))
+setMethod("simulateParams", "SEPUvSpec", function(spec, prior, nClust, ...) {
+  list(mu = stats::rnorm(nClust, prior$mu0, prior$muSd),
+       sigma = 1 / stats::rgamma(nClust, prior$aSig, rate = prior$bSig),
+       nu = stats::rgamma(nClust, prior$aNu, rate = prior$bNu))
 })
 
 #' @describeIn componentDensity SEP density closure (stable reference form).

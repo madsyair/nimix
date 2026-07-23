@@ -153,7 +153,11 @@ FixedKEngine <- function(dirichletConc = 1) {
 #'   \code{estimateBeta = FALSE}, otherwise the chain's starting value.
 #' @slot spatial The \code{\linkS4class{SpatialWeightSpec}} neighbourhood.
 #' @slot estimateBeta Logical; update \code{beta} by pseudo-likelihood
-#'   Metropolis (Besag 1975) instead of holding it fixed.
+#'   Metropolis (Besag 1975) instead of holding it fixed. The Potts partition
+#'   function is intractable, so this substitutes Besag's pseudo-likelihood:
+#'   draws of \code{beta} come from a pseudo-posterior rather than the exact
+#'   posterior. Inference on the labels and component parameters given
+#'   \code{beta} is unaffected.
 #' @slot betaMax Upper bound of the uniform prior on \code{beta}.
 #' @references
 #' Besag, J. (1974). Spatial interaction and the statistical analysis of
@@ -178,7 +182,9 @@ setValidity("MRFEngine", function(object) {
 #' @rdname MRFEngine-class
 #' @param beta Non-negative interaction strength (fixed value or start).
 #' @param spatial A \code{\linkS4class{SpatialWeightSpec}}.
-#' @param estimateBeta Logical; estimate beta by pseudo-likelihood Metropolis.
+#' @param estimateBeta Logical; estimate beta by pseudo-likelihood Metropolis
+#'   (Besag 1975). Approximate: beta is drawn from a pseudo-posterior, since the
+#'   exact Potts partition function is intractable.
 #' @param betaMax Upper bound of the uniform prior on beta.
 #' @export
 MRFEngine <- function(beta = 0.8, spatial, estimateBeta = FALSE, betaMax = 2) {

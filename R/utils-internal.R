@@ -226,7 +226,8 @@
     list(x[seq_len(half)], x[half + seq_len(half)])), recursive = FALSE)
   alld <- unlist(split)
   if (stats::var(alld) == 0) return(NA_real_)      # constant -> undefined/1
-  z  <- stats::qnorm((rank(alld, ties.method = "average") - 0.5) / length(alld))
+  z  <- stats::qnorm((rank(alld, ties.method = "average") - 3/8) /
+                     (length(alld) + 1/4))
   zc <- split(z, rep(seq_along(split), each = half))
   n  <- half
   B  <- n * stats::var(vapply(zc, mean, numeric(1)))
@@ -328,7 +329,8 @@
   if (is.null(sp)) return(NA_real_)
   alld <- unlist(sp)
   if (stats::var(alld) == 0) return(NA_real_)
-  z <- stats::qnorm((rank(alld, ties.method = "average") - 0.5) / length(alld))
+  z <- stats::qnorm((rank(alld, ties.method = "average") - 3/8) /
+                     (length(alld) + 1/4))
   zc <- split(z, rep(seq_along(sp), lengths(sp)))
   sum(vapply(zc, function(v)
     as.numeric(coda::effectiveSize(coda::as.mcmc(v))), numeric(1)))

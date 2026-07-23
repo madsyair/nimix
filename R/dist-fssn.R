@@ -52,10 +52,10 @@ setMethod("validateParams", "FSSNUvSpec", function(spec, params, ...) {
 })
 
 #' @describeIn simulateParams Draw FSSN component parameters from the prior.
-setMethod("simulateParams", "FSSNUvSpec", function(spec, prior, K, ...) {
-  list(mu = stats::rnorm(K, prior$mu0, prior$muSd),
-       sigma = 1 / stats::rgamma(K, prior$aSig, rate = prior$bSig),
-       alpha = stats::rlnorm(K, 0, prior$aScale))
+setMethod("simulateParams", "FSSNUvSpec", function(spec, prior, nClust, ...) {
+  list(mu = stats::rnorm(nClust, prior$mu0, prior$muSd),
+       sigma = 1 / stats::rgamma(nClust, prior$aSig, rate = prior$bSig),
+       alpha = stats::rlnorm(nClust, 0, prior$aScale))
 })
 
 #' @describeIn componentDensity FSSN density closure (stable reference form).

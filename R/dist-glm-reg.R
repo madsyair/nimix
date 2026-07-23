@@ -182,14 +182,11 @@ setMethod("buildModelCode", signature("PoissonRegSpec", "DPMEngine"),
          paramNodes = c(beta = "betaTilde"), allocNode = "xi")
   })
 
-#' @describeIn buildModelCode Poisson GLM regression fixed-K code (log link).
-#' @export
 # Random-effect block for GLM regressions. Unlike the location-scale families,
 # a GLM random effect enters INSIDE the link -- log(mu) or logit(p) gains
 # + b[grp[i]] -- so the group offset is multiplicative on the response scale,
-# not additive. This is the genuine GLMM case flagged in the design study: the
-# structure (sum-to-zero, tauRE) is the same, but the placement is inside the
-# linear predictor before the inverse link, which changes interpretation.
+# not additive: the structure (sum-to-zero, tauRE) matches the location-scale
+# families, but placing it before the inverse link changes interpretation.
 # Returns the sum-to-zero prior lines shared by both link families.
 .glmRegREPriorLines <- function(reSlope = FALSE) {
   if (reSlope)

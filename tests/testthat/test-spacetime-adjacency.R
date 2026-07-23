@@ -1,8 +1,8 @@
 # spacetimeAdjacency(): the whole of the MRF-HMM fusion, as it turned out.
 #
-# The roadmap had this gated as "RED, needs research", on the reasoning that
-# undirected spatial dependence breaks the HMM forward algorithm. True, and
-# beside the point: the MRF engine never used the forward algorithm -- it
+# One might expect undirected spatial dependence to break the HMM forward
+# algorithm. True, and beside the point: the MRF engine never used the
+# forward algorithm -- it
 # samples z directly. So a space-time graph is just another adjacency, and the
 # existing Potts engine handles it with no changes at all. This function only
 # builds the graph.

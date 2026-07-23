@@ -1,8 +1,8 @@
-# Recovery test (project knowledge Section 8.1, Layer 4): simulate data from a
+# Recovery test: simulate data from a
 # mixture with KNOWN K and parameters, then check that the posterior of K
 # concentrates near the truth and that RELABELLED component estimates recover
 # the true parameters. Label switching makes raw summaries meaningless, so we
-# must relabel first (Section 9.1 / 0.3.3).
+# must relabel first.
 
 test_that("recovery: two well-separated Gaussians (post-relabel)", {
   skip_on_cran()
@@ -13,7 +13,7 @@ test_that("recovery: two well-separated Gaussians (post-relabel)", {
   recovered_ok <- logical(3)
   modalK <- integer(3)
 
-  for (s in 1:3) {                       # >= 3 seeds (Section 8.1)
+  for (s in 1:3) {                       # >= 3 seeds
     set.seed(100 + s)
     y <- c(rnorm(nEach, trueMu[1], trueSd[1]),
            rnorm(nEach, trueMu[2], trueSd[2]))

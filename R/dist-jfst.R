@@ -60,11 +60,11 @@ setMethod("validateParams", "JFSTUvSpec", function(spec, params, ...) {
 })
 
 #' @describeIn simulateParams Draw JFST component parameters from the prior.
-setMethod("simulateParams", "JFSTUvSpec", function(spec, prior, K, ...) {
-  list(mu = stats::rnorm(K, prior$mu0, prior$muSd),
-       sigma = 1 / stats::rgamma(K, prior$aSig, rate = prior$bSig),
-       alpha = stats::rgamma(K, prior$aSh, rate = prior$bSh),
-       theta = stats::rgamma(K, prior$aSh, rate = prior$bSh))
+setMethod("simulateParams", "JFSTUvSpec", function(spec, prior, nClust, ...) {
+  list(mu = stats::rnorm(nClust, prior$mu0, prior$muSd),
+       sigma = 1 / stats::rgamma(nClust, prior$aSig, rate = prior$bSig),
+       alpha = stats::rgamma(nClust, prior$aSh, rate = prior$bSh),
+       theta = stats::rgamma(nClust, prior$aSh, rate = prior$bSh))
 })
 
 #' @describeIn componentDensity JFST density closure (stable reference form).

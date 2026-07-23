@@ -68,9 +68,9 @@ setMethod("validateParams", "SkewIStudentMvOGenSpec",
 
 #' @describeIn simulateParams Draw components, angles uniform on the box.
 setMethod("simulateParams", "SkewIStudentMvOGenSpec",
-  function(spec, prior, K, ...) {
-    p <- getMethod("simulateParams", "SkewIStudentMvSpec")(spec, prior, K, ...)
-    p$theta <- lapply(seq_len(K), function(k)
+  function(spec, prior, nClust, ...) {
+    p <- getMethod("simulateParams", "SkewIStudentMvSpec")(spec, prior, nClust, ...)
+    p$theta <- lapply(seq_len(nClust), function(k)
       stats::runif(prior$nAng, prior$thLower, prior$thUpper))
     p
   })

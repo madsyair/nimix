@@ -106,18 +106,18 @@ setMethod("validateParams", "MSNBurr2aUvSpec",
 
 #' @describeIn simulateParams Draw component parameters from the prior.
 setMethod("simulateParams", "MSNBurrUvSpec",
-  function(spec, prior, K, ...) {
-    list(mu = stats::rnorm(K, prior$mu0, prior$muSd),
-         sigma = 1 / stats::rgamma(K, prior$aSig, rate = prior$bSig),
-         alpha = stats::rgamma(K, prior$aA, rate = prior$bA))
+  function(spec, prior, nClust, ...) {
+    list(mu = stats::rnorm(nClust, prior$mu0, prior$muSd),
+         sigma = 1 / stats::rgamma(nClust, prior$aSig, rate = prior$bSig),
+         alpha = stats::rgamma(nClust, prior$aA, rate = prior$bA))
   })
 
 #' @describeIn simulateParams Draw component parameters from the prior.
 setMethod("simulateParams", "MSNBurr2aUvSpec",
-  function(spec, prior, K, ...) {
-    list(mu = stats::rnorm(K, prior$mu0, prior$muSd),
-         sigma = 1 / stats::rgamma(K, prior$aSig, rate = prior$bSig),
-         alpha = stats::rgamma(K, prior$aA, rate = prior$bA))
+  function(spec, prior, nClust, ...) {
+    list(mu = stats::rnorm(nClust, prior$mu0, prior$muSd),
+         sigma = 1 / stats::rgamma(nClust, prior$aSig, rate = prior$bSig),
+         alpha = stats::rgamma(nClust, prior$aA, rate = prior$bA))
   })
 
 #' @describeIn componentDensity MSNBurr density closure (stable reference form).

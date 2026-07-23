@@ -158,7 +158,7 @@ test_that("random slope recovers group slopes and component coefficients", {
   expect_true(all(c("sRE[1]", "tauSlope", "b[1]", "tauRE") %in% colnames(S)))
 
   # Component slopes absorb mean(s_g) -- the sum-to-zero semantics, exactly as
-  # gate F5.2 predicted (measured -2.14/1.88 against a prediction of
+  # the sum-to-zero constraint predicted (measured -2.14/1.88 against a prediction of
   # -2.13/1.87). Test the documented estimand, not the raw truth.
   s <- relabel(f)@relabeled$summary
   expect_lt(max(abs(sort(s$x) - (c(-2, 2) + mean(sg)))), 0.4)

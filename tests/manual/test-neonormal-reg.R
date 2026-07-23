@@ -123,7 +123,7 @@ test_that("neo-normal regression prediction is complete and keeps the skew", {
   skip_on_cran()
   # linpred/epred work by the identity link; the predictive must draw from the
   # skewed family (via the generic responseRng the framework attached), not a
-  # Gaussian fallback -- otherwise the tails/skew are lost (cf. 9.40).
+  # Gaussian fallback -- otherwise the tails/skew are lost.
   set.seed(3)
   n <- 200L; x <- rnorm(n)
   y <- c(1.5 + 1.2 * x[1:100], -1.5 - 0.8 * x[101:200]) +

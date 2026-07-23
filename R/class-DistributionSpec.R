@@ -4,8 +4,8 @@ NULL
 ## ---------------------------------------------------------------------------
 ## class-DistributionSpec.R
 ##
-## The DistributionSpec is the unit of extensibility in nimix (project
-## knowledge ). A concrete spec describes ONE family of mixture
+## The DistributionSpec is the unit of extensibility in nimix. A concrete
+## spec describes ONE family of mixture
 ## component distributions: its parameter names, a sensible data-scaled default
 ## prior, a parameter validator, and -- through the buildModelCode() generic --
 ## the NIMBLE code fragment for that component under a given engine.
@@ -65,10 +65,11 @@ setGeneric("validateParams", function(spec, params, ...) {
 
 #' Build a data-scaled default prior for a distribution
 #'
-#' Returns a named list of prior hyperparameters scaled to the observed data,
-#' following the weakly-informative, data-scaled philosophy in project
-#' knowledge (priors for location parameters must not be made
-#' arbitrarily vague when \code{K_max} is large).
+#' Returns a named list of prior hyperparameters scaled to the observed data.
+#' Priors are weakly informative rather than vague: location parameters in
+#' particular must not be given arbitrarily large variances when \code{K_max}
+#' is large, since diffuse component priors let empty components wander and
+#' degrade mixing.
 #'
 #' @param spec A \code{\linkS4class{DistributionSpec}}.
 #' @param data Numeric data used to scale the prior.

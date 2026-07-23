@@ -1,5 +1,70 @@
 # nimix 1.5.0
 
+## Prior predictive check completes the Bayesian workflow
+
+* New `priorPredictive(data, K, distribution)` simulates whole datasets from
+  the prior -- component parameters via `simulateParams()`, weights from the
+  Dirichlet prior, data through the same per-family simulators `ppCheck()`
+  uses -- and compares observed summary statistics (mean, sd, min, max,
+  skewness) with their prior predictive distributions. Statistics in the far
+  tail (two-sided p < 0.05) are flagged: run it before fitting, and revisit the
+  prior scale if the data sit outside what the prior can produce. `print()`
+  tabulates, `plot()` overlays the observed density on prior draws.
+* Fixed a latent S4 contract violation the new function exposed: fifteen
+  `simulateParams` methods declared their third argument as `K` while the
+  generic declares `nClust`, so positional calls dispatched with the count
+  lost in `...` and the method failing. All 22 methods now use `nClust`.
+
+## Cluster maps from shapefiles, and chain-aware PSIS-LOO
+
+* New `plotClusterMap(fit, shp)` draws the fitted partition as a choropleth
+  when observations are regions with known geometry: `shp` is a shapefile path
+  or an `sf` object. The partition is summarised label-invariantly (Binder by
+  default, posterior mode optionally), and `uncertainty = TRUE` fades each
+  region towards white in proportion to its allocation entropy, so the regions
+  the posterior cannot place stand out. `sf` is Suggests-only.
+* PSIS-LOO is now chain-aware: `.pointwiseLogLik()` attaches the chain id of
+  each retained draw, and `nimixLOO()`, `modelSelect()` and `ensembleFit()`
+  pass `r_eff = loo::relative_eff(...)` accordingly. Without r_eff, loo
+  assumes independent draws and its Pareto-k diagnostics are too optimistic
+  for MCMC output (Vehtari, Gelman & Gabry 2017). Verified on a two-component
+  fit: WAIC and LOO elpd agree (both -323), Pareto-k max 0.119.
+
+## Test suite split into automatic and manual tiers
+
+* `tests/testthat/` now holds only the fast checks -- distribution mathematics,
+  S4 contracts, prior scaling, validation and error messages, diagnostics and
+  helpers. It completes in about 25 seconds, so `R CMD check` stays quick.
+* The MCMC-heavy tests (parameter recovery, engine integration, regression and
+  random effects, prediction, forecasting, workflow) moved to `tests/manual/`.
+  They are not run by `R CMD check`; run them deliberately with
+  `Rscript tests/manual/run-manual-tests.R`, optionally filtering by name
+  (`... run-manual-tests.R hmm`). The runner sets NOT_CRAN so the skipped
+  tests actually execute, and exits non-zero on failure for CI use.
+
+## Source review: documentation, comments, and algorithm checks
+
+* Fixed an orphaned roxygen block that had attached `@describeIn`/`@export` to
+  an internal helper, which leaked `.glmRegREPriorLines` into NAMESPACE and
+  documented it under `buildModelCode` with the wrong description.
+* Removed references to internal project notes from code comments and roxygen
+  (one was user-visible in `?defaultPrior`). The technical reasoning is kept;
+  only the pointers to documents readers cannot see were dropped. Published
+  citations (Vehtari et al. 2021, Neal 2000, de Valpine et al. 2017) are
+  unchanged.
+* Rank normalisation in split-Rhat and bulk-ESS now uses the Blom transform
+  (r - 3/8)/(S + 1/4) as specified in Vehtari et al. (2021), replacing the
+  simpler (r - 1/2)/S. The difference is numerically small but the code cites
+  that paper, so it should match it.
+* Removed a dead Cholesky factorisation from the conjugate regression sampler
+  (computed once per cluster per iteration and never used).
+* Corrected a stale comment in the MRF engine that still described beta
+  estimation as deferred; it has been implemented by pseudo-likelihood
+  Metropolis for some time. The user-facing documentation now also states that
+  beta draws come from a pseudo-posterior, since the Potts partition function
+  is intractable -- inference on labels and component parameters given beta is
+  unaffected.
+
 ## ESS benchmark for regression across engines
 
 * Documented the effective-sample-size cost of the non-Gaussian regressions.

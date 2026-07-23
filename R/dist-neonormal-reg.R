@@ -133,8 +133,10 @@
 
   # responseRng: draw a response from the family given the per-observation
   # linear predictor (= location, identity link) and its shape parameters.
-  # Needed by posteriorPredictive; without it a skewed predictive would fall
-  # back to the Gaussian default and lose the skew/tails (cf. 9.40).
+  # Needed by posteriorPredictive: a link-aware family must supply both its
+  # mean (epred) and its sampling law (predictive). Without this method a
+  # skewed predictive falls back to the Gaussian default and loses the
+  # skew/tails.
   if (!is.null(rngR)) {
     setMethod("responseRng", class,
       function(spec, eta, s2 = NULL, prior = NULL, shapeVals = NULL, ...) {
@@ -162,11 +164,12 @@
   # added to the linear predictor -- with a sum-to-zero parameterisation (the
   # component intercepts absorb the group means, so b is a pure deviation and
   # mixes well; cf. the Gaussian RE code in engine-fixedk.R). A random slope
-  # adds sRE[grp[i]] * xRE[i], also sum-to-zero (gate F5.2: free offsets give
-  # correlated ridges and low ESS even with conjugate samplers -- geometry beats
-  # sampler class). Neo-normal emissions are location-scale, so location random
-  # effects mean the same thing they do for a Gaussian, unlike a GLM where they
-  # would enter via the link.
+  # adds sRE[grp[i]] * xRE[i], also sum-to-zero. The constraint matters: freely
+  # parameterised offsets are identified only jointly with the fixed intercept
+  # and slope, which produces a correlated posterior ridge and poor effective
+  # sample size even when a conjugate sampler is available. Neo-normal
+  # emissions are location-scale, so location random effects mean the same
+  # thing they do for a Gaussian, unlike a GLM where they enter via the link.
   loc <- "inprod(X[i, 1:p], betaObs[i, 1:p])"
   if (re) loc <- paste0(loc, " + b[grp[i]]")
   if (re && reSlope) loc <- paste0(loc, " + sRE[grp[i]] * xRE[i]")

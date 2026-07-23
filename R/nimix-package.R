@@ -59,5 +59,14 @@ utils::globalVariables(c(
   "omega", "tauTilde", "df", "muSd", "aTau", "bTau",
   "lambda", "prob", "size", "a0", "b0", "rmnorm_chol",
   "betaTilde", "betaObs", "mu", "pp", "B0", "alphaVec", "weights", "K",
-  "log<-", "logit<-", "tauObs", "s2Obs", "omega", "mb0", "Bcov", "v0", "covTilde", "covObs", "covMu"
+  "log<-", "logit<-", "tauObs", "s2Obs", "omega", "mb0", "Bcov", "v0", "covTilde", "covObs", "covMu",
+  # Neo-normal shape nodes and the multivariate scale node.
+  "nuTilde", "thetaTilde", "gamTilde", "SigTilde",
+  # Random-effect nodes: free offsets (bf, sf), their sum-to-zero completions,
+  # the group count and the slope covariate.
+  "G", "bf", "sf", "xRE",
+  # NIMBLE DSL functions: these exist only inside nimbleFunction/nimbleCode
+  # bodies, where NIMBLE compiles rather than evaluates them.
+  "asCol", "returnType", "rcat", "ilogit",
+  "dt_nonstandard", "rt_nonstandard", "dbinom", "rbinom", "dpois", "rpois"
 ))

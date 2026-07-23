@@ -66,11 +66,11 @@ setMethod("validateParams", "GMSNBurrUvSpec",
 
 #' @describeIn simulateParams Draw GMSNBurr component parameters from the prior.
 setMethod("simulateParams", "GMSNBurrUvSpec",
-  function(spec, prior, K, ...) {
-    list(mu = stats::rnorm(K, prior$mu0, prior$muSd),
-         sigma = 1 / stats::rgamma(K, prior$aSig, rate = prior$bSig),
-         alpha = stats::rgamma(K, prior$aA, rate = prior$bA),
-         theta = stats::rgamma(K, prior$aT, rate = prior$bT))
+  function(spec, prior, nClust, ...) {
+    list(mu = stats::rnorm(nClust, prior$mu0, prior$muSd),
+         sigma = 1 / stats::rgamma(nClust, prior$aSig, rate = prior$bSig),
+         alpha = stats::rgamma(nClust, prior$aA, rate = prior$bA),
+         theta = stats::rgamma(nClust, prior$aT, rate = prior$bT))
   })
 
 #' @describeIn componentDensity GMSNBurr density closure (stable reference form).

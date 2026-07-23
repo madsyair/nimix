@@ -138,9 +138,9 @@ setMethod("validateParams", "SkewNormalMvOSpec",
 
 #' @describeIn simulateParams Draw components, theta uniform on Theta^2.
 setMethod("simulateParams", "SkewNormalMvOSpec",
-  function(spec, prior, K, ...) {
-    p <- getMethod("simulateParams", "SkewNormalMvSpec")(spec, prior, K, ...)
-    p$theta <- as.list(stats::runif(K, -prior$thetaBound, prior$thetaBound))
+  function(spec, prior, nClust, ...) {
+    p <- getMethod("simulateParams", "SkewNormalMvSpec")(spec, prior, nClust, ...)
+    p$theta <- as.list(stats::runif(nClust, -prior$thetaBound, prior$thetaBound))
     p
   })
 

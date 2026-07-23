@@ -11,7 +11,7 @@ test_that("defaultPrior is data-scaled and well-formed", {
   expect_equal(pr$d, 2L)
   expect_length(pr$mu0, 2L)
   expect_equal(dim(pr$S0), c(2L, 2L))
-  expect_true(pr$df0 > pr$d + 1)              # Section 9.3
+  expect_true(pr$df0 > pr$d + 1)
   # E[Sigma] under InvWishart(S0, df0) = S0 / (df0 - d - 1) should match cov(Y).
   expect_equal(pr$S0 / (pr$df0 - pr$d - 1), stats::cov(Y),
                tolerance = 1e-8)
@@ -22,7 +22,7 @@ test_that("validateParams enforces the dimension and df0 invariants", {
   spec <- NormalMvSpec()
   good <- list(mu0 = c(0, 0), kappa0 = 0.25, df0 = 4, S0 = diag(2), d = 2L)
   expect_silent(validateParams(spec, good))
-  # df0 must exceed d + 1 (Section 9.3)
+  # df0 must exceed d + 1
   bad_df <- good; bad_df$df0 <- 3
   expect_error(validateParams(spec, bad_df), "df0")
   # mu0 length must equal d

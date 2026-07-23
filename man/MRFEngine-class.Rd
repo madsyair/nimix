@@ -13,7 +13,9 @@ MRFEngine(beta = 0.8, spatial, estimateBeta = FALSE, betaMax = 2)
 
 \item{spatial}{A \code{\linkS4class{SpatialWeightSpec}}.}
 
-\item{estimateBeta}{Logical; estimate beta by pseudo-likelihood Metropolis.}
+\item{estimateBeta}{Logical; estimate beta by pseudo-likelihood Metropolis
+(Besag 1975). Approximate: beta is drawn from a pseudo-posterior, since the
+exact Potts partition function is intractable.}
 
 \item{betaMax}{Upper bound of the uniform prior on beta.}
 }
@@ -35,7 +37,11 @@ fixed value) is planned for a later 1.x release.
 \item{\code{spatial}}{The \code{\linkS4class{SpatialWeightSpec}} neighbourhood.}
 
 \item{\code{estimateBeta}}{Logical; update \code{beta} by pseudo-likelihood
-Metropolis (Besag 1975) instead of holding it fixed.}
+Metropolis (Besag 1975) instead of holding it fixed. The Potts partition
+function is intractable, so this substitutes Besag's pseudo-likelihood:
+draws of \code{beta} come from a pseudo-posterior rather than the exact
+posterior. Inference on the labels and component parameters given
+\code{beta} is unaffected.}
 
 \item{\code{betaMax}}{Upper bound of the uniform prior on \code{beta}.}
 }}

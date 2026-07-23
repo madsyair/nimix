@@ -26,7 +26,7 @@ LazyData: true
 Depends: R (>= 4.1.0), nimble (>= 1.0.0)
 Imports: label.switching, coda, methods, stats, graphics
 Suggests: testthat (>= 3.0.0), knitr, rmarkdown, bayesplot,
-    loo, cluster, fpc
+    loo, cluster, fpc, sf
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 Collate: 
@@ -87,9 +87,11 @@ Collate:
     'nimixClust.R'
     'nimixReg.R'
     'partition-summary.R'
+    'plot-cluster-map.R'
     'predict-posterior.R'
     'samplers-afslice.R'
     'utils-labelswitch.R'
     'workflow-ppc.R'
+    'workflow-prior-predictive.R'
 Config/roxygen2/version: 8.0.0
 NeedsCompilation: no

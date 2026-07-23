@@ -82,6 +82,7 @@ reference:
   - relabel
   - psm
   - binderPartition
+  - plotClusterMap
   - clusterValidity
   - viterbiPath
   - nimixForecast
@@ -181,6 +182,7 @@ reference:
   desc: Posterior predictive checks; convergence diagnostics print via summary().
   contents:
   - ppCheck
+  - priorPredictive
   - posteriorPredict
   - drawsArray
   - ppcData

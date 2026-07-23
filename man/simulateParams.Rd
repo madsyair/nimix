@@ -33,25 +33,25 @@
 \usage{
 simulateParams(spec, prior, nClust, ...)
 
-\S4method{simulateParams}{FSSNUvSpec}(spec, prior, K, ...)
+\S4method{simulateParams}{FSSNUvSpec}(spec, prior, nClust, ...)
 
-\S4method{simulateParams}{FOSSEPUvSpec}(spec, prior, K, ...)
+\S4method{simulateParams}{FOSSEPUvSpec}(spec, prior, nClust, ...)
 
-\S4method{simulateParams}{FSSTUvSpec}(spec, prior, K, ...)
+\S4method{simulateParams}{FSSTUvSpec}(spec, prior, nClust, ...)
 
-\S4method{simulateParams}{GMSNBurrUvSpec}(spec, prior, K, ...)
+\S4method{simulateParams}{GMSNBurrUvSpec}(spec, prior, nClust, ...)
 
 \S4method{simulateParams}{NormalRegSpec}(spec, prior, nClust, ...)
 
-\S4method{simulateParams}{JFSTUvSpec}(spec, prior, K, ...)
+\S4method{simulateParams}{JFSTUvSpec}(spec, prior, nClust, ...)
 
-\S4method{simulateParams}{SEPUvSpec}(spec, prior, K, ...)
+\S4method{simulateParams}{SEPUvSpec}(spec, prior, nClust, ...)
 
-\S4method{simulateParams}{LEPUvSpec}(spec, prior, K, ...)
+\S4method{simulateParams}{LEPUvSpec}(spec, prior, nClust, ...)
 
-\S4method{simulateParams}{MSNBurrUvSpec}(spec, prior, K, ...)
+\S4method{simulateParams}{MSNBurrUvSpec}(spec, prior, nClust, ...)
 
-\S4method{simulateParams}{MSNBurr2aUvSpec}(spec, prior, K, ...)
+\S4method{simulateParams}{MSNBurr2aUvSpec}(spec, prior, nClust, ...)
 
 \S4method{simulateParams}{NormalMvSpec}(spec, prior, nClust, ...)
 
@@ -61,17 +61,17 @@ simulateParams(spec, prior, nClust, ...)
 
 \S4method{simulateParams}{BinomialSpec}(spec, prior, nClust, ...)
 
-\S4method{simulateParams}{SkewNormalMvSpec}(spec, prior, K, ...)
+\S4method{simulateParams}{SkewNormalMvSpec}(spec, prior, nClust, ...)
 
-\S4method{simulateParams}{SkewNormalMvOSpec}(spec, prior, K, ...)
+\S4method{simulateParams}{SkewNormalMvOSpec}(spec, prior, nClust, ...)
 
-\S4method{simulateParams}{SkewIStudentMvSpec}(spec, prior, K, ...)
+\S4method{simulateParams}{SkewIStudentMvSpec}(spec, prior, nClust, ...)
 
-\S4method{simulateParams}{SkewIStudentMvOSpec}(spec, prior, K, ...)
+\S4method{simulateParams}{SkewIStudentMvOSpec}(spec, prior, nClust, ...)
 
-\S4method{simulateParams}{SkewNormalMvOGenSpec}(spec, prior, K, ...)
+\S4method{simulateParams}{SkewNormalMvOGenSpec}(spec, prior, nClust, ...)
 
-\S4method{simulateParams}{SkewIStudentMvOGenSpec}(spec, prior, K, ...)
+\S4method{simulateParams}{SkewIStudentMvOGenSpec}(spec, prior, nClust, ...)
 
 \S4method{simulateParams}{StudentTUvSpec}(spec, prior, nClust, ...)
 }

@@ -73,11 +73,12 @@ setMethod("buildModelCode", signature("NormalRegSpec", "FixedKEngine"),
   function(spec, engine, n, L, re = FALSE, reSlope = FALSE, ...) {
     code <- if (re && reSlope) nimble::nimbleCode({
       # Random intercept AND random slope. Both use the sum-to-zero
-      # parameterisation: gate F5.2 measured free offsets giving two ridges
-      # (cor(beta1, mean(s)) = -0.929, cor(beta0, mean(b)) = -0.953) with min
-      # ESS 52, against 226 under the constraint -- and notably the free
-      # version got CONJUGATE samplers and still lost, i.e. posterior geometry
-      # beats sampler class. The offsets are independent by design: with
+      # parameterisation. Freely parameterised offsets are identified only
+      # jointly with the fixed intercept and slope, which produces correlated
+      # posterior ridges (measured here: cor(beta1, mean(s)) = -0.929,
+      # cor(beta0, mean(b)) = -0.953) and a minimum ESS of 52 against 226 under
+      # the constraint -- and the free version had conjugate samplers and still
+      # mixed worse, so the geometry, not the sampler, is what matters. The offsets are independent by design: with
       # correlated truth (rho = 0.92) the independent model still recovered
       # both (cor 0.97) and the correlation itself came back empirically.
       for (i in 1:n) {

@@ -18,7 +18,6 @@
 \alias{buildModelCode,FSSTUvSpec,FixedKEngine-method}
 \alias{buildModelCode,FSSTUvSpec,DPMEngine-method}
 \alias{buildModelCode,PoissonRegSpec,DPMEngine-method}
-\alias{.glmRegREPriorLines}
 \alias{buildModelCode,PoissonRegSpec,FixedKEngine-method}
 \alias{buildModelCode,BinomialRegSpec,DPMEngine-method}
 \alias{buildModelCode,BinomialRegSpec,FixedKEngine-method}
@@ -119,8 +118,6 @@ buildModelCode(spec, engine, n, L, ...)
 \S4method{buildModelCode}{FSSTUvSpec,DPMEngine}(spec, engine, n, L, ...)
 
 \S4method{buildModelCode}{PoissonRegSpec,DPMEngine}(spec, engine, n, L, ...)
-
-.glmRegREPriorLines(reSlope = FALSE)
 
 \S4method{buildModelCode}{PoissonRegSpec,FixedKEngine}(spec, engine, n, L, re = FALSE, reSlope = FALSE, ...)
 
@@ -299,13 +296,13 @@ buildModelCode(spec, engine, n, L, ...)
 
 \item{...}{Reserved for methods.}
 
-\item{reSlope}{Logical; regression + FixedK method only -- when
-\code{TRUE} (with \code{re = TRUE}), also emit sum-to-zero
-random-slope offsets \code{sRE} plus \code{tauSlope}.}
-
 \item{re}{Logical; regression + FixedK method only -- when \code{TRUE},
 emit the random-intercept variant of the model code (sum-to-zero
 \code{b} offsets plus \code{tauRE}).}
+
+\item{reSlope}{Logical; regression + FixedK method only -- when
+\code{TRUE} (with \code{re = TRUE}), also emit sum-to-zero
+random-slope offsets \code{sRE} plus \code{tauSlope}.}
 }
 \value{
 A list with elements \code{code} (a \code{nimbleCode} object),
@@ -333,8 +330,6 @@ engine or the spec base class.
 \item \code{buildModelCode(spec = FSSTUvSpec, engine = DPMEngine)}: FSST DPM mixture.
 
 \item \code{buildModelCode(spec = PoissonRegSpec, engine = DPMEngine)}: Poisson GLM regression DPM code (log link).
-
-\item \code{.glmRegREPriorLines()}: Poisson GLM regression fixed-K code (log link).
 
 \item \code{buildModelCode(spec = PoissonRegSpec, engine = FixedKEngine)}: Poisson regression finite mixture (fixed K), with
 an optional random effect inside the log link (GLMM).

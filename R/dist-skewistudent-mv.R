@@ -108,9 +108,9 @@ setMethod("validateParams", "SkewIStudentMvSpec",
 
 #' @describeIn simulateParams Draw skew-mv-IStudent component parameters.
 setMethod("simulateParams", "SkewIStudentMvSpec",
-  function(spec, prior, K, ...) {
-    p <- getMethod("simulateParams", "SkewNormalMvSpec")(spec, prior, K, ...)
-    p$nu <- lapply(seq_len(K), function(k)
+  function(spec, prior, nClust, ...) {
+    p <- getMethod("simulateParams", "SkewNormalMvSpec")(spec, prior, nClust, ...)
+    p$nu <- lapply(seq_len(nClust), function(k)
       prior$nuLower + stats::rgamma(prior$d, prior$aNu, rate = prior$bNu))
     p
   })

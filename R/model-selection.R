@@ -76,6 +76,14 @@ NULL
       ll[ri, ] <- log(mix)
     }
   }
+  # Attach the chain id of each retained draw when it can be reconstructed:
+  # chains are pooled by rbind in run order, so with C chains of equal length
+  # the pooled draw r belongs to chain ceiling(r / (S/C)). PSIS-LOO uses this
+  # for relative_eff; without it, loo() assumes independent draws and the
+  # Pareto-k diagnostics are too optimistic for MCMC output.
+  nch <- tryCatch(fit@diagnostics$nchains, error = function(e) NULL)
+  if (is.numeric(nch) && length(nch) == 1L && nch >= 1L && S %% nch == 0L)
+    attr(ll, "chain_id") <- as.integer(ceiling(use / (S / nch)))
   ll
 }
 
@@ -131,7 +139,16 @@ nimixLOO <- function(fit, maxDraws = 1000L) {
     stop("nimixLOO() needs the 'loo' package. Install it, or use nimixWAIC().",
          call. = FALSE)
   ll <- .pointwiseLogLik(fit, maxDraws)
-  loo::loo(ll)
+  ci <- attr(ll, "chain_id")
+  if (!is.null(ci)) {
+    # Vehtari, Gelman & Gabry (2017): r_eff corrects the effective sample size
+    # of the importance ratios for MCMC autocorrelation. relative_eff wants
+    # likelihood values (not log), per draw x observation, plus the chain id.
+    reff <- loo::relative_eff(exp(ll), chain_id = ci)
+    loo::loo(ll, r_eff = reff)
+  } else {
+    loo::loo(ll)
+  }
 }
 
 #' Compare mixture models by predictive fit
@@ -169,7 +186,10 @@ modelSelect <- function(..., maxDraws = 1000L) {
       elpd_waic = w$elpd_waic, p_waic = w$p_waic, waic = w$waic,
       se_waic = w$se, stringsAsFactors = FALSE)
     if (hasLoo) {
-      lo <- suppressWarnings(loo::loo(ll))
+      ci <- attr(ll, "chain_id")
+      lo <- if (!is.null(ci))
+        loo::loo(ll, r_eff = loo::relative_eff(exp(ll), chain_id = ci))
+      else suppressWarnings(loo::loo(ll))
       r$elpd_loo <- lo$estimates["elpd_loo", "Estimate"]
       r$looic    <- lo$estimates["looic", "Estimate"]
     }
@@ -230,7 +250,12 @@ ensembleFit <- function(..., method = c("stacking", "pseudobma", "waic"),
     if (!requireNamespace("loo", quietly = TRUE))
       stop("method = '", method, "' needs the 'loo' package; ",
            "use method = 'waic' for a native alternative.", call. = FALSE)
-    loos <- lapply(lls, function(ll) suppressWarnings(loo::loo(ll)))
+    loos <- lapply(lls, function(ll) {
+      ci <- attr(ll, "chain_id")
+      if (!is.null(ci))
+        loo::loo(ll, r_eff = loo::relative_eff(exp(ll), chain_id = ci))
+      else suppressWarnings(loo::loo(ll))
+    })
     wm <- if (method == "stacking") "stacking" else "pseudobma"
     w <- as.numeric(loo::loo_model_weights(loos, method = wm))
   } else {

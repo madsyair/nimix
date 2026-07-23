@@ -49,11 +49,11 @@ setMethod("validateParams", "FOSSEPUvSpec", function(spec, params, ...) {
 })
 
 #' @describeIn simulateParams Draw FOSSEP component parameters from the prior.
-setMethod("simulateParams", "FOSSEPUvSpec", function(spec, prior, K, ...) {
-  list(mu = stats::rnorm(K, prior$mu0, prior$muSd),
-       sigma = 1 / stats::rgamma(K, prior$aSig, rate = prior$bSig),
-       alpha = stats::rlnorm(K, 0, prior$aScale),
-       theta = stats::rgamma(K, prior$aTheta, rate = prior$bTheta))
+setMethod("simulateParams", "FOSSEPUvSpec", function(spec, prior, nClust, ...) {
+  list(mu = stats::rnorm(nClust, prior$mu0, prior$muSd),
+       sigma = 1 / stats::rgamma(nClust, prior$aSig, rate = prior$bSig),
+       alpha = stats::rlnorm(nClust, 0, prior$aScale),
+       theta = stats::rgamma(nClust, prior$aTheta, rate = prior$bTheta))
 })
 
 #' @describeIn componentDensity FOSSEP density closure (stable reference form).

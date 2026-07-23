@@ -9,9 +9,8 @@ NULL
 ##   v0.2.0: ADDS multivariate Gaussian (NormalMvSpec), DPM. A numeric vector
 ##           routes to NormalUvSpec; a numeric matrix (one row per observation,
 ##           >= 2 columns) routes to NormalMvSpec.
-## Out-of-scope requests (non-normal distributions) fail with an informative
-## pointer to the roadmap version that will deliver them (project knowledge:
-## never silently absorb a mismatch).
+## Out-of-scope requests fail with an informative message rather than silently
+## falling back to a different distribution.
 ## ---------------------------------------------------------------------------
 
 # Resolve the component DistributionSpec from the requested distribution name

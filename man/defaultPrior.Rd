@@ -147,10 +147,11 @@ defaultPrior(spec, data, control = list(), ...)
 A named list of prior hyperparameters.
 }
 \description{
-Returns a named list of prior hyperparameters scaled to the observed data,
-following the weakly-informative, data-scaled philosophy in project
-knowledge (priors for location parameters must not be made
-arbitrarily vague when \code{K_max} is large).
+Returns a named list of prior hyperparameters scaled to the observed data.
+Priors are weakly informative rather than vague: location parameters in
+particular must not be given arbitrarily large variances when \code{K_max}
+is large, since diffuse component priors let empty components wander and
+degrade mixing.
 }
 \section{Functions}{
 \itemize{

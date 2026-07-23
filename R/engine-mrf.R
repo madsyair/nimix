@@ -23,9 +23,15 @@ NULL
 ## the Potts prior p(z | beta) is proportional to exp(beta * #{edges i~j with
 ## z_i = z_j}) (Potts 1952; Besag 1974). Its normalising constant ("partition
 ## function") is intractable, BUT it depends only on beta -- so with beta held
-## FIXED (this engine) the constant is absorbed and an unnormalised log-density
-## yields exact MCMC for (z, theta). Bayesian estimation of beta itself
-## requires that constant and is deliberately deferred to a later release.
+## FIXED (the default) the constant is absorbed and an unnormalised log-density
+## yields exact MCMC for (z, theta).
+## With estimateBeta = TRUE, beta is updated by a Metropolis step targeting
+## Besag's (1975) PSEUDO-likelihood, prod_i p(z_i | z_neighbours), whose
+## per-site normaliser sums over K states and so is tractable. NIMBLE's default
+## sampler on beta is removed unconditionally: it would target the unnormalised
+## Potts density, which is wrong in beta. The pseudo-likelihood is a consistent
+## but approximate substitute, so draws of beta are from a pseudo-posterior,
+## not the exact posterior; inference on (z, theta) given beta is unaffected.
 ## The per-site full conditional is tractable (Besag 1974):
 ##   p(z_i = k | z_-i, y, theta)  propto  f(y_i | theta_k) *
 ##                                        exp(beta * #{j ~ i : z_j = k}),

@@ -85,6 +85,7 @@ NULL
   assign("dRegimeHMMNorm_k", nimble::nimbleFunction(
     run = function(x = double(1), mu = double(1), s2 = double(1),
                    P = double(2), init = double(1),
+                   len = double(0),
                    log = integer(0, default = 0)) {
       returnType(double(0)); T <- length(x); S <- length(mu)
       a <- numeric(S); an <- numeric(S); ll <- 0
@@ -101,8 +102,8 @@ NULL
     }), envir = globalenv())
   assign("rRegimeHMMNorm_k", nimble::nimbleFunction(
     run = function(n = integer(0), mu = double(1), s2 = double(1),
-                   P = double(2), init = double(1)) {
-      returnType(double(1)); Tlen <- dim(P)[1]; out <- numeric(Tlen)
+                   P = double(2), init = double(1), len = double(0)) {
+      returnType(double(1)); Tlen <- len; out <- numeric(Tlen)
       z <- rcat(1, init)
       for (t in 1:Tlen) { out[t] <- rnorm(1, mu[z], sqrt(s2[z])); z <- rcat(1, P[z, ]) }
       return(out) }), envir = globalenv())
@@ -111,6 +112,7 @@ NULL
   assign("dRegimeHMMT_k", nimble::nimbleFunction(
     run = function(x = double(1), mu = double(1), tau = double(1),
                    df = double(0), P = double(2), init = double(1),
+                   len = double(0),
                    log = integer(0, default = 0)) {
       returnType(double(0)); T <- length(x); S <- length(mu)
       a <- numeric(S); an <- numeric(S); ll <- 0
@@ -127,8 +129,8 @@ NULL
     }), envir = globalenv())
   assign("rRegimeHMMT_k", nimble::nimbleFunction(
     run = function(n = integer(0), mu = double(1), tau = double(1),
-                   df = double(0), P = double(2), init = double(1)) {
-      returnType(double(1)); Tlen <- dim(P)[1]; out <- numeric(Tlen)
+                   df = double(0), P = double(2), init = double(1), len = double(0)) {
+      returnType(double(1)); Tlen <- len; out <- numeric(Tlen)
       z <- rcat(1, init)
       for (t in 1:Tlen) { out[t] <- rt_nonstandard(1, df, mu[z], 1/sqrt(tau[z])); z <- rcat(1, P[z, ]) }
       return(out) }), envir = globalenv())
@@ -137,6 +139,7 @@ NULL
   assign("dRegimeHMMPois_k", nimble::nimbleFunction(
     run = function(x = double(1), lambda = double(1),
                    P = double(2), init = double(1),
+                   len = double(0),
                    log = integer(0, default = 0)) {
       returnType(double(0)); T <- length(x); S <- length(lambda)
       a <- numeric(S); an <- numeric(S); ll <- 0
@@ -153,8 +156,8 @@ NULL
     }), envir = globalenv())
   assign("rRegimeHMMPois_k", nimble::nimbleFunction(
     run = function(n = integer(0), lambda = double(1),
-                   P = double(2), init = double(1)) {
-      returnType(double(1)); Tlen <- dim(P)[1]; out <- numeric(Tlen)
+                   P = double(2), init = double(1), len = double(0)) {
+      returnType(double(1)); Tlen <- len; out <- numeric(Tlen)
       z <- rcat(1, init)
       for (t in 1:Tlen) { out[t] <- rpois(1, lambda[z]); z <- rcat(1, P[z, ]) }
       return(out) }), envir = globalenv())
@@ -163,6 +166,7 @@ NULL
   assign("dRegimeHMMMSNB_k", nimble::nimbleFunction(
     run = function(x = double(1), mu = double(1), sigma = double(1),
                    alpha = double(1), P = double(2), init = double(1),
+                   len = double(0),
                    log = integer(0, default = 0)) {
       returnType(double(0)); T <- length(x); S <- length(mu)
       a <- numeric(S); an <- numeric(S); ll <- 0
@@ -179,8 +183,8 @@ NULL
     }), envir = globalenv())
   assign("rRegimeHMMMSNB_k", nimble::nimbleFunction(
     run = function(n = integer(0), mu = double(1), sigma = double(1),
-                   alpha = double(1), P = double(2), init = double(1)) {
-      returnType(double(1)); Tlen <- dim(P)[1]; out <- numeric(Tlen)
+                   alpha = double(1), P = double(2), init = double(1), len = double(0)) {
+      returnType(double(1)); Tlen <- len; out <- numeric(Tlen)
       z <- rcat(1, init)
       for (t in 1:Tlen) { out[t] <- rnorm(1, mu[z], sigma[z]); z <- rcat(1, P[z, ]) }
       return(out) }), envir = globalenv())
@@ -189,6 +193,7 @@ NULL
   assign("dRegimeHMMMSNB2a_k", nimble::nimbleFunction(
     run = function(x = double(1), mu = double(1), sigma = double(1),
                    alpha = double(1), P = double(2), init = double(1),
+                   len = double(0),
                    log = integer(0, default = 0)) {
       returnType(double(0)); T <- length(x); S <- length(mu)
       a <- numeric(S); an <- numeric(S); ll <- 0
@@ -205,8 +210,8 @@ NULL
     }), envir = globalenv())
   assign("rRegimeHMMMSNB2a_k", nimble::nimbleFunction(
     run = function(n = integer(0), mu = double(1), sigma = double(1),
-                   alpha = double(1), P = double(2), init = double(1)) {
-      returnType(double(1)); Tlen <- dim(P)[1]; out <- numeric(Tlen)
+                   alpha = double(1), P = double(2), init = double(1), len = double(0)) {
+      returnType(double(1)); Tlen <- len; out <- numeric(Tlen)
       z <- rcat(1, init)
       for (t in 1:Tlen) { out[t] <- rnorm(1, mu[z], sigma[z]); z <- rcat(1, P[z, ]) }
       return(out) }), envir = globalenv())
@@ -216,6 +221,7 @@ NULL
     run = function(x = double(1), mu = double(1), sigma = double(1),
                    alpha = double(1), theta = double(1),
                    P = double(2), init = double(1),
+                   len = double(0),
                    log = integer(0, default = 0)) {
       returnType(double(0)); T <- length(x); S <- length(mu)
       a <- numeric(S); an <- numeric(S); ll <- 0
@@ -233,8 +239,8 @@ NULL
   assign("rRegimeHMMGMSNB_k", nimble::nimbleFunction(
     run = function(n = integer(0), mu = double(1), sigma = double(1),
                    alpha = double(1), theta = double(1),
-                   P = double(2), init = double(1)) {
-      returnType(double(1)); Tlen <- dim(P)[1]; out <- numeric(Tlen)
+                   P = double(2), init = double(1), len = double(0)) {
+      returnType(double(1)); Tlen <- len; out <- numeric(Tlen)
       z <- rcat(1, init)
       for (t in 1:Tlen) { out[t] <- rnorm(1, mu[z], sigma[z]); z <- rcat(1, P[z, ]) }
       return(out) }), envir = globalenv())
@@ -243,6 +249,7 @@ NULL
   assign("dRegimeHMMFSSN_k", nimble::nimbleFunction(
     run = function(x = double(1), mu = double(1), sigma = double(1),
                    alpha = double(1), P = double(2), init = double(1),
+                   len = double(0),
                    log = integer(0, default = 0)) {
       returnType(double(0)); T <- length(x); S <- length(mu)
       a <- numeric(S); an <- numeric(S); ll <- 0
@@ -259,8 +266,8 @@ NULL
     }), envir = globalenv())
   assign("rRegimeHMMFSSN_k", nimble::nimbleFunction(
     run = function(n = integer(0), mu = double(1), sigma = double(1),
-                   alpha = double(1), P = double(2), init = double(1)) {
-      returnType(double(1)); Tlen <- dim(P)[1]; out <- numeric(Tlen)
+                   alpha = double(1), P = double(2), init = double(1), len = double(0)) {
+      returnType(double(1)); Tlen <- len; out <- numeric(Tlen)
       z <- rcat(1, init)
       for (t in 1:Tlen) { out[t] <- rnorm(1, mu[z], sigma[z]); z <- rcat(1, P[z, ]) }
       return(out) }), envir = globalenv())
@@ -270,6 +277,7 @@ NULL
     run = function(x = double(1), mu = double(1), sigma = double(1),
                    alpha = double(1), nu = double(1),
                    P = double(2), init = double(1),
+                   len = double(0),
                    log = integer(0, default = 0)) {
       returnType(double(0)); T <- length(x); S <- length(mu)
       a <- numeric(S); an <- numeric(S); ll <- 0
@@ -287,8 +295,8 @@ NULL
   assign("rRegimeHMMFSST_k", nimble::nimbleFunction(
     run = function(n = integer(0), mu = double(1), sigma = double(1),
                    alpha = double(1), nu = double(1),
-                   P = double(2), init = double(1)) {
-      returnType(double(1)); Tlen <- dim(P)[1]; out <- numeric(Tlen)
+                   P = double(2), init = double(1), len = double(0)) {
+      returnType(double(1)); Tlen <- len; out <- numeric(Tlen)
       z <- rcat(1, init)
       for (t in 1:Tlen) { out[t] <- rnorm(1, mu[z], sigma[z]); z <- rcat(1, P[z, ]) }
       return(out) }), envir = globalenv())
@@ -297,6 +305,7 @@ NULL
   assign("dRegimeHMMSEP_k", nimble::nimbleFunction(
     run = function(x = double(1), mu = double(1), sigma = double(1),
                    nu = double(1), P = double(2), init = double(1),
+                   len = double(0),
                    log = integer(0, default = 0)) {
       returnType(double(0)); T <- length(x); S <- length(mu)
       a <- numeric(S); an <- numeric(S); ll <- 0
@@ -313,8 +322,8 @@ NULL
     }), envir = globalenv())
   assign("rRegimeHMMSEP_k", nimble::nimbleFunction(
     run = function(n = integer(0), mu = double(1), sigma = double(1),
-                   nu = double(1), P = double(2), init = double(1)) {
-      returnType(double(1)); Tlen <- dim(P)[1]; out <- numeric(Tlen)
+                   nu = double(1), P = double(2), init = double(1), len = double(0)) {
+      returnType(double(1)); Tlen <- len; out <- numeric(Tlen)
       z <- rcat(1, init)
       for (t in 1:Tlen) { out[t] <- rnorm(1, mu[z], sigma[z]); z <- rcat(1, P[z, ]) }
       return(out) }), envir = globalenv())
@@ -323,6 +332,7 @@ NULL
   assign("dRegimeHMMLEP_k", nimble::nimbleFunction(
     run = function(x = double(1), mu = double(1), sigma = double(1),
                    nu = double(1), P = double(2), init = double(1),
+                   len = double(0),
                    log = integer(0, default = 0)) {
       returnType(double(0)); T <- length(x); S <- length(mu)
       a <- numeric(S); an <- numeric(S); ll <- 0
@@ -339,8 +349,8 @@ NULL
     }), envir = globalenv())
   assign("rRegimeHMMLEP_k", nimble::nimbleFunction(
     run = function(n = integer(0), mu = double(1), sigma = double(1),
-                   nu = double(1), P = double(2), init = double(1)) {
-      returnType(double(1)); Tlen <- dim(P)[1]; out <- numeric(Tlen)
+                   nu = double(1), P = double(2), init = double(1), len = double(0)) {
+      returnType(double(1)); Tlen <- len; out <- numeric(Tlen)
       z <- rcat(1, init)
       for (t in 1:Tlen) { out[t] <- rnorm(1, mu[z], sigma[z]); z <- rcat(1, P[z, ]) }
       return(out) }), envir = globalenv())
@@ -350,6 +360,7 @@ NULL
     run = function(x = double(1), mu = double(1), sigma = double(1),
                    alpha = double(1), theta = double(1),
                    P = double(2), init = double(1),
+                   len = double(0),
                    log = integer(0, default = 0)) {
       returnType(double(0)); T <- length(x); S <- length(mu)
       a <- numeric(S); an <- numeric(S); ll <- 0
@@ -367,8 +378,8 @@ NULL
   assign("rRegimeHMMFOSSEP_k", nimble::nimbleFunction(
     run = function(n = integer(0), mu = double(1), sigma = double(1),
                    alpha = double(1), theta = double(1),
-                   P = double(2), init = double(1)) {
-      returnType(double(1)); Tlen <- dim(P)[1]; out <- numeric(Tlen)
+                   P = double(2), init = double(1), len = double(0)) {
+      returnType(double(1)); Tlen <- len; out <- numeric(Tlen)
       z <- rcat(1, init)
       for (t in 1:Tlen) { out[t] <- rnorm(1, mu[z], sigma[z]); z <- rcat(1, P[z, ]) }
       return(out) }), envir = globalenv())
@@ -378,6 +389,7 @@ NULL
     run = function(x = double(1), mu = double(1), sigma = double(1),
                    alpha = double(1), theta = double(1),
                    P = double(2), init = double(1),
+                   len = double(0),
                    log = integer(0, default = 0)) {
       returnType(double(0)); T <- length(x); S <- length(mu)
       a <- numeric(S); an <- numeric(S); ll <- 0
@@ -395,8 +407,8 @@ NULL
   assign("rRegimeHMMJFST_k", nimble::nimbleFunction(
     run = function(n = integer(0), mu = double(1), sigma = double(1),
                    alpha = double(1), theta = double(1),
-                   P = double(2), init = double(1)) {
-      returnType(double(1)); Tlen <- dim(P)[1]; out <- numeric(Tlen)
+                   P = double(2), init = double(1), len = double(0)) {
+      returnType(double(1)); Tlen <- len; out <- numeric(Tlen)
       z <- rcat(1, init)
       for (t in 1:Tlen) { out[t] <- rnorm(1, mu[z], sigma[z]); z <- rcat(1, P[z, ]) }
       return(out) }), envir = globalenv())
@@ -405,6 +417,7 @@ NULL
   assign("dRegimeHMMBinom_k", nimble::nimbleFunction(
     run = function(x = double(1), prob = double(1), size = double(0),
                    P = double(2), init = double(1),
+                   len = double(0),
                    log = integer(0, default = 0)) {
       returnType(double(0)); T <- length(x); S <- length(prob)
       a <- numeric(S); an <- numeric(S); ll <- 0
@@ -421,8 +434,8 @@ NULL
     }), envir = globalenv())
   assign("rRegimeHMMBinom_k", nimble::nimbleFunction(
     run = function(n = integer(0), prob = double(1), size = double(0),
-                   P = double(2), init = double(1)) {
-      returnType(double(1)); Tlen <- dim(P)[1]; out <- numeric(Tlen)
+                   P = double(2), init = double(1), len = double(0)) {
+      returnType(double(1)); Tlen <- len; out <- numeric(Tlen)
       z <- rcat(1, init)
       for (t in 1:Tlen) { out[t] <- rbinom(1, size, prob[z]); z <- rcat(1, P[z, ]) }
       return(out) }), envir = globalenv())
@@ -617,64 +630,64 @@ NULL
 
   hmmDists <- list(
     dRegimeHMMNorm_k = list(
-      BUGSdist = "dRegimeHMMNorm_k(mu, s2, P, init)",
+      BUGSdist = "dRegimeHMMNorm_k(mu, s2, P, init, len)",
       types = c("value = double(1)", "mu = double(1)", "s2 = double(1)",
-                "P = double(2)", "init = double(1)"), discrete = FALSE),
+                "P = double(2)", "init = double(1)", "len = double(0)"), discrete = FALSE),
     dRegimeHMMT_k = list(
-      BUGSdist = "dRegimeHMMT_k(mu, tau, df, P, init)",
+      BUGSdist = "dRegimeHMMT_k(mu, tau, df, P, init, len)",
       types = c("value = double(1)", "mu = double(1)", "tau = double(1)",
-                "df = double(0)", "P = double(2)", "init = double(1)"), discrete = FALSE),
+                "df = double(0)", "P = double(2)", "init = double(1)", "len = double(0)"), discrete = FALSE),
     dRegimeHMMPois_k = list(
-      BUGSdist = "dRegimeHMMPois_k(lambda, P, init)",
+      BUGSdist = "dRegimeHMMPois_k(lambda, P, init, len)",
       types = c("value = double(1)", "lambda = double(1)",
-                "P = double(2)", "init = double(1)"), discrete = TRUE),
+                "P = double(2)", "init = double(1)", "len = double(0)"), discrete = TRUE),
     dRegimeHMMMSNB_k = list(
-      BUGSdist = "dRegimeHMMMSNB_k(mu, sigma, alpha, P, init)",
+      BUGSdist = "dRegimeHMMMSNB_k(mu, sigma, alpha, P, init, len)",
       types = c("value = double(1)", "mu = double(1)", "sigma = double(1)",
-                "alpha = double(1)", "P = double(2)", "init = double(1)"), discrete = FALSE),
+                "alpha = double(1)", "P = double(2)", "init = double(1)", "len = double(0)"), discrete = FALSE),
     dRegimeHMMMSNB2a_k = list(
-      BUGSdist = "dRegimeHMMMSNB2a_k(mu, sigma, alpha, P, init)",
+      BUGSdist = "dRegimeHMMMSNB2a_k(mu, sigma, alpha, P, init, len)",
       types = c("value = double(1)", "mu = double(1)", "sigma = double(1)",
-                "alpha = double(1)", "P = double(2)", "init = double(1)"), discrete = FALSE),
+                "alpha = double(1)", "P = double(2)", "init = double(1)", "len = double(0)"), discrete = FALSE),
     dRegimeHMMGMSNB_k = list(
-      BUGSdist = "dRegimeHMMGMSNB_k(mu, sigma, alpha, theta, P, init)",
+      BUGSdist = "dRegimeHMMGMSNB_k(mu, sigma, alpha, theta, P, init, len)",
       types = c("value = double(1)", "mu = double(1)", "sigma = double(1)",
                 "alpha = double(1)", "theta = double(1)",
-                "P = double(2)", "init = double(1)"), discrete = FALSE),
+                "P = double(2)", "init = double(1)", "len = double(0)"), discrete = FALSE),
     dRegimeHMMFSSN_k = list(
-      BUGSdist = "dRegimeHMMFSSN_k(mu, sigma, alpha, P, init)",
+      BUGSdist = "dRegimeHMMFSSN_k(mu, sigma, alpha, P, init, len)",
       types = c("value = double(1)", "mu = double(1)", "sigma = double(1)",
-                "alpha = double(1)", "P = double(2)", "init = double(1)"),
+                "alpha = double(1)", "P = double(2)", "init = double(1)", "len = double(0)"),
       discrete = FALSE),
     dRegimeHMMFSST_k = list(
-      BUGSdist = "dRegimeHMMFSST_k(mu, sigma, alpha, nu, P, init)",
+      BUGSdist = "dRegimeHMMFSST_k(mu, sigma, alpha, nu, P, init, len)",
       types = c("value = double(1)", "mu = double(1)", "sigma = double(1)",
                 "alpha = double(1)", "nu = double(1)",
-                "P = double(2)", "init = double(1)"), discrete = FALSE),
+                "P = double(2)", "init = double(1)", "len = double(0)"), discrete = FALSE),
     dRegimeHMMSEP_k = list(
-      BUGSdist = "dRegimeHMMSEP_k(mu, sigma, nu, P, init)",
+      BUGSdist = "dRegimeHMMSEP_k(mu, sigma, nu, P, init, len)",
       types = c("value = double(1)", "mu = double(1)", "sigma = double(1)",
-                "nu = double(1)", "P = double(2)", "init = double(1)"),
+                "nu = double(1)", "P = double(2)", "init = double(1)", "len = double(0)"),
       discrete = FALSE),
     dRegimeHMMLEP_k = list(
-      BUGSdist = "dRegimeHMMLEP_k(mu, sigma, nu, P, init)",
+      BUGSdist = "dRegimeHMMLEP_k(mu, sigma, nu, P, init, len)",
       types = c("value = double(1)", "mu = double(1)", "sigma = double(1)",
-                "nu = double(1)", "P = double(2)", "init = double(1)"),
+                "nu = double(1)", "P = double(2)", "init = double(1)", "len = double(0)"),
       discrete = FALSE),
     dRegimeHMMFOSSEP_k = list(
-      BUGSdist = "dRegimeHMMFOSSEP_k(mu, sigma, alpha, theta, P, init)",
+      BUGSdist = "dRegimeHMMFOSSEP_k(mu, sigma, alpha, theta, P, init, len)",
       types = c("value = double(1)", "mu = double(1)", "sigma = double(1)",
                 "alpha = double(1)", "theta = double(1)",
-                "P = double(2)", "init = double(1)"), discrete = FALSE),
+                "P = double(2)", "init = double(1)", "len = double(0)"), discrete = FALSE),
     dRegimeHMMJFST_k = list(
-      BUGSdist = "dRegimeHMMJFST_k(mu, sigma, alpha, theta, P, init)",
+      BUGSdist = "dRegimeHMMJFST_k(mu, sigma, alpha, theta, P, init, len)",
       types = c("value = double(1)", "mu = double(1)", "sigma = double(1)",
                 "alpha = double(1)", "theta = double(1)",
-                "P = double(2)", "init = double(1)"), discrete = FALSE),
+                "P = double(2)", "init = double(1)", "len = double(0)"), discrete = FALSE),
     dRegimeHMMBinom_k = list(
-      BUGSdist = "dRegimeHMMBinom_k(prob, size, P, init)",
+      BUGSdist = "dRegimeHMMBinom_k(prob, size, P, init, len)",
       types = c("value = double(1)", "prob = double(1)", "size = double(0)",
-                "P = double(2)", "init = double(1)"), discrete = TRUE),
+                "P = double(2)", "init = double(1)", "len = double(0)"), discrete = TRUE),
     dRegimeHMMNormReg_k = list(
       BUGSdist = "dRegimeHMMNormReg_k(X, beta, s2, P, init)",
       types = c("value = double(1)", "X = double(2)", "beta = double(2)",
@@ -749,7 +762,7 @@ setMethod("buildModelCode", signature("NormalUvSpec", "HMMEngine"),
   function(spec, engine, n, L, ...) {
     code <- nimble::nimbleCode({
       y[1:n] ~ dRegimeHMMNorm_k(muTilde[1:K], s2Tilde[1:K],
-                                P[1:K, 1:K], init[1:K])
+                                P[1:K, 1:K], init[1:K], n)
       for (j in 1:K) {
         s2Tilde[j] ~ dinvgamma(shape = nu0, scale = s0)
         muTilde[j] ~ dnorm(mu0, var = s2Tilde[j] / kappa0)
@@ -770,7 +783,7 @@ setMethod("buildModelCode", signature("StudentTUvSpec", "HMMEngine"),
   function(spec, engine, n, L, ...) {
     code <- nimble::nimbleCode({
       y[1:n] ~ dRegimeHMMT_k(muTilde[1:K], tauTilde[1:K], df,
-                             P[1:K, 1:K], init[1:K])
+                             P[1:K, 1:K], init[1:K], n)
       for (j in 1:K) {
         tauTilde[j] ~ dgamma(shape = aTau, rate = bTau)
         muTilde[j]  ~ dnorm(mu0, sd = muSd)
@@ -792,7 +805,7 @@ setMethod("buildModelCode", signature("MSNBurr2aUvSpec", "HMMEngine"),
   function(spec, engine, n, L, ...) {
     code <- nimble::nimbleCode({
       y[1:n] ~ dRegimeHMMMSNB2a_k(muTilde[1:K], sigmaTilde[1:K],
-                                  alphaTilde[1:K], P[1:K, 1:K], init[1:K])
+                                  alphaTilde[1:K], P[1:K, 1:K], init[1:K], n)
       for (j in 1:K) {
         muTilde[j]    ~ dnorm(mu0, sd = muSd)
         sigmaTilde[j] ~ dinvgamma(shape = aSig, scale = bSig)
@@ -815,7 +828,7 @@ setMethod("buildModelCode", signature("GMSNBurrUvSpec", "HMMEngine"),
     code <- nimble::nimbleCode({
       y[1:n] ~ dRegimeHMMGMSNB_k(muTilde[1:K], sigmaTilde[1:K],
                                  alphaTilde[1:K], thetaTilde[1:K],
-                                 P[1:K, 1:K], init[1:K])
+                                 P[1:K, 1:K], init[1:K], n)
       for (j in 1:K) {
         muTilde[j]    ~ dnorm(mu0, sd = muSd)
         sigmaTilde[j] ~ dinvgamma(shape = aSig, scale = bSig)
@@ -843,7 +856,7 @@ setMethod("buildModelCode", signature("FSSNUvSpec", "HMMEngine"),
     # not error -- it leaves the prior undefined and the chain diverges.
     code <- nimble::nimbleCode({
       y[1:n] ~ dRegimeHMMFSSN_k(muTilde[1:K], sigmaTilde[1:K],
-                                alphaTilde[1:K], P[1:K, 1:K], init[1:K])
+                                alphaTilde[1:K], P[1:K, 1:K], init[1:K], n)
       for (j in 1:K) {
         muTilde[j]    ~ dnorm(mu0, sd = muSd)
         sigmaTilde[j] ~ dinvgamma(shape = aSig, scale = bSig)
@@ -866,7 +879,7 @@ setMethod("buildModelCode", signature("FSSTUvSpec", "HMMEngine"),
     code <- nimble::nimbleCode({
       y[1:n] ~ dRegimeHMMFSST_k(muTilde[1:K], sigmaTilde[1:K],
                                 alphaTilde[1:K], nuTilde[1:K],
-                                P[1:K, 1:K], init[1:K])
+                                P[1:K, 1:K], init[1:K], n)
       for (j in 1:K) {
         muTilde[j]    ~ dnorm(mu0, sd = muSd)
         sigmaTilde[j] ~ dinvgamma(shape = aSig, scale = bSig)
@@ -891,7 +904,7 @@ setMethod("buildModelCode", signature("SEPUvSpec", "HMMEngine"),
     # against buildConstants): nu ~ dgamma(aNu, bNu), untruncated.
     code <- nimble::nimbleCode({
       y[1:n] ~ dRegimeHMMSEP_k(muTilde[1:K], sigmaTilde[1:K],
-                                nuTilde[1:K], P[1:K, 1:K], init[1:K])
+                                nuTilde[1:K], P[1:K, 1:K], init[1:K], n)
       for (j in 1:K) {
         muTilde[j]    ~ dnorm(mu0, sd = muSd)
         sigmaTilde[j] ~ dinvgamma(shape = aSig, scale = bSig)
@@ -913,7 +926,7 @@ setMethod("buildModelCode", signature("LEPUvSpec", "HMMEngine"),
     # against buildConstants): nu ~ dgamma(aNu, bNu), untruncated.
     code <- nimble::nimbleCode({
       y[1:n] ~ dRegimeHMMLEP_k(muTilde[1:K], sigmaTilde[1:K],
-                                nuTilde[1:K], P[1:K, 1:K], init[1:K])
+                                nuTilde[1:K], P[1:K, 1:K], init[1:K], n)
       for (j in 1:K) {
         muTilde[j]    ~ dnorm(mu0, sd = muSd)
         sigmaTilde[j] ~ dinvgamma(shape = aSig, scale = bSig)
@@ -934,7 +947,7 @@ setMethod("buildModelCode", signature("FOSSEPUvSpec", "HMMEngine"),
     code <- nimble::nimbleCode({
       y[1:n] ~ dRegimeHMMFOSSEP_k(muTilde[1:K], sigmaTilde[1:K],
                                 alphaTilde[1:K], thetaTilde[1:K],
-                                P[1:K, 1:K], init[1:K])
+                                P[1:K, 1:K], init[1:K], n)
       for (j in 1:K) {
         muTilde[j]    ~ dnorm(mu0, sd = muSd)
         sigmaTilde[j] ~ dinvgamma(shape = aSig, scale = bSig)
@@ -959,7 +972,7 @@ setMethod("buildModelCode", signature("JFSTUvSpec", "HMMEngine"),
     code <- nimble::nimbleCode({
       y[1:n] ~ dRegimeHMMJFST_k(muTilde[1:K], sigmaTilde[1:K],
                                 alphaTilde[1:K], thetaTilde[1:K],
-                                P[1:K, 1:K], init[1:K])
+                                P[1:K, 1:K], init[1:K], n)
       for (j in 1:K) {
         muTilde[j]    ~ dnorm(mu0, sd = muSd)
         sigmaTilde[j] ~ dinvgamma(shape = aSig, scale = bSig)
@@ -987,7 +1000,7 @@ setMethod("buildModelCode", signature("BinomialSpec", "HMMEngine"),
     # buildConstants. The Poisson case already proved the engine is generic
     # over non-location-scale, discrete emissions.
     code <- nimble::nimbleCode({
-      y[1:n] ~ dRegimeHMMBinom_k(prob[1:K], size, P[1:K, 1:K], init[1:K])
+      y[1:n] ~ dRegimeHMMBinom_k(prob[1:K], size, P[1:K, 1:K], init[1:K], n)
       for (j in 1:K) {
         prob[j] ~ dbeta(a0, b0)
         P[j, 1:K] ~ ddirch(alphaP[1:K])
@@ -1546,7 +1559,7 @@ setMethod("buildModelCode", signature("MSNBurrUvSpec", "HMMEngine"),
   function(spec, engine, n, L, ...) {
     code <- nimble::nimbleCode({
       y[1:n] ~ dRegimeHMMMSNB_k(muTilde[1:K], sigmaTilde[1:K],
-                                alphaTilde[1:K], P[1:K, 1:K], init[1:K])
+                                alphaTilde[1:K], P[1:K, 1:K], init[1:K], n)
       for (j in 1:K) {
         muTilde[j]    ~ dnorm(mu0, sd = muSd)
         sigmaTilde[j] ~ dinvgamma(shape = aSig, scale = bSig)
@@ -1568,7 +1581,7 @@ setMethod("buildModelCode", signature("MSNBurrUvSpec", "HMMEngine"),
 setMethod("buildModelCode", signature("PoissonSpec", "HMMEngine"),
   function(spec, engine, n, L, ...) {
     code <- nimble::nimbleCode({
-      y[1:n] ~ dRegimeHMMPois_k(lambda[1:K], P[1:K, 1:K], init[1:K])
+      y[1:n] ~ dRegimeHMMPois_k(lambda[1:K], P[1:K, 1:K], init[1:K], n)
       for (j in 1:K) {
         lambda[j] ~ dgamma(shape = a0, rate = b0)
         P[j, 1:K] ~ ddirch(alphaP[1:K])

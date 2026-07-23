@@ -131,13 +131,13 @@ setMethod("validateParams", "SkewNormalMvSpec",
 
 #' @describeIn simulateParams Draw skew-mv-Normal component parameters.
 setMethod("simulateParams", "SkewNormalMvSpec",
-  function(spec, prior, K, ...) {
+  function(spec, prior, nClust, ...) {
     d <- prior$d
-    list(mu = lapply(seq_len(K), function(k)
+    list(mu = lapply(seq_len(nClust), function(k)
            as.numeric(prior$mu0 + chol(prior$covMu) %*% stats::rnorm(d))),
-         Sigma = lapply(seq_len(K), function(k)
+         Sigma = lapply(seq_len(nClust), function(k)
            prior$S0 / (prior$df0 - d - 1)),
-         gamma = lapply(seq_len(K), function(k)
+         gamma = lapply(seq_len(nClust), function(k)
            stats::rlnorm(d, 0, prior$gamLogSd)))
   })
 

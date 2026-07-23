@@ -1,6 +1,6 @@
 # Tests for the Normal-linear regression component (v0.3.0). Prior/validation/
 # density tests are pure R; the end-to-end recovery test (incl. the unbalanced
-# 80/20 scenario required by project knowledge Section 9.8) is skipped unless
+# 80/20 scenario required by the test plan) is skipped unless
 # nimble is installed and not on CRAN.
 
 test_that("defaultPrior builds a data-scaled NIG g-prior", {
@@ -50,7 +50,7 @@ test_that("end-to-end DPM mixture of regressions recovers two slopes (80/20)", {
   skip_if_not_installed("nimble")
   set.seed(11)
   # Unbalanced 80/20 mixture of two regression regimes (slope +2 vs -2),
-  # the scenario required by project knowledge Section 9.8.
+  # the scenario required by the test plan
   n <- 200; n1 <- 160; n2 <- n - n1
   x <- runif(n, -3, 3)
   grp <- c(rep(1L, n1), rep(2L, n2))

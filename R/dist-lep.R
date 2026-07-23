@@ -40,10 +40,10 @@ setMethod("validateParams", "LEPUvSpec", function(spec, params, ...) {
 })
 
 #' @describeIn simulateParams Draw LEP component parameters from the prior.
-setMethod("simulateParams", "LEPUvSpec", function(spec, prior, K, ...) {
-  list(mu = stats::rnorm(K, prior$mu0, prior$muSd),
-       sigma = 1 / stats::rgamma(K, prior$aSig, rate = prior$bSig),
-       nu = stats::rgamma(K, prior$aNu, rate = prior$bNu))
+setMethod("simulateParams", "LEPUvSpec", function(spec, prior, nClust, ...) {
+  list(mu = stats::rnorm(nClust, prior$mu0, prior$muSd),
+       sigma = 1 / stats::rgamma(nClust, prior$aSig, rate = prior$bSig),
+       nu = stats::rgamma(nClust, prior$aNu, rate = prior$bNu))
 })
 
 #' @describeIn componentDensity LEP density closure (stable reference form).

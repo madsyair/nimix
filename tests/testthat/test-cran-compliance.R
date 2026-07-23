@@ -1,6 +1,6 @@
 # Compliance tests for the v0.1.0 scope guards. These are fast (no NIMBLE
-# compilation) and assert that out-of-roadmap requests fail with clear errors
-# rather than silently doing something (project knowledge 0.3.1 / 0.3.7).
+# compilation) and assert that unsupported requests fail with clear errors
+# rather than silently doing something.
 
 test_that("nimixReg scope guards: covariate gating, count response", {
   df <- data.frame(y = rnorm(20), x = rnorm(20))

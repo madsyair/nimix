@@ -15,10 +15,9 @@ NULL
 ##     s2Tilde_j           ~ InvGamma(nu0, s0)
 ##     betaTilde_j | s2    ~ N_p(b0, s2Tilde_j * B0)
 ## which is the conjugate prior for a Gaussian linear model. NIMBLE recognises
-## this as conjugate for the dCRP sampler (verified: CRP_cluster_wrapper is
-## assigned to both betaTilde and s2Tilde) -- native NIMBLE machinery (project
-## knowledge 0.5); nimix supplies the S4 wiring, the data-scaled g-prior, and
-## the relabelling.
+## this as conjugate for the dCRP sampler (CRP_cluster_wrapper is assigned to
+## both betaTilde and s2Tilde) -- native NIMBLE machinery; nimix supplies the
+## S4 wiring, the data-scaled g-prior, and the relabelling.
 ##
 ## As in NormalMvSpec, a multivariate distribution parameter may
 ## not be an expression, so the s2-scaled coefficient covariance is bound to a
@@ -451,7 +450,6 @@ setMethod("isRegressionSpec", "NormalRegSpec", function(spec, ...) TRUE)
       }
     }
     Vninv <- B0inv + XtX
-    Uv <- chol(Vninv)
     Vn <- inverse(Vninv)
     rhs <- B0invb0 + Xty
     bn <- (Vn %*% asCol(rhs))[, 1]
@@ -477,7 +475,7 @@ setMethod("isRegressionSpec", "NormalRegSpec", function(spec, ...) TRUE)
 # Random-effect variant of the NIG block sampler. A separate nimbleFunction
 # (not a branch inside the plain one) because NIMBLE compiles every branch of
 # run(): a reference to model[["b"]] would fail to compile against models
-# that have no b node. Gate F4 measured why the offset is needed at all --
+# that have no b node. Measurement showed why the offset is needed at all --
 # conjugacy detection handles the additive *scalar* form but not the
 # production inprod form, so the exact conditional must subtract the current
 # random intercepts itself.
@@ -542,10 +540,9 @@ setMethod("isRegressionSpec", "NormalRegSpec", function(spec, ...) TRUE)
 
 # Random-intercept + random-slope variant. A THIRD separate nimbleFunction,
 # for the same reason as the second (NIMBLE compiles every branch of run(),
-# so a reference to sRE would break models without that node). Gate F5.2
-# measured the design: the effective response subtracts BOTH offsets, and the
-# slope offset enters multiplied by its covariate -- a different structure
-# from the intercept-only case.
+# so a reference to sRE would break models without that node). The effective
+# response subtracts BOTH offsets, and the slope offset enters multiplied by
+# its covariate -- a different structure from the intercept-only case.
 .betaS2ConjSamplerRES <- nimble::nimbleFunction(
   contains = nimble::sampler_BASE,
   setup = function(model, mvSaved, target, control) {

@@ -1,4 +1,4 @@
-test_that("defaultPrior is data-scaled (Section 9.2)", {
+test_that("defaultPrior is data-scaled", {
   spec <- NormalUvSpec()
   set.seed(1)
   y <- rnorm(500, mean = 10, sd = 3)

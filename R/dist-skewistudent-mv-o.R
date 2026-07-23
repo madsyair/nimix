@@ -124,9 +124,9 @@ setMethod("validateParams", "SkewIStudentMvOSpec",
 
 #' @describeIn simulateParams Draw components, theta uniform on Theta^2.
 setMethod("simulateParams", "SkewIStudentMvOSpec",
-  function(spec, prior, K, ...) {
-    p <- getMethod("simulateParams", "SkewIStudentMvSpec")(spec, prior, K, ...)
-    p$theta <- as.list(stats::runif(K, -prior$thetaBound, prior$thetaBound))
+  function(spec, prior, nClust, ...) {
+    p <- getMethod("simulateParams", "SkewIStudentMvSpec")(spec, prior, nClust, ...)
+    p$theta <- as.list(stats::runif(nClust, -prior$thetaBound, prior$thetaBound))
     p
   })
 
