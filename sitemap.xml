@@ -133,6 +133,7 @@
 <url><loc>https://madsyair.github.io/nimix/reference/nimixWAIC.html</loc></url>
 <url><loc>https://madsyair.github.io/nimix/reference/omega_gmsnburr.html</loc></url>
 <url><loc>https://madsyair.github.io/nimix/reference/orthogonalFactor.html</loc></url>
+<url><loc>https://madsyair.github.io/nimix/reference/plotClusterMap.html</loc></url>
 <url><loc>https://madsyair.github.io/nimix/reference/posteriorEpred.html</loc></url>
 <url><loc>https://madsyair.github.io/nimix/reference/posteriorLinpred.html</loc></url>
 <url><loc>https://madsyair.github.io/nimix/reference/posteriorPredict.html</loc></url>
@@ -140,6 +141,7 @@
 <url><loc>https://madsyair.github.io/nimix/reference/ppCheck.html</loc></url>
 <url><loc>https://madsyair.github.io/nimix/reference/ppcData.html</loc></url>
 <url><loc>https://madsyair.github.io/nimix/reference/predict-nimixEnsemble.html</loc></url>
+<url><loc>https://madsyair.github.io/nimix/reference/priorPredictive.html</loc></url>
 <url><loc>https://madsyair.github.io/nimix/reference/psm.html</loc></url>
 <url><loc>https://madsyair.github.io/nimix/reference/registerDistribution.html</loc></url>
 <url><loc>https://madsyair.github.io/nimix/reference/relabel.html</loc></url>

@@ -76,8 +76,6 @@ engine or the spec base class.</p>
 <span><span class="co"># S4 method for class 'PoissonRegSpec,DPMEngine'</span></span>
 <span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">.glmRegREPriorLines</span><span class="op">(</span>reSlope <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
-<span></span>
 <span><span class="co"># S4 method for class 'PoissonRegSpec,FixedKEngine'</span></span>
 <span><span class="fu">buildModelCode</span><span class="op">(</span><span class="va">spec</span>, <span class="va">engine</span>, <span class="va">n</span>, <span class="va">L</span>, re <span class="op">=</span> <span class="cn">FALSE</span>, reSlope <span class="op">=</span> <span class="cn">FALSE</span>, <span class="va">...</span><span class="op">)</span></span>
 <span></span>
@@ -352,16 +350,16 @@ engine or the spec base class.</p>
 <dd><p>Reserved for methods.</p></dd>
 
 
-<dt id="arg-reslope">reSlope<a class="anchor" aria-label="anchor" href="#arg-reslope"></a></dt>
-<dd><p>Logical; regression + FixedK method only – when
-<code>TRUE</code> (with <code>re = TRUE</code>), also emit sum-to-zero
-random-slope offsets <code>sRE</code> plus <code>tauSlope</code>.</p></dd>
-
-
 <dt id="arg-re">re<a class="anchor" aria-label="anchor" href="#arg-re"></a></dt>
 <dd><p>Logical; regression + FixedK method only – when <code>TRUE</code>,
 emit the random-intercept variant of the model code (sum-to-zero
 <code>b</code> offsets plus <code>tauRE</code>).</p></dd>
+
+
+<dt id="arg-reslope">reSlope<a class="anchor" aria-label="anchor" href="#arg-reslope"></a></dt>
+<dd><p>Logical; regression + FixedK method only – when
+<code>TRUE</code> (with <code>re = TRUE</code>), also emit sum-to-zero
+random-slope offsets <code>sRE</code> plus <code>tauSlope</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -380,7 +378,6 @@ emit the random-intercept variant of the model code (sum-to-zero
 <li><p><code>buildModelCode(spec = FSSTUvSpec, engine = FixedKEngine)</code>: FSST finite mixture (fixed K).</p></li>
 <li><p><code>buildModelCode(spec = FSSTUvSpec, engine = DPMEngine)</code>: FSST DPM mixture.</p></li>
 <li><p><code>buildModelCode(spec = PoissonRegSpec, engine = DPMEngine)</code>: Poisson GLM regression DPM code (log link).</p></li>
-<li><p><code>.glmRegREPriorLines()</code>: Poisson GLM regression fixed-K code (log link).</p></li>
 <li><p><code>buildModelCode(spec = PoissonRegSpec, engine = FixedKEngine)</code>: Poisson regression finite mixture (fixed K), with
 an optional random effect inside the log link (GLMM).</p></li>
 <li><p><code>buildModelCode(spec = BinomialRegSpec, engine = DPMEngine)</code>: Binomial GLM regression DPM code (logit link).</p></li>

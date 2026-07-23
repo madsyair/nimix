@@ -31,8 +31,6 @@ buildModelCode(spec, engine, n, L, ...)
 # S4 method for class 'PoissonRegSpec,DPMEngine'
 buildModelCode(spec, engine, n, L, ...)
 
-.glmRegREPriorLines(reSlope = FALSE)
-
 # S4 method for class 'PoissonRegSpec,FixedKEngine'
 buildModelCode(spec, engine, n, L, re = FALSE, reSlope = FALSE, ...)
 
@@ -307,17 +305,17 @@ buildModelCode(spec, engine, n, L, ...)
 
   Reserved for methods.
 
-- reSlope:
-
-  Logical; regression + FixedK method only – when `TRUE` (with
-  `re = TRUE`), also emit sum-to-zero random-slope offsets `sRE` plus
-  `tauSlope`.
-
 - re:
 
   Logical; regression + FixedK method only – when `TRUE`, emit the
   random-intercept variant of the model code (sum-to-zero `b` offsets
   plus `tauRE`).
+
+- reSlope:
+
+  Logical; regression + FixedK method only – when `TRUE` (with
+  `re = TRUE`), also emit sum-to-zero random-slope offsets `sRE` plus
+  `tauSlope`.
 
 ## Value
 
@@ -347,9 +345,6 @@ logical parameter names to model nodes).
 
 - `buildModelCode(spec = PoissonRegSpec, engine = DPMEngine)`: Poisson
   GLM regression DPM code (log link).
-
-- `.glmRegREPriorLines()`: Poisson GLM regression fixed-K code (log
-  link).
 
 - `buildModelCode(spec = PoissonRegSpec, engine = FixedKEngine)`:
   Poisson regression finite mixture (fixed K), with an optional random

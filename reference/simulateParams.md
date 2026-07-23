@@ -8,34 +8,34 @@ Simulate component parameters from a prior (for inits / recovery tests)
 simulateParams(spec, prior, nClust, ...)
 
 # S4 method for class 'FSSNUvSpec'
-simulateParams(spec, prior, K, ...)
+simulateParams(spec, prior, nClust, ...)
 
 # S4 method for class 'FOSSEPUvSpec'
-simulateParams(spec, prior, K, ...)
+simulateParams(spec, prior, nClust, ...)
 
 # S4 method for class 'FSSTUvSpec'
-simulateParams(spec, prior, K, ...)
+simulateParams(spec, prior, nClust, ...)
 
 # S4 method for class 'GMSNBurrUvSpec'
-simulateParams(spec, prior, K, ...)
+simulateParams(spec, prior, nClust, ...)
 
 # S4 method for class 'NormalRegSpec'
 simulateParams(spec, prior, nClust, ...)
 
 # S4 method for class 'JFSTUvSpec'
-simulateParams(spec, prior, K, ...)
+simulateParams(spec, prior, nClust, ...)
 
 # S4 method for class 'SEPUvSpec'
-simulateParams(spec, prior, K, ...)
+simulateParams(spec, prior, nClust, ...)
 
 # S4 method for class 'LEPUvSpec'
-simulateParams(spec, prior, K, ...)
+simulateParams(spec, prior, nClust, ...)
 
 # S4 method for class 'MSNBurrUvSpec'
-simulateParams(spec, prior, K, ...)
+simulateParams(spec, prior, nClust, ...)
 
 # S4 method for class 'MSNBurr2aUvSpec'
-simulateParams(spec, prior, K, ...)
+simulateParams(spec, prior, nClust, ...)
 
 # S4 method for class 'NormalMvSpec'
 simulateParams(spec, prior, nClust, ...)
@@ -50,22 +50,22 @@ simulateParams(spec, prior, nClust, ...)
 simulateParams(spec, prior, nClust, ...)
 
 # S4 method for class 'SkewNormalMvSpec'
-simulateParams(spec, prior, K, ...)
+simulateParams(spec, prior, nClust, ...)
 
 # S4 method for class 'SkewNormalMvOSpec'
-simulateParams(spec, prior, K, ...)
+simulateParams(spec, prior, nClust, ...)
 
 # S4 method for class 'SkewIStudentMvSpec'
-simulateParams(spec, prior, K, ...)
+simulateParams(spec, prior, nClust, ...)
 
 # S4 method for class 'SkewIStudentMvOSpec'
-simulateParams(spec, prior, K, ...)
+simulateParams(spec, prior, nClust, ...)
 
 # S4 method for class 'SkewNormalMvOGenSpec'
-simulateParams(spec, prior, K, ...)
+simulateParams(spec, prior, nClust, ...)
 
 # S4 method for class 'SkewIStudentMvOGenSpec'
-simulateParams(spec, prior, K, ...)
+simulateParams(spec, prior, nClust, ...)
 
 # S4 method for class 'StudentTUvSpec'
 simulateParams(spec, prior, nClust, ...)

@@ -113,7 +113,6 @@ The public S4 contract a component spec implements so a new family plugs
 into every engine without engine edits.
 
 - [`buildModelCode()`](https://madsyair.github.io/nimix/reference/buildModelCode.md)
-  [`.glmRegREPriorLines()`](https://madsyair.github.io/nimix/reference/buildModelCode.md)
   : Build the NIMBLE model code for a (distribution, engine) pair
 - [`defaultPrior()`](https://madsyair.github.io/nimix/reference/defaultPrior.md)
   : Build a data-scaled default prior for a distribution
@@ -127,6 +126,8 @@ into every engine without engine edits.
   Posterior similarity matrix
 - [`binderPartition()`](https://madsyair.github.io/nimix/reference/binderPartition.md)
   : Binder-loss point partition (Dahl's least-squares criterion)
+- [`plotClusterMap()`](https://madsyair.github.io/nimix/reference/plotClusterMap.md)
+  : Map the clusters of a spatial mixture fit
 - [`clusterValidity()`](https://madsyair.github.io/nimix/reference/clusterValidity.md)
   : Internal validity indices for a fitted clustering
 - [`viterbiPath()`](https://madsyair.github.io/nimix/reference/viterbiPath.md)
@@ -344,6 +345,8 @@ summary().
 
 - [`ppCheck()`](https://madsyair.github.io/nimix/reference/ppCheck.md) :
   Posterior predictive check
+- [`priorPredictive()`](https://madsyair.github.io/nimix/reference/priorPredictive.md)
+  : Prior predictive check for a mixture model
 - [`posteriorPredict()`](https://madsyair.github.io/nimix/reference/posteriorPredict.md)
   : Posterior predictive replicates
 - [`drawsArray()`](https://madsyair.github.io/nimix/reference/drawsArray.md)

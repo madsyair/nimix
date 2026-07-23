@@ -78,7 +78,9 @@ fixed value) is planned for a later 1.x release.</p>
 
 
 <dt id="arg-estimatebeta">estimateBeta<a class="anchor" aria-label="anchor" href="#arg-estimatebeta"></a></dt>
-<dd><p>Logical; estimate beta by pseudo-likelihood Metropolis.</p></dd>
+<dd><p>Logical; estimate beta by pseudo-likelihood Metropolis
+(Besag 1975). Approximate: beta is drawn from a pseudo-posterior, since the
+exact Potts partition function is intractable.</p></dd>
 
 
 <dt id="arg-betamax">betaMax<a class="anchor" aria-label="anchor" href="#arg-betamax"></a></dt>
@@ -100,7 +102,11 @@ fixed value) is planned for a later 1.x release.</p>
 
 <dt><code>estimateBeta</code></dt>
 <dd><p>Logical; update <code>beta</code> by pseudo-likelihood
-Metropolis (Besag 1975) instead of holding it fixed.</p></dd>
+Metropolis (Besag 1975) instead of holding it fixed. The Potts partition
+function is intractable, so this substitutes Besag's pseudo-likelihood:
+draws of <code>beta</code> come from a pseudo-posterior rather than the exact
+posterior. Inference on the labels and component parameters given
+<code>beta</code> is unaffected.</p></dd>
 
 
 <dt><code>betaMax</code></dt>

@@ -29,7 +29,9 @@ MRFEngine(beta = 0.8, spatial, estimateBeta = FALSE, betaMax = 2)
 
 - estimateBeta:
 
-  Logical; estimate beta by pseudo-likelihood Metropolis.
+  Logical; estimate beta by pseudo-likelihood Metropolis (Besag 1975).
+  Approximate: beta is drawn from a pseudo-posterior, since the exact
+  Potts partition function is intractable.
 
 - betaMax:
 
@@ -51,7 +53,11 @@ MRFEngine(beta = 0.8, spatial, estimateBeta = FALSE, betaMax = 2)
 - `estimateBeta`:
 
   Logical; update `beta` by pseudo-likelihood Metropolis (Besag 1975)
-  instead of holding it fixed.
+  instead of holding it fixed. The Potts partition function is
+  intractable, so this substitutes Besag's pseudo-likelihood: draws of
+  `beta` come from a pseudo-posterior rather than the exact posterior.
+  Inference on the labels and component parameters given `beta` is
+  unaffected.
 
 - `betaMax`:
 
